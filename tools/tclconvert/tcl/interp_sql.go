@@ -459,6 +459,13 @@ func (i *Interp) scriptProcs(script string) []Proc {
 					collect(w.Text[1 : len(w.Text)-1])
 					continue
 				}
+				// Control-flow bodies are braced words (`for {set i 0} {...}
+				// {lappend l [expr [myrand] % 256]}`): the body is a script
+				// whose procs the harness interpreter needs as well.
+				if strings.HasPrefix(w.Text, "{") && strings.HasSuffix(w.Text, "}") {
+					collect(w.Text[1 : len(w.Text)-1])
+					continue
+				}
 				if len(cmd) == 0 || w.Text != cmd[0].Text {
 					continue
 				}

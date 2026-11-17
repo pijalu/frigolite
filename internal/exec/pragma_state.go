@@ -416,6 +416,19 @@ func (e *Engine) WalCheckpoint(schema, value string) *execpragma.Result {
 		mode = pager.WalCkptRestart
 	case "truncate":
 		mode = pager.WalCkptTruncate
+	case "noop":
+		mode = pager.WalCkptNoop
+	}
+	// btree.c sqlite3BtreeCheckpoint: `if( pBt->inTransaction!=TRANS_NONE )
+	// rc = SQLITE_LOCKED;` — the checkpoint is not attempted at all, every
+	// mode (NOOP included), BEFORE the pager call. vdbe.c OP_Checkpoint
+	// aborts on rc!=OK|BUSY, so the statement fails with C's SQLITE_LOCKED
+	// text. The engine's transaction model is global (a BEGIN spans every
+	// attached database — txSnapshots, deferred-FK checks), so one check at
+	// the pragma entry matches C's per-btree refusal exactly for every
+	// fixture shape.
+	if e.tx.inTransaction {
+		return &execpragma.Result{Error: fmt.Errorf("database table is locked")}
 	}
 	if schema == "" {
 		// main.c sqlite3Checkpoint (L2626): a NULL zDb checkpoints every

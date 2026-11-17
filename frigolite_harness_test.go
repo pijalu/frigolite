@@ -306,11 +306,11 @@ type TestStep struct {
 	Type                 string            `json:"type"`
 	SQL                  string            `json:"sql,omitempty"`
 	Variable             string            `json:"variable,omitempty"`
-	ResultAll            bool              `json:"resultAll,omitempty"`  // Tcl execsql/db eval yield the whole row
-	ResultRows           bool              `json:"resultRows,omitempty"` // the variable holds every row (a Tcl list of rows)
-	ResultFlat           bool              `json:"resultFlat,omitempty"` // db eval's flat-list form: every row's columns appended in order
+	ResultAll            bool              `json:"resultAll,omitempty"`       // Tcl execsql/db eval yield the whole row
+	ResultRows           bool              `json:"resultRows,omitempty"`      // the variable holds every row (a Tcl list of rows)
+	ResultFlat           bool              `json:"resultFlat,omitempty"`      // db eval's flat-list form: every row's columns appended in order
 	RawVarExpansion      bool              `json:"rawVarExpansion,omitempty"` // $vars substitute VERBATIM (TCL double-quoted semantics — index9's IN ($in))
-	ExplainBody          string            `json:"explainBody,omitempty"` // explain_rows: the per-row Tcl callback body (index9's sqluses); the generic "body" key belongs to the faultsim trial's step list
+	ExplainBody          string            `json:"explainBody,omitempty"`     // explain_rows: the per-row Tcl callback body (index9's sqluses); the generic "body" key belongs to the faultsim trial's step list
 	StmtStatus           bool              `json:"stmtStatus,omitempty"`
 	StatusStyle          string            `json:"statusStyle,omitempty"` // "bare" renders the counters as "N M" (where8's execsql_status); "" renders "scan N sort M" (where7)
 	SearchCount          bool              `json:"searchCount,omitempty"` // reset SQLITE_TEST's search counter before the query and append it after (where8's execsql_status2)
@@ -5837,6 +5837,80 @@ func TestSQLiteSuite(t *testing.T) {
 									}
 								}
 							}
+							// A fixture-proc UDF (`db func myrandomblob
+							// myrandomblob`, walckptnoop.test:44): the callback is
+							// a Tcl procedure evaluated per call in a fixture
+							// interpreter — the register_busy_handler round trip
+							// (S25). Go-native re-implementations of proc bodies
+							// drift (myrandomblob's LCG helper myrand is fixture
+							// state); the interpreter runs the captured bodies
+							// verbatim.
+							var fnProc *callbackProc
+							for i := range step.CallbackProcs {
+								if strings.TrimPrefix(step.CallbackProcs[i].Name, "::") == strings.TrimPrefix(step.FunctionProc, "::") {
+									fnProc = &step.CallbackProcs[i]
+								}
+							}
+							if step.FunctionProc != "" && fnProc != nil {
+								fnInterp := tcl.NewInterp()
+								fnProcs := make([]tcl.Proc, 0, len(step.CallbackProcs))
+								for i := range step.CallbackProcs {
+									p := step.CallbackProcs[i]
+									fnProcs = append(fnProcs, tcl.Proc{Name: strings.TrimPrefix(p.Name, "::"), Args: p.Args, Body: p.Body})
+								}
+								fnInterp.LoadProcedures(fnProcs)
+								registerInterpDBCommands(fnInterp, execDB, namedDBs, fixtureDBDir)
+								fnTargets := map[string]bool{}
+								for i := range step.CallbackProcs {
+									for _, name := range tcl.NotifyScriptVarTargets(step.CallbackProcs[i].Body) {
+										fnTargets[name] = true
+									}
+								}
+								fnName := strings.TrimPrefix(fnProc.Name, "::")
+								fnMin, fnMax := step.MinArgs, step.MaxArgs
+								if fnMin == 0 && fnMax == 0 && len(fnProc.Args) > 0 {
+									fnMin, fnMax = len(fnProc.Args), len(fnProc.Args)
+								}
+								execDB.RegisterFunctionFlags(step.FunctionName, func(args []interface{}) (interface{}, error) {
+									for name := range fnTargets {
+										if v, ok := runtimeVars[name]; ok {
+											fnInterp.SetVariable(name, v)
+										}
+									}
+									tclArgs := make([]string, len(args))
+									for i, arg := range args {
+										tclArgs[i] = formatHarnessValue("", arg)
+									}
+									answer, ierr := fnInterp.InvokeProcedure(fnName, tclArgs...)
+									for name := range fnTargets {
+										if v, ok := fnInterp.Variable(name); ok {
+											runtimeVars[name] = v
+										} else if v, ok := fnInterp.Variable("::" + name); ok {
+											runtimeVars[name] = v
+										}
+									}
+									if ierr != nil {
+										return nil, fmt.Errorf("function %s: %v", step.FunctionName, ierr)
+									}
+									// tclsqlite.c binds a byte-array Tcl result
+									// (binary format's product) as BLOB and a
+									// string result as TEXT; the interpreter hands
+									// back the string form only, so the byte-range
+									// test recovers the choice.
+									blob := false
+									for i := 0; i < len(answer); i++ {
+										if answer[i] < 0x20 || answer[i] > 0x7e {
+											blob = true
+											break
+										}
+									}
+									if blob {
+										return []byte(answer), nil
+									}
+									return answer, nil
+								}, fnMin, fnMax, false, false)
+								continue
+							}
 							registerTCLIdentityFunction(t, execDB, step, runtimeVars)
 						case "register_test_funcs":
 							registerTest1Functions(t, execDB)
@@ -5940,12 +6014,12 @@ func TestSQLiteSuite(t *testing.T) {
 								continue
 							}
 							got, evalErr := evalHarnessRuntimeExpr(step.SQL, runtimeVars, func(name string) string {
-							path, pathErr := fixtureLifecyclePath(fixtureDBDir, name)
-							if pathErr != nil {
-								return name // os.Stat reports the original name's error
-							}
-							return path
-						})
+								path, pathErr := fixtureLifecyclePath(fixtureDBDir, name)
+								if pathErr != nil {
+									return name // os.Stat reports the original name's error
+								}
+								return path
+							})
 							if evalErr != nil {
 								t.Errorf("runtime expression error: %v\n  expr: %s", evalErr, step.SQL)
 								return

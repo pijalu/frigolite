@@ -773,6 +773,12 @@ func (w *walWriter) walRestartHdrLocked(truncate bool) error {
 type WalCheckpointMode int
 
 const (
+	// WalCkptNoop is SQLITE_CHECKPOINT_NOOP (sqlite.h.in:10060): do no work
+	// at all — report {0, mxFrame, nBackfill} from the refreshed wal-index
+	// header without taking the CKPT lock or running the passes. C's
+	// ordering NOOP(-1) < PASSIVE(0) is load-bearing (eMode<=PASSIVE passes
+	// xBusyHandler=0, pager.c sqlite3PagerCheckpoint).
+	WalCkptNoop     WalCheckpointMode = -1
 	WalCkptPassive  WalCheckpointMode = 0
 	WalCkptFull     WalCheckpointMode = 1
 	WalCkptRestart  WalCheckpointMode = 2
@@ -807,42 +813,47 @@ func (w *walWriter) checkpoint(mode WalCheckpointMode) (busy, nLog, nCkpt int, e
 	if mode == WalCkptPassive {
 		session.handler = nil
 	}
-	if !w.ckptLock {
-		// wal.c:4319 — the CKPT lock is taken directly.
-		if berr := w.walLockExclusive(walLockCkpt, 1); berr != nil {
-			if errors.Is(berr, errWalBusy) {
-				return 1, -1, -1, nil
-			}
-			return 0, 0, 0, berr
-		}
-		w.ckptLock = true
-		defer func() {
-			if w.ckptLock {
-				w.walUnlockExclusive(walLockCkpt, 1)
-				w.ckptLock = false
-			}
-		}()
-	}
-	// wal.c:4334-4343 — the WRITER lock for non-PASSIVE modes, the busy
-	// handler invoked between contended attempts. SQLITE_BUSY demotes the
-	// whole run to PASSIVE with the handler disabled.
+	// wal.c:4318 — NOOP skips the CKPT lock entirely (and with it the
+	// WRITER lock and the passes); only the header refresh and the report
+	// run.
 	mode2 := mode
-	if mode != WalCkptPassive && !w.writeLock {
-		if berr := w.walBusyLockHandler(walLockWrite, 1, session); berr != nil {
-			if errors.Is(berr, errWalBusy) {
-				mode2 = WalCkptPassive
-				session.handler = nil
-			} else {
+	if mode != WalCkptNoop {
+		if !w.ckptLock {
+			// wal.c:4319 — the CKPT lock is taken directly.
+			if berr := w.walLockExclusive(walLockCkpt, 1); berr != nil {
+				if errors.Is(berr, errWalBusy) {
+					return 1, -1, -1, nil
+				}
 				return 0, 0, 0, berr
 			}
-		} else {
-			w.writeLock = true
+			w.ckptLock = true
 			defer func() {
-				if w.writeLock {
-					w.walUnlockExclusive(walLockWrite, 1)
-					w.writeLock = false
+				if w.ckptLock {
+					w.walUnlockExclusive(walLockCkpt, 1)
+					w.ckptLock = false
 				}
 			}()
+		}
+		// wal.c:4334-4343 — the WRITER lock for non-PASSIVE modes, the busy
+		// handler invoked between contended attempts. SQLITE_BUSY demotes the
+		// whole run to PASSIVE with the handler disabled.
+		if mode != WalCkptPassive && !w.writeLock {
+			if berr := w.walBusyLockHandler(walLockWrite, 1, session); berr != nil {
+				if errors.Is(berr, errWalBusy) {
+					mode2 = WalCkptPassive
+					session.handler = nil
+				} else {
+					return 0, 0, 0, berr
+				}
+			} else {
+				w.writeLock = true
+				defer func() {
+					if w.writeLock {
+						w.walUnlockExclusive(walLockWrite, 1)
+						w.writeLock = false
+					}
+				}()
+			}
 		}
 	}
 	// The wal-index header refresh and every pass state mutation run in
@@ -855,7 +866,9 @@ func (w *walWriter) checkpoint(mode WalCheckpointMode) (busy, nLog, nCkpt int, e
 	}); err != nil {
 		return busy, nLog, nCkpt, err
 	}
-	busy, err = w.checkpointPasses(mode2, session)
+	if mode != WalCkptNoop {
+		busy, err = w.checkpointPasses(mode2, session)
+	}
 	err2 := w.wi.WriterSection(func() error {
 		// Result triple from the final state (sqlite3WalCheckpoint tail):
 		// nLog = mxFrame, nCkpt = nBackfill — both 0 after a RESTART reset.

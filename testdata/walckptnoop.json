@@ -22,11 +22,17 @@
           },
           "callbackProcs": [
             {
+              "Name": "myrand",
+              "Args": [],
+              "Body": "\n  global VAL\n\n  set A 1103515245\n  set C 12345\n  set M 2147483648\n\n  set VAL [expr {($A * $VAL + $C) % $M}]\n  return $VAL\n",
+              "Defaults": null
+            },
+            {
               "Name": "myrandomblob",
               "Args": [
                 "n"
               ],
-              "Body": "\n  set l [list]\n  for {set i 0} {$i \u003c $n} {incr i} {\n    lappend l [expr [myrand] % 256]\n  }\n  binary format c* $l\n",
+              "Body": "\n  set l [list]\n  for {set i 0} {$i < $n} {incr i} {\n    lappend l [expr [myrand] % 256]\n  }\n  binary format c* $l\n",
               "Defaults": null
             }
           ],
@@ -34,7 +40,7 @@
           "functionArgs": [
             "n"
           ],
-          "functionBody": "\n  set l [list]\n  for {set i 0} {$i \u003c $n} {incr i} {\n    lappend l [expr [myrand] % 256]\n  }\n  binary format c* $l\n",
+          "functionBody": "\n  set l [list]\n  for {set i 0} {$i < $n} {incr i} {\n    lappend l [expr [myrand] % 256]\n  }\n  binary format c* $l\n",
           "minArgs": 1,
           "maxArgs": -1
         }
@@ -45,7 +51,7 @@
       "steps": [
         {
           "type": "query",
-          "sql": "PRAGMA page_size=1024;\n  PRAGMA auto_vacuum=NONE;\n  PRAGMA secure_delete=OFF;\n  VACUUM;\n  CREATE TABLE t1(x INTEGER PRIMARY KEY, y TEXT);\n  CREATE INDEX i1 ON t1(y);\n  PRAGMA journal_mode = wal;\n\n  WITH s(i) AS (\n    SELECT 1 UNION ALL SELECT i+1 FROM s WHERE i\u003c1000\n  )\n  INSERT INTO t1 SELECT NULL, hex(myrandomblob(64)) FROM s;",
+          "sql": "PRAGMA page_size=1024;\n  PRAGMA auto_vacuum=NONE;\n  PRAGMA secure_delete=OFF;\n  VACUUM;\n  CREATE TABLE t1(x INTEGER PRIMARY KEY, y TEXT);\n  CREATE INDEX i1 ON t1(y);\n  PRAGMA journal_mode = wal;\n\n  WITH s(i) AS (\n    SELECT 1 UNION ALL SELECT i+1 FROM s WHERE i<1000\n  )\n  INSERT INTO t1 SELECT NULL, hex(myrandomblob(64)) FROM s;",
           "expect": "0 wal"
         }
       ]
