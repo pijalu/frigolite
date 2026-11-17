@@ -3489,6 +3489,19 @@ func TestSQLiteSuite(t *testing.T) {
 					if step.Type == "open_empty_db" {
 						usesReopen = true
 					}
+					// `sqlite3 db2 test.db` (wal9.test:23, walcrash2.test): a
+					// named handle on the lifecycle file shares it with main
+					// (tester.tcl reopen_db's test.db) — main must be the
+					// file-backed test.db too, or the two connections run on
+					// different databases and db2 misses every table main
+					// created. Memory/empty targets and shared-memory URIs
+					// never name the lifecycle file (the runtime handler
+					// routes them away from it).
+					if step.Type == "open_named_db" {
+						if _, shared := sharedMemURI(step.SQL); !shared && normalizeFixtureDBName(step.SQL) == "test.db" {
+							usesReopen = true
+						}
+					}
 				}
 			}
 			if usesReopen {
