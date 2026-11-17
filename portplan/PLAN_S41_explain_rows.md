@@ -274,6 +274,25 @@ TestSOLID_ ./...` + TestS22_ after every engine stage. Quality gate
   NEW=0, date/notify1/where8/with1/rtree2/rtreedoc/tabfunc01/carray/dbstat/
   dbpage/keyword1 = baseline.
 
+- **Stage 4 + the full gate (2026-11-17)** — where2 closed in Stage 1;
+  bestindexF's 2.3.0/2.4.0/2.5.0 (the vtab DISTINCT/orderby handshake:
+  where.c's eDistinct 1/2/3 → the module's idxStr-DISTINCT consumption →
+  the ephemeral suppression) + the .1/.2/1.4.1 xBestIndex-globals = S43
+  (Bucket B). The full-suite gate (2288s, no stuck tests) vs the 1,317-leaf
+  baseline: **1281 failing, 61 GONE, 25 NEW — all 25 exposed vacuous
+  passes**: the plain-EXPLAIN query_assign captures that the old exec path
+  silently dropped. distinctagg's 18 C-table-backed hand-pins (the
+  lsearch-OpenEphemeral pattern) fixed 13; the 5 residual
+  (distinctagg-3.3.1/3.8.1/4.2.1/4.3.1/4.5.1) need the DISTINCT-aggregate
+  ordered-input optimization (C skips the accumulator ephemeral only when
+  the DISTINCT argument arrives sorted — select.c's ordered-input rule);
+  trigger7-2.1..2.6 (6) need trigger SUB-PROGRAM rows in the stream (C's
+  EXPLAIN UPDATE renders the matching triggers' compiled bodies — the
+  string-match on the trigger SQL text); misc3-6.11-utf8 (1) needs
+  expression-constant load rows (C's OP_Integer p1 / OP_Real p4 rendering
+  of the SELECT-list constants). 12 exposed-failing leaves = the S41-2
+  residual; the stream surfaces are honest, not vacuous.
+
 ## Carded / out of scope
 
 - indexexpr2 1.2, 3.4.5eqp, 4.120, 4.130, 11.0 (Bucket C).

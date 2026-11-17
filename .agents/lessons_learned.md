@@ -1824,3 +1824,23 @@ everywhere; go vet + go build clean.
   C proc's `array unset ::T` runs before every db eval — the explain_rows
   handler clears the array targets' runtime keys before the push (the pull
   then cannot resurrect stale keys; the clear must precede the push).
+- **Exposing vacuous passes is the right direction even when the net goes
+  negative locally (S41 full gate)**: the plain-EXPLAIN query_assign
+  captures (distinctagg/trigger7/misc3) had been passing vacuously for
+  months — the exec path dropped their converter-era misattributed expects.
+  The capture change surfaced 25 leaves; 13 fixed with C-table-backed
+  hand-pins, 12 recorded as honest residuals (the DISTINCT-aggregate
+  accumulator, trigger sub-programs, constant-load rows in the stream).
+  The full-suite gate caught all three classes that the family sweeps
+  could not (distinctagg/misc3/trigger7 are outside every swept substring).
+- **distinctagg's lsearch contract distinguishes count(DISTINCT x)
+  ordered-input service**: C opens the accumulator ephemeral ONLY when the
+  DISTINCT argument is NOT delivered sorted (3.1 count(DISTINCT a) with the
+  a-index → 0; 3.3 count(DISTINCT c) with the (b,c) index → 1). The stream
+  must mirror the planner's DISTINCT-coverage decision, and the 5-leaf
+  residual is the ordered-input optimization itself.
+- **distinctagg/where2-style query_assign steps with misattributed expects
+  are converter-era artifacts**: the C do_test's result is a COMPUTED value
+  ([expr {$idx>=0}] / the previous capture) that the converter attached to
+  the capture step. Hand-pins restore the C sequence: capture (no expect) +
+  runtime_expr (the computation) + runtime_var (the expect).
