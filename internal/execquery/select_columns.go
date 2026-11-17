@@ -44,11 +44,16 @@ func (e *SelectEngine) viewFallbackColumnNames(tableName string) ([]string, erro
 
 // eponymousModuleColumnNames reports the visible (non-hidden) column names of
 // an eponymous vtab module's implicit instance. ok is false when tableName
-// does not name an eponymous module.
+// does not name an eponymous module — or names a real schema table/view,
+// which shadows the module (sqlite3FindTable resolves before the eponymous
+// fallback; keyword1-explain.1's CREATE TABLE explain).
 func (e *SelectEngine) eponymousModuleColumnNames(tableName string) ([]string, bool) {
 	name := strings.ToLower(tableName)
 	if dot := strings.LastIndex(name, "."); dot >= 0 {
 		name = name[dot+1:]
+	}
+	if e.schemaObjectExists(tableName) {
+		return nil, false
 	}
 	module, ok := e.ctx.VTables().Find(name)
 	if !ok || !vtab.ModuleIsEponymous(module) {

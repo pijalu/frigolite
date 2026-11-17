@@ -1776,3 +1776,21 @@ everywhere; go vet + go build clean.
   target is vacuous — EXPLAIN assertions ride where/select/index families.
   The sweep-diff must filter by families that RAN (=== RUN sets), else every
   unrun baseline family shows up as phantom GONE.
+- **Eponymous modules must not shadow real schema objects (S41 Stage 2)**:
+  registering the explain() TVF broke keyword1-explain.1 —
+  `CREATE TABLE explain(explain explain)` + `SELECT * FROM explain` resolved
+  to the TVF (zero rows) instead of the real table. C resolves a FROM name
+  through sqlite3FindTable (schema hash) FIRST; the eponymous-vtab fallback
+  fires only on a miss. The guard must sit on ALL FOUR eponymous probes
+  (dispatch, SELECT * columns, materialization, PRAGMA table_info) — and
+  every new eponymous module needs the keyword-collision check
+  (FRIGOLITE_TEST=keyword1) before commit.
+- **FRIGOLITE_TEST matches LEAF names, not family paths**: a probe of
+  `keyword1-explain` matched nothing (the leaf name carries no such
+  substring — family context requires the FAMILY name `keyword1`). Also:
+  `grep -c '^--- FAIL'` counts the family-level FAIL parent marker too —
+  extract leaves with the python raw byte scan only.
+- **The explain TVF's non-TEXT argv contract is observable**: explain(123)
+  renders ZERO rows (C xFilter checks sqlite3_value_type != SQLITE_TEXT →
+  rc=DONE), not a prepare error — needs the ValueModule typed-args path, not
+  the string-rendered argv.

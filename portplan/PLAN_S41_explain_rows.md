@@ -287,6 +287,18 @@ TestSOLID_ ./...` + TestS22_ after every engine stage. Quality gate
   autoindex*/e_reindex) NEW=0 GONE=0; vacuum NEW=0 (vacuum-into-500 GONE =
   the carded watchlist dither). No `explain`-named families exist in the
   fixture set — EXPLAIN assertions ride the where/select/index families.
-- **Stage 2 next**: the explain() TVF (eponymous vtab over the same
-  stream) — port of ext/misc/explain.c (xBestIndex sql-EQ → idxNum 1,
-  xFilter non-TEXT → DONE).
+- **Stage 2 COMPLETE (2026-11-17)** — `internal/vtab/explain.go` +
+  `internal/exec/vtab_explain.go` + registration: the explain() TVF port of
+  ext/misc/explain.c (EponymousOnly module, ValueModule for typed args —
+  non-TEXT argv → zero rows, HiddenConstraintSetter for the sql= WHERE form,
+  rowid = addr). **indexexpr2-4.200/4.210/4.220/4.900 green** (the family is
+  9 → 5; the residue is Bucket C).
+- **Eponymous shadowing rule added**: a REAL schema table/view named like a
+  module wins over the eponymous FROM fallback (sqlite3FindTable resolves
+  before the eponymous registry) — keyword1-explain.1's
+  `CREATE TABLE explain(explain explain)` had been shadowed by the new TVF.
+  Guard added to all four probes (execquery eponymousModuleResolvable/
+  eponymousModuleColumnNames, exec tryMaterializeEponymousVtab/
+  eponymousVtabColDefs). Sweeps: tabfunc01 0, with2 =baseline 6, join8
+  =baseline 2, carray 0, dbstat-substring =baseline, dbpage 0, keyword1
+  green, indexexpr NEW=0 GONE=4.

@@ -169,10 +169,16 @@ func matchHiddenEquality(op *sql.BinaryOp, names map[string]bool) (col string, v
 // not an eponymous module, letting the caller fall back to ordinary table
 // resolution; schema-prefixed names (main.generate_series) are resolved by
 // stripping the prefix because an eponymous table exists in every schema.
+// A REAL schema table or view of the same name wins (sqlite3FindTable
+// resolves before the eponymous-vtab fallback — keyword1-explain.1's
+// CREATE TABLE explain).
 func (e *Engine) tryMaterializeEponymousVtab(ref sql.TableRef, opts execquery.VtabScanOptions) ([]sql.ColumnDef, [][]interface{}, []int64, error, bool) {
 	name := strings.ToLower(ref.Name)
 	if dot := strings.LastIndex(name, "."); dot >= 0 {
 		name = name[dot+1:]
+	}
+	if e.schemaObjectExists(ref.Name) {
+		return nil, nil, nil, nil, false
 	}
 	module, ok := e.vtabs.Find(name)
 	if !ok {
@@ -211,14 +217,31 @@ func (e *Engine) vtabColumnDefsFromModule(module vtab.Module, strArgs []string, 
 	return vtabColumnDefs(vt, rows), nil
 }
 
+// schemaObjectExists reports whether a real table or view with the given
+// name is in the schema (any schema): C's name resolution consults the
+// schema hash before the eponymous-vtab fallback.
+func (e *Engine) schemaObjectExists(name string) bool {
+	if entry, _, err := e.FindTable(name); err == nil && entry != nil {
+		return true
+	}
+	if entry, _, err := e.FindView(name); err == nil && entry != nil {
+		return true
+	}
+	return false
+}
+
 // eponymousVtabColDefs reports the column definitions (hidden columns
 // included and flagged) of an eponymous-only module's implicit table for
 // PRAGMA table_xinfo / table_info. found is false when tableName does not
-// name an eponymous module.
+// name an eponymous module — or names a real schema table/view, which
+// shadows the module.
 func (e *Engine) eponymousVtabColDefs(tableName string) (colDefs []sql.ColumnDef, found bool, err error) {
 	name := strings.ToLower(tableName)
 	if dot := strings.LastIndex(name, "."); dot >= 0 {
 		name = name[dot+1:]
+	}
+	if e.schemaObjectExists(tableName) {
+		return nil, false, nil
 	}
 	module, ok := e.vtabs.Find(name)
 	if !ok {

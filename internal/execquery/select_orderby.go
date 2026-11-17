@@ -525,14 +525,33 @@ func (e *SelectEngine) declaredOrderByCollation(obExpr sql.Expr) string {
 
 // eponymousModuleResolvable reports whether name resolves to an eponymous
 // vtab module's implicit FROM source (prepare-time name resolution for
-// scalar subqueries).
+// scalar subqueries). A REAL schema table or view of the same name wins:
+// C's name resolution consults the schema hash (sqlite3FindTable) before the
+// eponymous-vtab fallback, so keyword1-explain.1's CREATE TABLE explain
+// shadows the explain() module.
 func (e *SelectEngine) eponymousModuleResolvable(name string) bool {
 	lower := strings.ToLower(name)
 	if dot := strings.LastIndex(lower, "."); dot >= 0 {
 		lower = lower[dot+1:]
 	}
+	if e.schemaObjectExists(name) {
+		return false
+	}
 	module, ok := e.ctx.VTables().Find(lower)
 	return ok && vtab.ModuleIsEponymous(module)
+}
+
+// schemaObjectExists reports whether a real table or view with the given
+// name is in the schema (any schema — eponymous module names resolve per
+// schema too).
+func (e *SelectEngine) schemaObjectExists(name string) bool {
+	if entry, _, err := e.ctx.FindTable(name); err == nil && entry != nil {
+		return true
+	}
+	if entry, _, err := e.ctx.FindView(name); err == nil && entry != nil {
+		return true
+	}
+	return false
 }
 
 // orderTermAliasExpr resolves an ORDER BY term that names a SELECT-list
