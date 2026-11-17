@@ -169,23 +169,73 @@ func openWal(p *Pager, dbPath string, pageSize uint32) (*walWriter, error) {
 // through the WRITER-lock dance when it does not parse) and adopts the WAL
 // file's header state into the writer.
 //
-// C's walIndexTryHdr (wal.c:2580-2625) trusts a parsed shared header
-// (isInit + the header's own checksums) with NO file re-check on the
-// real-shm path; the file salts are consulted only in RECOVERY
-// (walIndexRecover, from the FILE's own header) and in the heap-memory path
-// (wal.c:2851). A shared header outliving its -wal file (a restarted WAL)
-// therefore serves raw frame reads at the mapped offsets — wal6-4.4.2's
-// zeroed-WAL scenario: db2's reopen adopts db's live index, t1's
-// checkpointed page is served from the main db (minFrame = nBackfill+1)
-// and t2's un-checkpointed frame reads back the zeroed image the btree
-// rejects ("database disk image is malformed"). The prior stale-gate
-// rebuild (salts vs the -wal file header) voided the log on every reopen
-// beside a zeroed/garbage -wal header and never matched C.
+// The two C paths split exactly:
+//   - The REAL-SHM path trusts a parsed shared header (isInit + the header's
+//     own checksums) with NO file re-check — walIndexTryHdr (wal.c:2580-2625).
+//     wal6-4.4.2's zeroed-WAL scenario: db2's reopen adopts db's live index,
+//     t1's checkpointed page is served from the main db (minFrame =
+//     nBackfill+1) and t2's un-checkpointed frame reads back the zeroed
+//     image the btree rejects ("database disk image is malformed"). A gate
+//     here (salts/capacity vs the -wal file) voided the log on every reopen
+//     beside a zeroed/garbage -wal header and never matched C.
+//   - The HEAP-MEMORY path re-validates the header against the "-wal" file
+//     (wal.c begin_unreliable_shm: "some writer has come in and changed the
+//     WAL file out from under us, then disconnected" — the salt check at
+//     wal.c:2849-2861 returns WAL_RETRY, rebuilding the heap index from the
+//     file). The heap index outlives file resets it did not author —
+//     walfault-15's faultsim trials: a faulted exclusive transaction leaves
+//     the heap header at mxFrame 15482 beside a reset 32-byte log, and the
+//     next restore+reopen must rebuild from the file, not read frame 15475
+//     of a 32-byte log.
 func (w *walWriter) walInitHeader() error {
 	if _, err := w.walIndexReadHdr(); err != nil {
 		return err
 	}
+	if os.Getenv("FRIGOLITE_WALDBG") != "" {
+		if info, serr := w.file.Stat(); serr == nil {
+			fmt.Fprintf(os.Stderr, "WALDBG init hdr mx=%d heap=%v walsz=%d\n", w.hdr.MxFrame, w.heapMemory, info.Size())
+		}
+	}
+	if w.heapMemory {
+		stale := false
+		_ = w.wi.WriterSection(func() error {
+			stale = w.hdr.MxFrame > 0 && !w.walFileHeaderSaltsMatchLocked()
+			return nil
+		})
+		if stale {
+			if err := w.walRecoverWithWriterLock(); err != nil {
+				return err
+			}
+		}
+	}
 	return w.wi.WriterSection(w.initHeaderAdoptLocked)
+}
+
+// walFileHeaderSaltsMatchLocked reports whether the -wal file carries a valid
+// header whose salts match the shared wal-index header AND holds every frame
+// the shared header maps (wal.c's walIndexRecover is the only writer of
+// MxFrame and it never maps frames the file lacks — a heap header claiming
+// frames beyond the file's capacity belongs to a reset/restarted log). The
+// -wal file is the authority: rebuild. Caller holds the wal-index writer
+// section. Consulted ONLY on the heap-memory path (see walInitHeader).
+func (w *walWriter) walFileHeaderSaltsMatchLocked() bool {
+	buf := make([]byte, WalHdrSize)
+	n, err := w.file.ReadAt(buf, 0)
+	if err != nil || n < WalHdrSize {
+		return false
+	}
+	h, derr := DecodeWalHeader(buf)
+	if derr == nil && h.HeaderCksumOK &&
+		h.Salt1 == w.hdr.ASalt[0] && h.Salt2 == w.hdr.ASalt[1] {
+		if info, serr := w.file.Stat(); serr == nil {
+			frameSize := int64(w.pageSize) + WalFrameHdrSize
+			if (info.Size()-WalHdrSize)/frameSize < int64(w.hdr.MxFrame) {
+				return false
+			}
+		}
+		return true
+	}
+	return false
 }
 
 // initHeaderAdoptLocked seeds the writer's derived state from the (parsed)

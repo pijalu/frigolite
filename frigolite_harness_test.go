@@ -4991,7 +4991,13 @@ func TestSQLiteSuite(t *testing.T) {
 								runCollationDestructors(db, collationDestructors, runtimeVars)
 								if !db.closedFlag {
 									db.UnregisterEchoModule()
-									_ = db.Close()
+									if cerr := db.Close(); cerr != nil {
+										if os.Getenv("FRIGOLITE_WALDBG") != "" {
+											fmt.Fprintf(os.Stderr, "WALDBG restore_reopen close error: %v\n", cerr)
+										}
+									}
+								} else if os.Getenv("FRIGOLITE_WALDBG") != "" {
+									fmt.Fprintf(os.Stderr, "WALDBG restore_reopen: db already closedFlag\n")
 								}
 								faultsimFileOp(t, step.Type, main, fixtureDBDir)
 								reopened, oerr := Open(lifecycle)

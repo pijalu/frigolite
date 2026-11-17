@@ -73,8 +73,14 @@ func acquireWALIndex(dbPath string) (*WALIndex, error) {
 	if wi := walIndexRegistry.entries[key]; wi != nil {
 		wi.mu.Lock()
 		wi.refs++
+		if os.Getenv("FRIGOLITE_WALDBG") != "" {
+			fmt.Fprintf(os.Stderr, "WALDBG acquire JOIN %s refs=%d\n", key, wi.refs)
+		}
 		wi.mu.Unlock()
 		return wi, nil
+	}
+	if os.Getenv("FRIGOLITE_WALDBG") != "" {
+		fmt.Fprintf(os.Stderr, "WALDBG acquire CREATE %s\n", key)
 	}
 	shmPath := key + "-shm"
 	fd, err := os.OpenFile(shmPath, os.O_RDWR|os.O_CREATE, 0644)
@@ -121,7 +127,10 @@ func (w *WALIndex) release() {
 	if last {
 		w.refs = 0
 	}
-	w.mu.Unlock()
+		if os.Getenv("FRIGOLITE_WALDBG") != "" {
+			fmt.Fprintf(os.Stderr, "WALDBG release %s refs=%d last=%v\n", w.key, w.refs, last)
+		}
+		w.mu.Unlock()
 	if last {
 		if w.shmFd != nil {
 			_ = w.shmFd.Close()

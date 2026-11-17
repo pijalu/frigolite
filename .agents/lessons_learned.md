@@ -1786,3 +1786,44 @@ everywhere; go vet + go build clean.
   the target leaf's sector (pages 1-4) fetches page 1 dirty → each INSERT
   commits frames [pgno1 uncommitted, leaf COMMIT] (wal12.keep decode). Our
   engine's default page size matches (1.0's {wal 0 5 5} passes today).
+
+## S35b record (2026-11-17) — the small engine pins: the sync-flag STRING is load-bearing and PRAGMA page_size is not idempotent-safe
+
+- **WALSyncFull 0x0F → 0x0A (wal3-3.3)**: C's derivation (pager.c:3610-3652)
+  keeps syncFlags = NORMAL at every level above OFF unless the `fullfsync`
+  pragma is set; fullSync = level>=FULL adds it ONLY to the commit bits. So
+  synchronous=FULL renders "normal" on every xSync (the p2.tcl oracle probe)
+  while the sync still HAPPENS (bits non-zero). The struct comment at
+  pager.c:605-616 claims the opposite bit assignment and is stale — wal.h:24
+  (WAL_SYNC_FLAGS = low bits = commit) is authoritative. The sync STRING is
+  observable (tvfs xSync's flag argument) while the sync OCCURRENCE gates on
+  the same bits — the encoding is load-bearing for both.
+- **The "database is locked" swallow in setJournalMode was backwards** (the
+  commit citing a nonexistent wal-25.x contended DELETE): C's OP_JournalMode
+  (vdbe.c:8081-8096) on sqlite3PagerCloseWal's SQLITE_BUSY falls back to
+  eNew=eOld AND aborts the statement — the error PROPAGATES. The engine's
+  in-process wal-index RefCount gate (leaveWALModeLocked) is the
+  single-process equivalent and already fires; deleting the swallow made
+  walmode-4.9 green with 4.10/4.11/4.12 untouched.
+- **PRAGMA page_size re-issue was destructive**: our SetPageSize truncated
+  the main file and re-stamped page 1 on EVERY call — wal-12.1's
+  `PRAGMA page_size = 1024` AFTER journal_mode=wal emitted a spurious
+  pgno=1 COMMIT frame and zeroed a main file C leaves at 1024. C refuses
+  twice: same size is an early no-op (btree.c:3077-3081) and any change is
+  READONLY once the header image exists (BTS_PAGESIZE_FIXED at
+  btree.c:2724-2725 — lockBtree read a zDbHeader; page 1 through the WAL
+  counts). SetPageSize now reports whether it applied and the pragma's
+  header-field write rides the same gate (the header write was the real
+  frame-0 writer). Native probe after the fix: main=1024, wal=32+5*1048=5272,
+  frames [1,2,1,3,2 COMMIT] — exactly C.
+- **subjournal-2.1's backup pin needed no harness code**: query_assign keeps
+  the assignment (drop the migrated expect), runtime_expr evaluates
+  `$nPage-10` into a var, backup_db's SQL `$pages` expands bare-numeric via
+  expandTCLRuntimeVarsSQL (isBareSQLToken) — expect SQLITE_OK renders srcRC
+  alone for single-code expects.
+- **wal-12.1's file_size pin**: a hand-pin-only step (the converter never
+  emits it) — SQL = fixture-relative path, Variable = decimal divisor
+  ("" = 1), Expect = the compared value; a missing file fails loudly.
+- Census after S35b: wal 2→1 (23.4 = the sqlite3_log surface, other unit),
+  wal3 5→4 (the carded xShmLock class), walmode 1→0, subjournal 1→0.
+  4 leaves closed, zero NEW (memdb/memdb2 byte-identical).
