@@ -1866,3 +1866,119 @@ everywhere; go vet + go build clean.
   setup case rides along when its name shares the prefix (walfault-15-pre).
   Slow families must be backgrounded with bounded polls (faultsim trials
   buffer -v output per test: a silent log + busy CPU = still working).
+## S41 record (2026-11-17) — the EXPLAIN-row substrate (Stage 1)
+
+- **The synthetic EXPLAIN stream's ONE derivation rule pays off immediately**:
+  routing both EQP and the row stream through the same plan-node derivation
+  (`explainQueryPlanSelectNodes`/`explainDMLPlanNodes`) means the stream
+  inherits every planner fix automatically, and the detail-string grammar
+  (`SCAN t USING INDEX i (...)`) is the interchange format — parseScanDetail
+  parses exactly what the EQP renders, so the two surfaces cannot drift.
+- **ALL DML must render write-cursor streams** (OpenWrite + aToOpen), not the
+  EQP's read-scan nodes: the WIP checkpoint dispatched UPDATE/DELETE through
+  the plan-node walk and emitted OpenRead READ cursors for write statements
+  (the WIP's emitDMLRows UpdateStmt branch was unreachable dead code — only
+  INSERT reached it). C's delete.c/insert.c open EVERY index (aToOpen all
+  ones); update.c opens exactly the maintained set.
+- **update.c's compile-time maintenance decision ported exactly**
+  (update.c:564-585): chngKey (rowid or any PK column changed → every index)
+  OR indexWhereClauseMightChange (the partial WHERE references a changed
+  column) OR indexColumnIsBeingUpdated (any indexed key — plain column or
+  EXPRESSION — references a changed column). Expression indexes are the
+  observable: t2abc(a+b+c) must be maintained when SET b=b+1 — the
+  expression text is walked at the tokenizer level (sql.Tokenizer;
+  identifiers followed by "(" are function names, COLLATE arguments are
+  skipped). False positives are only performance (C's own doc); false
+  negatives corrupt indexes.
+- **INT64-min partial-index trap**: `-9223372036854775808` as an SQL literal
+  implies the partial index (oracle tf_i9c: OpenRead {t1, t1x4}) but the
+  BOUND $y=INT64-min form does NOT imply on a first-ever prepare (oracle
+  tf_i9b: t1 only) — C's exprCompareVariable needs pParse->pReprepare, which
+  only a reprepare-on-bind round provides; the C TEST's statement-cache
+  prior-executions reach the implied plan. The fixture hand-pins bake the
+  literal form, which is what the engine must (and does) answer.
+- **ORDER BY integer literals are POSITIONAL in this engine** — resolve.c
+  resolves ordinals to columns BEFORE the constant test sees them, but our
+  resolveOrderByOrdinalTerms runs at sort time; an allOrderTermsConstant
+  that treats NumericLit as constant would flip `ORDER BY 1`'s EQP/plan.
+  ordinalPosition(expr, nCols) must gate the constant test. Verified the
+  base's behavior first (scratch worktree probe): the EQP already suppressed
+  the sorter node for single-table constant/ordinal ORDER BY; the change is
+  EQP/stream-text only — execution always sorts.
+- **Oracle capture beats C-source inference for stream shapes**: the full
+  15-case index9 pin (tf_i9full.tcl, full schema, literal hand-pin forms)
+  took one testfixture run and settled every question the plan's table left
+  open (2.1's y is TEXT '45' at runtime — the C test reuses 1.5's binding).
+- **A substring sweep extracts NOTHING for absent families**: no
+  `explain`-named fixture families exist; the plan's `FRIGOLITE_TEST=explain`
+  target is vacuous — EXPLAIN assertions ride where/select/index families.
+  The sweep-diff must filter by families that RAN (=== RUN sets), else every
+  unrun baseline family shows up as phantom GONE.
+- **Eponymous modules must not shadow real schema objects (S41 Stage 2)**:
+  registering the explain() TVF broke keyword1-explain.1 —
+  `CREATE TABLE explain(explain explain)` + `SELECT * FROM explain` resolved
+  to the TVF (zero rows) instead of the real table. C resolves a FROM name
+  through sqlite3FindTable (schema hash) FIRST; the eponymous-vtab fallback
+  fires only on a miss. The guard must sit on ALL FOUR eponymous probes
+  (dispatch, SELECT * columns, materialization, PRAGMA table_info) — and
+  every new eponymous module needs the keyword-collision check
+  (FRIGOLITE_TEST=keyword1) before commit.
+- **FRIGOLITE_TEST matches LEAF names, not family paths**: a probe of
+  `keyword1-explain` matched nothing (the leaf name carries no such
+  substring — family context requires the FAMILY name `keyword1`). Also:
+  `grep -c '^--- FAIL'` counts the family-level FAIL parent marker too —
+  extract leaves with the python raw byte scan only.
+- **The explain TVF's non-TEXT argv contract is observable**: explain(123)
+  renders ZERO rows (C xFilter checks sqlite3_value_type != SQLITE_TEXT →
+  rc=DONE), not a prepare error — needs the ValueModule typed-args path, not
+  the string-rendered argv.
+- **The tcl package is a RUNTIME interpreter, not just the converter (S41
+  Stage 3)**: capture branches added to commandSet/unset/dbEval fire for
+  EVERY tcl.Interp — including the harness's rtgeom/UDF/authorizer callback
+  interps. A callback proc body `set ::box_geom [lindex $args 2]` must
+  EXECUTE lindex; the capture stamped the "$name" runtime marker over the
+  real value (rtreedoc2 2-5.x). Fix: the conversionMode flag — capture
+  branches fire only in the converter's offline evaluator. Any new
+  capture-shaped branch in tools/tclconvert/tcl must gate on it, and the
+  rtgeom/tcl-heavy families (rtreedoc2, date, notify1) are the regression
+  net.
+- **The where2/where3 cksort EQP-capture shape is converter-era poison**:
+  query_assign steps of "EXPLAIN QUERY PLAN ..." carry a misattributed
+  expect (the do_test result is the PREVIOUS capture's value with its sort
+  marker); the exec path must keep dropping them. The plain-EXPLAIN capture
+  (bestindexF) and the EXPLAIN QUERY PLAN drop are distinguished by prefix —
+  never blanket-include "EXPLAIN " in the returnsRows check.
+- **git checkout <ref> -- <file> over UNCOMMITTED work destroys it** (the
+  S41 Stage-3 bisect lost the harness edits for one round; redo from the
+  transcript cost ~20 minutes). Commit checkpoints BEFORE bisecting, or
+  bisect in a scratch worktree with file COPIES.
+- **runtime_var_reset sets "" (present-empty) — an UNSET needs its own
+  step**: index9's 1.4/3.4/3.5/4.5 hand-pins need y ABSENT so the raw
+  expansion leaves $y in the SQL (the unbound named parameter = the QPSG
+  observable). The raw expansion leaves absent refs in place (expandTCLVarRefs
+  falls through), so runtime_var_unset (delete the key) is the faithful
+  `unset -nocomplain y`.
+- **The callback walk's array reset belongs INSIDE the step contract**: the
+  C proc's `array unset ::T` runs before every db eval — the explain_rows
+  handler clears the array targets' runtime keys before the push (the pull
+  then cannot resurrect stale keys; the clear must precede the push).
+- **Exposing vacuous passes is the right direction even when the net goes
+  negative locally (S41 full gate)**: the plain-EXPLAIN query_assign
+  captures (distinctagg/trigger7/misc3) had been passing vacuously for
+  months — the exec path dropped their converter-era misattributed expects.
+  The capture change surfaced 25 leaves; 13 fixed with C-table-backed
+  hand-pins, 12 recorded as honest residuals (the DISTINCT-aggregate
+  accumulator, trigger sub-programs, constant-load rows in the stream).
+  The full-suite gate caught all three classes that the family sweeps
+  could not (distinctagg/misc3/trigger7 are outside every swept substring).
+- **distinctagg's lsearch contract distinguishes count(DISTINCT x)
+  ordered-input service**: C opens the accumulator ephemeral ONLY when the
+  DISTINCT argument is NOT delivered sorted (3.1 count(DISTINCT a) with the
+  a-index → 0; 3.3 count(DISTINCT c) with the (b,c) index → 1). The stream
+  must mirror the planner's DISTINCT-coverage decision, and the 5-leaf
+  residual is the ordered-input optimization itself.
+- **distinctagg/where2-style query_assign steps with misattributed expects
+  are converter-era artifacts**: the C do_test's result is a COMPUTED value
+  ([expr {$idx>=0}] / the previous capture) that the converter attached to
+  the capture step. Hand-pins restore the C sequence: capture (no expect) +
+  runtime_expr (the computation) + runtime_var (the expect).

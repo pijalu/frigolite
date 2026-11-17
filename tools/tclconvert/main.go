@@ -47,6 +47,8 @@ type TestStep struct {
 	CatchResult       bool              `json:"catchResult,omitempty"`
 	AuthProc          string            `json:"authProc,omitempty"`
 	CatchMessage      string            `json:"catchMessage,omitempty"`
+	ExplainBody       string            `json:"explainBody,omitempty"` // explain_rows: the per-row callback body (index9's sqluses)
+
 	ExpectedExpr      string            `json:"expectedExpr,omitempty"`
 	ValueType         string            `json:"valueType,omitempty"`
 	ListValues        []string          `json:"listValues,omitempty"`
@@ -306,6 +308,7 @@ const conversionDeadline = 30 * time.Second
 // leaked runaway loop per timed-out file (multi-GB converter process).
 func runInterpreter(src []byte) (stmts []tcl.Stmt, nullToken string, tclPrecision int, tclPrecisionSeen bool, err error) {
 	interp := tcl.NewInterp()
+	interp.SetConversionMode(true)
 	interp.SetStatementBudget(statementBudget)
 	interp.SetDeadline(time.Now().Add(conversionDeadline))
 	defer func() {
@@ -478,7 +481,7 @@ func groupToTestCase(g *stmtGroup) TestCase {
 	tc := TestCase{Name: tcl.StripRuntimeValues(g.name)}
 	for _, s := range g.stmts {
 		step := stepFromStmt(s)
-		if step.SQL != "" || step.Type == "runtime_loop" || step.Type == "runtime_list" || step.Type == "drop_all_indexes" || step.Type == "register_function" || step.Type == "register_collation" || step.Type == "delete_collation" || step.Type == "runtime_var" || step.Type == "register_echo_module" || step.Type == "register_tcl_module" || step.Type == "register_test_funcs" || step.Type == "defensive" || step.Type == "auth_analyze_deny" || step.Type == "auth_proc" || step.Type == "close_db" || step.Type == "reopen_db" || step.Type == "open_empty_db" || step.Type == "open_named_db" || step.Type == "close_named_db" || step.Type == "nullvalue" || step.Type == "set_current_time" || step.Type == "set_limit" || step.Type == "alter_table" || step.Type == "header_format" || step.Type == "write_file" || step.Type == "copy_file" || step.Type == "prepare_stmt" || step.Type == "stmt_step" || step.Type == "stmt_reset" || step.Type == "stmt_finalize" || step.Type == "runtime_assert" || step.Type == "db_status" || step.Type == "runtime_var_reset" || step.Type == "xferopt_reset" || step.Type == "cacheflush" || step.Type == "unlock_notify" || step.Type == "eval_script" || step.Type == "enable_shared_cache" || step.Type == "runtime_expr" || step.Type == "register_testvfs" || step.Type == "testvfs_config" || step.Type == "register_rtgeom" || step.Type == "rtgeom_proc" || step.Type == "register_busy_handler" || step.Type == "backup_file" || step.Type == "backup_db" || step.Type == "faultsim_test" || step.Type == "faultsim_save" || step.Type == "faultsim_save_close" || step.Type == "faultsim_restore" || step.Type == "faultsim_restore_reopen" || step.Type == "file_attr" || step.Type == "capi_db_readonly" || step.Type == "capi_db_status" || step.Type == "update_hook" {
+		if step.SQL != "" || step.Type == "runtime_loop" || step.Type == "runtime_list" || step.Type == "drop_all_indexes" || step.Type == "register_function" || step.Type == "register_collation" || step.Type == "delete_collation" || step.Type == "runtime_var" || step.Type == "register_echo_module" || step.Type == "register_tcl_module" || step.Type == "register_test_funcs" || step.Type == "defensive" || step.Type == "auth_analyze_deny" || step.Type == "auth_proc" || step.Type == "close_db" || step.Type == "reopen_db" || step.Type == "open_empty_db" || step.Type == "open_named_db" || step.Type == "close_named_db" || step.Type == "nullvalue" || step.Type == "set_current_time" || step.Type == "set_limit" || step.Type == "alter_table" || step.Type == "header_format" || step.Type == "write_file" || step.Type == "copy_file" || step.Type == "prepare_stmt" || step.Type == "stmt_step" || step.Type == "stmt_reset" || step.Type == "stmt_finalize" || step.Type == "runtime_assert" || step.Type == "db_status" || step.Type == "runtime_var_reset" || step.Type == "xferopt_reset" || step.Type == "cacheflush" || step.Type == "unlock_notify" || step.Type == "eval_script" || step.Type == "enable_shared_cache" || step.Type == "runtime_expr" || step.Type == "register_testvfs" || step.Type == "testvfs_config" || step.Type == "register_rtgeom" || step.Type == "rtgeom_proc" || step.Type == "register_busy_handler" || step.Type == "backup_file" || step.Type == "backup_db" || step.Type == "faultsim_test" || step.Type == "faultsim_save" || step.Type == "faultsim_save_close" || step.Type == "faultsim_restore" || step.Type == "faultsim_restore_reopen" || step.Type == "file_attr" || step.Type == "capi_db_readonly" || step.Type == "capi_db_status" || step.Type == "update_hook" || step.Type == "explain_rows" || step.Type == "runtime_var_unset" {
 			tc.Steps = append(tc.Steps, step)
 		}
 	}
@@ -555,6 +558,7 @@ func stepFromStmt(s tcl.Stmt) TestStep {
 		CatchResult:       s.CatchResult,
 		AuthProc:          s.AuthProc,
 		CatchMessage:      s.CatchMessage,
+		ExplainBody:       tcl.StripRuntimeValues(s.ExplainBody),
 		ExpectedExpr:      tcl.StripRuntimeValues(s.ExpectedExpr),
 		ValueType:         s.ValueType,
 		ListValues:        s.ListValues,

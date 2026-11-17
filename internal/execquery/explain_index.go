@@ -1304,6 +1304,13 @@ func normaliseTerm(s string) string {
 			before := strings.TrimSpace(s[:i])
 			after := strings.TrimSpace(s[i+len(op):])
 			opTrim := strings.TrimSpace(op)
+			// The parser renders a unary minus as "- <n>" (ExprString's
+			// spacing); the DDL text carries "-<n>" — fold the prefix so
+			// y = - 20111000111 matches y = -20111000111 (index9-2.2). The
+			// fold is operand-local: a binary minus is never scanned as an
+			// operator, so "a - 5" never reaches this path.
+			before = foldUnarySignPrefix(before)
+			after = foldUnarySignPrefix(after)
 			// Canonicalise: put the column identifier first.
 			if isIdentifier(before) && !isIdentifier(after) {
 				return before + " " + opTrim + " " + after
@@ -1312,6 +1319,17 @@ func normaliseTerm(s string) string {
 				return after + " " + flipOp(opTrim) + " " + before
 			}
 			return before + " " + opTrim + " " + after
+		}
+	}
+	return s
+}
+
+// foldUnarySignPrefix joins a leading unary minus/plus back onto its
+// operand: "- 5" -> "-5" (the ExprString unary rendering vs the DDL text).
+func foldUnarySignPrefix(s string) string {
+	for _, sign := range []string{"- ", "+ "} {
+		if strings.HasPrefix(s, sign) {
+			return s[:1] + s[2:]
 		}
 	}
 	return s

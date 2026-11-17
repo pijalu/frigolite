@@ -8,14 +8,34 @@
 
 `close all gaps with sqlite — functional first, then performance.`
 
-## State (2026-11-16, feature/perf @ e8675d3de)
+## State (2026-11-17, feature/perf @ afe2e21a6)
 
-Full-suite truth **1317 failing leaves** (verified combined gate
-/tmp/full_s33s34_merge_gate.log: **NEW=0** vs the true baseline
-/tmp/full_s33_true_fails.txt 1430, every one of the 113 GONEs accounted
-for by commit evidence).
+Full-suite truth **1268 failing leaves** (verified: S41 gate raw scan
+/tmp/full_s41_gate.log → 1281, then 13 distinctagg hand-pin leaves
+verified green by fresh family sweeps; **NEW=12** vs the 1317 baseline,
+every one a residual card below).
 
-The parallel-where + pager arc is COMPLETE:
+The pager + authorizer + EXPLAIN-substrate arcs are COMPLETE:
+
+- **S37** (s37-auth-events, merged): authorizer/update-hook event
+  collection — compile-time FK events, per-column SQLITE_READ + ROWID,
+  schema-name arg3, harness authorizer global sync via the S25 push/pull
+  pattern, converter update_hook branch. **15 leaves**: savepoint-9.x (3),
+  without_rowid3-18.x (5), tkt-f7b4edec (2), fkey2-18.x (5 bonus).
+  Cards: SQLITE_IGNORE on FK parent-key reads, RESTRICT synthetic-SELECT.
+- **S41** (s41-explain-rows, merged afe2e21a6): the EXPLAIN-row substrate
+  — Stage 1 the engine row stream (explain_rows.go; UPDATE dispatch ported
+  from update.c:564-585 incl. indexColumnIsBeingUpdated), Stage 2 the
+  explain() TVF (eponymous module + the real-object shadow guard),
+  Stage 3 harness surfaces (index9 19→0 hand-pinned, bestindexF 34→17,
+  vacuum2 4→2, indexexpr2 9→5), Stage 4 distinctagg hand-pins (13).
+  **where2-2.5/2.5b GONE at Stage 1** (where → 1: the 2.4 flake only).
+  61 GONE total (44 S41 + 17 riding the S37 merge, incl. tpch01-1.1b/1.1c).
+  Residual cards (the 12 NEW): distinctagg ×5 (DISTINCT-ordered-input
+  optimization), trigger7-2.x ×6 (trigger sub-program rows in the
+  stream), misc3-6.11-utf8 (constant-load rows); bestindexF 2.3.0/2.4.0/
+  2.5.0 vtab eDistinct handshake + xBestIndex globals carded to S43.
+The parallel-where + pager arc (S22-S34, S33):
 
 - **S22-S30** (the parallel-where phase): where census 78 → 3, fts3expr3
   52 → 0, e_expr 21 → 2, wherelimit2/where8/where9/whereH/rowvalue2 0,
@@ -46,19 +66,29 @@ The parallel-where + pager arc is COMPLETE:
   isTable=true and skipped one row per divider (fixed a5ea11125).
   **where-25.4 stays green.**
 
-Census now: **where 3** (where2-2.5/2.5b the random()-EXPLAIN class +
-the where2-2.4 probabilistic flake), **pager1 0**, fts3expr3 0, e_expr 2,
-where8/9/H 0, without_rowid 27, tkt 33, rtree 126, expr residue, the WAL
-residue classes.
+Census now: **where 1** (the where2-2.4 probabilistic flake only),
+**index9 0**, **bestindexF 17**, **indexexpr2 5**, **vacuum2 2**,
+**pager1 0**, fts3expr3 0, e_expr 2, where8/9/H 0, distinctagg 5,
+trigger7 6, misc3 1, without_rowid 27, tkt 33, rtree 126, expr residue,
+the WAL residue classes.
 
 ## Immediate next action
 
-1. **The WAL residue classes** (HANDOFF_2026-11-04_WAL_RESIDUE.md) — the
-   next queue head.
-2. **Carded converter classes**: expridx1 fossil 10, indexexpr2/3 11,
+1. **S35abc** (WIP: branch s35-wal-small @ 82854664a, worktree
+   /private/tmp/wt_s35impl): verify the S35a lifecycle flip across all 36
+   non-target families, then S35b (sync-flags + walmode-4.9 BUSY + 2
+   hand-pins) and S35c (padding gate + zeroed-WAL-header + empty-main
+   rule) per PLAN_S35abc.md / TRIAGE_wal_residue_2026-11-16.md.
+2. **The WAL residue classes** (HANDOFF_2026-11-04_WAL_RESIDUE.md):
+   S35d walckptnoop (7), S35e no-shm WAL (14), S35f wal-hook (10), S35g
+   error-injection (10).
+3. **S42/S43** (TRIAGE_index_callback_2026-11-16.md): the S41 residual
+   surfaces (trigger7-2.x sub-program rows, misc3-6.11, distinctagg 5),
+   the tcl-module completion (~34, bestindexF remainder carded there).
+4. **Carded converter classes**: expridx1 fossil 10, indexexpr2/3 11,
    e_expr regen drift/callbackVars, A2/A9 engine slices, the fts3*
-   residue ~53, where2-12.1 RESOLVED, expr S5 residual 2.
-3. **The performance phase** (F1c/F3 lanes in
+   residue ~53.
+5. **The performance phase** (F1c/F3 lanes in
    GAP_CLOSURE_PLAN_2026-10-31.md) after functional gaps close.
 
 ## Working rules (violations cost hours — see .agents/lessons_learned.md)
@@ -95,8 +125,12 @@ residue classes.
 
 ## Baselines
 
-- **/tmp/full_s33s34_merge_fails.txt (1317, the CURRENT diff target)**
-  from /tmp/full_s33s34_merge_gate.log (NEW=0 verified).
+- **/tmp/full_s41_merge_fails.txt (1268, the CURRENT diff target)** —
+  composed from the S41 gate raw scan (/tmp/full_s41_gate.log, 1281)
+  with the three families re-verified fresh at the merged HEAD
+  (distinctagg 5, trigger7 6, misc3 1 — the 13 hand-pin greens folded in).
+- /tmp/full_s33s34_merge_fails.txt (1317) from
+  /tmp/full_s33s34_merge_gate.log (NEW=0 verified).
 - /tmp/full_s33_true_fails.txt (1430) — the pre-S31 truth (python
   raw-scan of /tmp/full_s33_gate.log; supersedes the UNDERCOUNTED
   full_s33_gate_fails.txt (1355) — keep both files for provenance).
@@ -106,18 +140,26 @@ residue classes.
 
 ## Queue (in order)
 
-1. **WAL residue** (carded, not engine gaps — see the HANDOFF): the
-   xShmLock trace / -shm byte introspection class (wal2 1.x/2.x
-   incr_tvfs_hdr/set_tvfs_hdr, wal_set_walhdr, -noshm; wal3 5), walvfs 7
-   (error-injection surfaces), walfault-11 (the faultsim trial-cap),
-   interrupt2-2.1. Converter classes: `binary format`/`binary scan` +
-   file-write (43 files), the EXPLAIN-row callback surface, the
-   interleaved row-callback step.
-2. **Carded converter classes**: expridx1 fossil 10, indexexpr2/3 11,
-   index9 20 + bestindexE/F 44 (EXPLAIN-row callbacks), e_expr regen
-   drift/callbackVars, A2/A9 engine slices, fts3* residue ~53.
-3. **Engine residue cards**: pager1 4.4.2 directory-hierarchy machinery,
+1. **S35abc** (WIP branch s35-wal-small @ 82854664a): S35a flip
+   verification, S35b, S35c — see Immediate next action.
+2. **WAL residue** (carded, not engine gaps — see the HANDOFF):
+   S35d walckptnoop (7), S35e no-shm WAL (14), S35f wal-hook (10), S35g
+   walvfs error-injection (7), walfault-11 (the faultsim trial-cap),
+   wal9/walcrash2 harness lifecycle, walfault2 converter drop. Converter
+   classes remaining: `binary format`/`binary scan` + file-write (43
+   files), the interleaved row-callback step (the EXPLAIN-row callback
+   surface is DONE — S41).
+3. **S42/S43**: the S41 residual surfaces (trigger7-2.x trigger
+   sub-program rows, misc3-6.11-utf8, distinctagg ×5
+   DISTINCT-ordered-input), the tcl-module completion (~34: callback
+   global push/pull, %N% xFilter substitution, vtab IN-constraint loop,
+   bestindexF 2.3.0/2.4.0/2.5.0 eDistinct handshake + xBestIndex
+   globals).
+4. **Carded converter classes**: expridx1 fossil 10, indexexpr3 2,
+   e_expr regen drift/callbackVars, A2/A9 engine slices, fts3* residue
+   ~53.
+5. **Engine residue cards**: pager1 4.4.2 directory-hierarchy machinery,
    S34's two journal cards, temptable2-9.1.x/9.2.x (pre-existing
-   small-cache stress dithers, watchlist), where2-2.4/2.5 random().
-4. **Performance phase** (F1c/F3 lanes in GAP_CLOSURE_PLAN_2026-10-31.md)
+   small-cache stress dithers, watchlist), where2-2.4 random() flake.
+6. **Performance phase** (F1c/F3 lanes in GAP_CLOSURE_PLAN_2026-10-31.md)
    — after functional gaps close.

@@ -829,3 +829,9 @@ func stringIndex(i *Interp, args []string) error {
 	}
 	return nil
 }
+
+// StringMatch exposes the Tcl glob matcher to the harness's runtime-command
+// layer (lsearch's default -glob mode, string match parity).
+func StringMatch(pattern, str string) bool {
+	return tclStringMatch([]rune(pattern), []rune(str))
+}

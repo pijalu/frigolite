@@ -308,6 +308,9 @@ type TestStep struct {
 	Variable             string            `json:"variable,omitempty"`
 	ResultAll            bool              `json:"resultAll,omitempty"`  // Tcl execsql/db eval yield the whole row
 	ResultRows           bool              `json:"resultRows,omitempty"` // the variable holds every row (a Tcl list of rows)
+	ResultFlat           bool              `json:"resultFlat,omitempty"` // db eval's flat-list form: every row's columns appended in order
+	RawVarExpansion      bool              `json:"rawVarExpansion,omitempty"` // $vars substitute VERBATIM (TCL double-quoted semantics — index9's IN ($in))
+	ExplainBody          string            `json:"explainBody,omitempty"` // explain_rows: the per-row Tcl callback body (index9's sqluses); the generic "body" key belongs to the faultsim trial's step list
 	StmtStatus           bool              `json:"stmtStatus,omitempty"`
 	StatusStyle          string            `json:"statusStyle,omitempty"` // "bare" renders the counters as "N M" (where8's execsql_status); "" renders "scan N sort M" (where7)
 	SearchCount          bool              `json:"searchCount,omitempty"` // reset SQLITE_TEST's search counter before the query and append it after (where8's execsql_status2)
@@ -3735,7 +3738,16 @@ func TestSQLiteSuite(t *testing.T) {
 							// tcl_expr's script resolves its $variables in
 							// the interpreter (a textual expansion would
 							// inline the list values and corrupt the parse).
-							step.SQL = expandTCLRuntimeVarsSQL(step.SQL, runtimeVars)
+							if step.RawVarExpansion {
+								// TCL double-quoted substitution semantics:
+								// the value substitutes VERBATIM ("IN (2,3)",
+								// not "IN ('2,3')" — index9's sqluses joins the
+								// callback's collected rootpages into an IN
+								// list the SQL must see as bare literals).
+								step.SQL = expandTCLRuntimeVars(step.SQL, runtimeVars)
+							} else {
+								step.SQL = expandTCLRuntimeVarsSQL(step.SQL, runtimeVars)
+							}
 							step.SQL = routeFixtureAttachPaths(step.SQL, fixtureDBDir)
 							step.Expect = expandTCLRuntimeVars(step.Expect, runtimeVars)
 						}
@@ -5158,7 +5170,15 @@ func TestSQLiteSuite(t *testing.T) {
 							}
 						case "query_assign":
 							upperSQL := strings.ToUpper(strings.TrimSpace(step.SQL))
-							returnsRows := strings.HasPrefix(upperSQL, "SELECT ") || strings.HasPrefix(upperSQL, "WITH ") || strings.HasPrefix(upperSQL, "PRAGMA ") || strings.HasPrefix(upperSQL, "VALUES ")
+							// A plain "EXPLAIN <stmt>" capture (bestindexF's
+							// uses_idxinsert: set vm [db eval "EXPLAIN $sql"])
+							// returns the row stream — but the converter-era
+							// "EXPLAIN QUERY PLAN" captures (where2/where3's
+							// cksort bodies) carry a misattributed expect
+							// (the do_test result is the PREVIOUS capture's
+							// value) that the exec path must keep dropping.
+							returnsRows := strings.HasPrefix(upperSQL, "SELECT ") || strings.HasPrefix(upperSQL, "WITH ") || strings.HasPrefix(upperSQL, "PRAGMA ") || strings.HasPrefix(upperSQL, "VALUES ") ||
+								(strings.HasPrefix(upperSQL, "EXPLAIN ") && !strings.HasPrefix(upperSQL, "EXPLAIN QUERY PLAN "))
 							if !returnsRows {
 								res := execDB.Exec(step.SQL)
 								if res.Error != nil {
@@ -5186,7 +5206,23 @@ func TestSQLiteSuite(t *testing.T) {
 							}
 							value := ""
 							if len(result.Rows) > 0 {
-								if step.ResultAll {
+								if step.ResultFlat {
+									// `set vm [db eval $sql]` (bestindexF's
+									// uses_idxinsert): db eval yields a FLAT
+									// list of every row's columns in order —
+									// lsearch walks the individual values.
+									flat := make([]string, 0, len(result.Rows)*len(result.Columns))
+									for _, row := range result.Rows {
+										for _, col := range row {
+											if col == nil {
+												flat = append(flat, "")
+												continue
+											}
+											flat = append(flat, formatHarnessValue(base, col))
+										}
+									}
+									value = tclListString(flat)
+								} else if step.ResultAll {
 									if step.ResultRows {
 										// Tcl's `execsql` (and `db eval`) yield a
 										// list of rows, each row a list of columns.
@@ -5835,6 +5871,13 @@ func TestSQLiteSuite(t *testing.T) {
 							if rtgeomBox.interp != nil {
 								rtgeomBox.interp.SetVariable("::"+step.Variable, "")
 							}
+						case "runtime_var_unset":
+							// `unset -nocomplain y` (index9's 1.4/3.4 hand-pins):
+							// the variable LEAVES the runtime set so the raw
+							// expansion leaves $y in the SQL text (the engine
+							// binds it as an unbound named parameter — NULL).
+							delete(runtimeVars, step.Variable)
+							delete(runtimeVars, runtimeValueTypeKey(step.Variable))
 						case "tcl_expr":
 							// A do_test body whose value is plain TCL logic
 							// over callback-recorded globals (rtreedoc2
@@ -5896,7 +5939,13 @@ func TestSQLiteSuite(t *testing.T) {
 								}
 								continue
 							}
-							got, evalErr := evalHarnessTclExpr(step.SQL, runtimeVars)
+							got, evalErr := evalHarnessRuntimeExpr(step.SQL, runtimeVars, func(name string) string {
+							path, pathErr := fixtureLifecyclePath(fixtureDBDir, name)
+							if pathErr != nil {
+								return name // os.Stat reports the original name's error
+							}
+							return path
+						})
 							if evalErr != nil {
 								t.Errorf("runtime expression error: %v\n  expr: %s", evalErr, step.SQL)
 								return
@@ -5969,6 +6018,27 @@ func TestSQLiteSuite(t *testing.T) {
 								return
 							}
 							runtimeVars[step.Variable] = hexEncodeBytes(data)
+							continue
+						case "explain_rows":
+							// index9's sqluses: `db eval "EXPLAIN $sql" a {body}`
+							// — the EXPLAIN row stream drives a per-row Tcl
+							// callback with the array elements a(addr)...
+							// a(comment), and the body's written globals round
+							// trip back into the runtime set (the S25 push/
+							// pull over a fresh converter interpreter).
+							if step.ExplainBody == "" {
+								t.Errorf("explain_rows without body\n  sql: %s", step.SQL)
+								return
+							}
+							res := execDB.Query(step.SQL)
+							if res.Error != nil {
+								t.Errorf("explain rows query: %v\n  sql: %s", res.Error, step.SQL)
+								return
+							}
+							if err := runExplainRowsCallback(step, res, runtimeVars); err != nil {
+								t.Errorf("explain rows callback: %v\n  sql: %s", err, step.SQL)
+								return
+							}
 							continue
 						case "auth_proc":
 							// `db auth <proc>` installs a Tcl authorizer:

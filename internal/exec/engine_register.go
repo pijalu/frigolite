@@ -148,6 +148,10 @@ func (e *Engine) registerVTabModules() {
 	// aggregates via the hidden aggregate= column); pages come from this
 	// connection's pagers, the b-tree set from sqlite_schema.
 	e.vtabs.Register("dbstat", vtab.NewDBStatModule(enginePageSources{e: e}, e.Database()))
+	// explain (ext/misc/explain.c): the eponymous explain() TVF rendering
+	// one row per opcode of its sql argument's EXPLAIN program (indexexpr2's
+	// UPDATE-maintenance probes read opcode/p2 through it).
+	e.vtabs.Register("explain", vtab.NewExplainModule(engineExplainSource{e: e}))
 	// rtree / rtree_i32 (ext/rtree/rtree.c): R-tree B+tree over shadow tables.
 	// Bound to this connection's Database handle so the module can create/read its
 	// shadow tables and register its SQL functions (rtreenode/rtreedepth/...).

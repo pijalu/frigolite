@@ -12,13 +12,17 @@ func (e *SelectEngine) execExplain(s *sql.ExplainStmt) *Result {
 	if s.QueryPlan {
 		return e.execExplainQueryPlan(s.Statement)
 	}
-	// Regular EXPLAIN: return simple opcode-like rows
-	stmtType := fmt.Sprintf("%T", s.Statement)
+	// Regular EXPLAIN: the synthetic opcode row stream derived from the
+	// statement's resolved plan (explain_rows.go) — vdbe.c's one-row-per-
+	// opcode contract, rendered at the tree-walking executor's plan-decision
+	// granularity.
+	if res := e.emitExplainRows(s.Statement); res != nil {
+		return res
+	}
 	return &Result{
 		Columns: []string{"addr", "opcode", "p1", "p2", "p3", "p4", "p5", "comment"},
 		Rows: [][]interface{}{
 			{int64(0), "Init", int64(0), int64(1), int64(0), "", int64(0), "Start"},
-			{int64(1), "Return", int64(0), int64(0), int64(0), "", int64(0), stmtType},
 		},
 	}
 }
@@ -51,6 +55,12 @@ func (e *SelectEngine) execExplainQueryPlan(stmt sql.Stmt) *Result {
 // builds, so an index on the child key renders a SEARCH (covering index)
 // instead of a plain SCAN.
 func (e *SelectEngine) explainDMLPlan(tableName string, where sql.Expr, childScans int) *Result {
+	return planTreeResult(e.explainDMLPlanNodes(tableName, where, childScans))
+}
+
+// explainDMLPlanNodes is explainDMLPlan's node derivation (the EXPLAIN row
+// stream shares it so both surfaces render one plan).
+func (e *SelectEngine) explainDMLPlanNodes(tableName string, where sql.Expr, childScans int) []planNode {
 	detail := "SCAN " + tableName
 	if search := e.dmlSearchDetail(tableName, where); search != "" {
 		detail = search
@@ -61,7 +71,7 @@ func (e *SelectEngine) explainDMLPlan(tableName string, where sql.Expr, childSca
 			nodes = append(nodes, e.fkChildScanNodes(child)...)
 		}
 	}
-	return planTreeResult(nodes)
+	return nodes
 }
 
 // fkChildScanNodes plans one FK child check scan: equality on each child key
@@ -261,10 +271,21 @@ func queryTableFromRef(r sql.TableRef) queryTable {
 }
 
 func (e *SelectEngine) explainQueryPlanSelect(s *sql.SelectStmt) *Result {
+	nodes, errResult := e.explainQueryPlanSelectNodes(s)
+	if errResult != nil {
+		return errResult
+	}
+	return planTreeResult(nodes)
+}
+
+// explainQueryPlanSelectNodes is explainQueryPlanSelect's node derivation
+// (the EXPLAIN row stream shares it so both surfaces render one plan).
+// errResult is non-nil for compile errors (column-count/view validation).
+func (e *SelectEngine) explainQueryPlanSelectNodes(s *sql.SelectStmt) ([]planNode, *Result) {
 	// Compound SELECT column-count mismatches are compile errors in SQLite and
 	// surface under EXPLAIN QUERY PLAN too.
 	if err := e.validateCompoundColumnCounts(s); err != nil {
-		return &Result{Error: err}
+		return nil, &Result{Error: err}
 	}
 	// The FROM operand scope for the correlated-bound check (a reference
 	// resolving to any operand is a join sibling's column, never a bound).
@@ -276,26 +297,26 @@ func (e *SelectEngine) explainQueryPlanSelect(s *sql.SelectStmt) *Result {
 	// prepares the view definition, so compile errors in the body surface
 	// under EXPLAIN QUERY PLAN as well).
 	if err := e.validateViewFromClause(s); err != nil {
-		return &Result{Error: err}
+		return nil, &Result{Error: err}
 	}
 
 	// When the FROM clause references a view whose body is a compound SELECT
 	// (UNION ALL etc.), expand it and push the outer WHERE/ORDER BY into each
 	// branch. SQLite pushes predicates through UNION ALL so each branch can
 	// use its index (SEARCH instead of SCAN). select9-5 relies on this.
-	if result := e.planViewCompound(s); result != nil {
-		return result
+	if viewNodes, ok := e.planViewCompoundNodes(s); ok {
+		return viewNodes, nil
 	}
 
 	// A compound SELECT (UNION / INTERSECT / EXCEPT) renders as a COMPOUND
 	// QUERY tree: LEFT-MOST SUBQUERY + one set-op branch per later member.
 	if s.Union != nil {
-		return planTreeResult(e.planCompound(s))
+		return e.planCompound(s), nil
 	}
 
 	tables := e.collectQueryTables(s)
 	if len(tables) == 0 {
-		return planTreeResult([]planNode{{detail: "SCAN CONSTANT ROW"}})
+		return []planNode{{detail: "SCAN CONSTANT ROW"}}, nil
 	}
 
 	var nodes []planNode
@@ -319,7 +340,7 @@ func (e *SelectEngine) explainQueryPlanSelect(s *sql.SelectStmt) *Result {
 	// / "EXISTS SUBQUERY n" / "SCALAR SUBQUERY n" under the scan nodes).
 	nodes = append(nodes, e.planSubqueryNodes(s)...)
 
-	return planTreeResult(nodes)
+	return nodes, nil
 }
 
 // planCompound renders a compound SELECT as SQLite does:

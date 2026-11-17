@@ -1,309 +1,571 @@
 {
-  "file": "index9.test",
-  "name": "index9",
-  "ordered": true,
-  "tests": [
+ "file": "index9.test",
+ "name": "index9",
+ "ordered": true,
+ "tests": [
+  {
+   "name": "index9-1.0",
+   "steps": [
     {
-      "name": "index9-1.0",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "CREATE TABLE t1(x, y);\n  CREATE INDEX t1x ON t1(x) WHERE y=45;"
-        }
-      ]
-    },
-    {
-      "name": "index9-1.1",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "EXPLAIN  SELECT * FROM t1 WHERE x=? AND y=45"
-        },
-        {
-          "type": "query",
-          "sql": "SELECT name FROM sqlite_master WHERE rootpage IN () ORDER BY 1",
-          "expect": "t1 t1x"
-        }
-      ]
-    },
-    {
-      "name": "index9-1.2",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "EXPLAIN  SELECT * FROM t1 WHERE x=? AND y=45.1"
-        },
-        {
-          "type": "query",
-          "sql": "SELECT name FROM sqlite_master WHERE rootpage IN () ORDER BY 1",
-          "expect": "t1"
-        }
-      ]
-    },
-    {
-      "name": "index9-1.3",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "EXPLAIN  SELECT * FROM t1 WHERE x=? AND y=44"
-        },
-        {
-          "type": "query",
-          "sql": "SELECT name FROM sqlite_master WHERE rootpage IN () ORDER BY 1",
-          "expect": "t1"
-        }
-      ]
-    },
-    {
-      "name": "index9-1.4",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "EXPLAIN  SELECT * FROM t1 WHERE x=? AND y=$y"
-        },
-        {
-          "type": "query",
-          "sql": "SELECT name FROM sqlite_master WHERE rootpage IN () ORDER BY 1",
-          "expect": "t1"
-        }
-      ]
-    },
-    {
-      "name": "index9-1.5",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "EXPLAIN  SELECT * FROM t1 WHERE x=? AND y=45"
-        },
-        {
-          "type": "query",
-          "sql": "SELECT name FROM sqlite_master WHERE rootpage IN () ORDER BY 1",
-          "expect": "t1"
-        }
-      ]
-    },
-    {
-      "name": "index9-2.0",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "CREATE INDEX t1x2 ON t1(x) WHERE y=-20111000111"
-        }
-      ]
-    },
-    {
-      "name": "index9-2.1",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "EXPLAIN  SELECT * FROM t1 WHERE y=45 ORDER BY x"
-        },
-        {
-          "type": "query",
-          "sql": "SELECT name FROM sqlite_master WHERE rootpage IN () ORDER BY 1",
-          "expect": "t1"
-        }
-      ]
-    },
-    {
-      "name": "index9-2.2",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "EXPLAIN  SELECT * FROM t1 WHERE y=-20111000111 ORDER BY x"
-        },
-        {
-          "type": "query",
-          "sql": "SELECT name FROM sqlite_master WHERE rootpage IN () ORDER BY 1",
-          "expect": "t1 t1x2"
-        }
-      ]
-    },
-    {
-      "name": "index9-2.3",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "EXPLAIN  SELECT * FROM t1 WHERE y=-20111000110 ORDER BY x"
-        },
-        {
-          "type": "query",
-          "sql": "SELECT name FROM sqlite_master WHERE rootpage IN () ORDER BY 1",
-          "expect": "t1"
-        }
-      ]
-    },
-    {
-      "name": "index9-2.4",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "EXPLAIN  SELECT * FROM t1 WHERE y=-20111000112 ORDER BY x"
-        },
-        {
-          "type": "query",
-          "sql": "SELECT name FROM sqlite_master WHERE rootpage IN () ORDER BY 1",
-          "expect": "t1"
-        }
-      ]
-    },
-    {
-      "name": "index9-3.0",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "CREATE INDEX t1x3 ON t1(x) WHERE y=9223372036854775807"
-        }
-      ]
-    },
-    {
-      "name": "index9-3.1",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "EXPLAIN  SELECT * FROM t1 WHERE y=9223372036854775807 ORDER BY x"
-        },
-        {
-          "type": "query",
-          "sql": "SELECT name FROM sqlite_master WHERE rootpage IN () ORDER BY 1",
-          "expect": "t1 t1x3"
-        }
-      ]
-    },
-    {
-      "name": "index9-3.2",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "EXPLAIN  SELECT * FROM t1 WHERE y=9.223372036854776e+18 ORDER BY x"
-        },
-        {
-          "type": "query",
-          "sql": "SELECT name FROM sqlite_master WHERE rootpage IN () ORDER BY 1",
-          "expect": "t1"
-        }
-      ]
-    },
-    {
-      "name": "index9-3.3",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "EXPLAIN  SELECT * FROM t1 WHERE y=9223372036854775806 ORDER BY x"
-        },
-        {
-          "type": "query",
-          "sql": "SELECT name FROM sqlite_master WHERE rootpage IN () ORDER BY 1",
-          "expect": "t1"
-        }
-      ]
-    },
-    {
-      "name": "index9-3.4",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "EXPLAIN  SELECT * FROM t1 WHERE y=9223372036854775807 ORDER BY x"
-        },
-        {
-          "type": "query",
-          "sql": "SELECT name FROM sqlite_master WHERE rootpage IN () ORDER BY 1",
-          "expect": "t1"
-        }
-      ]
-    },
-    {
-      "name": "index9-3.5",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "EXPLAIN  SELECT * FROM t1 WHERE y=9.223372036854776e+18 ORDER BY x"
-        },
-        {
-          "type": "query",
-          "sql": "SELECT name FROM sqlite_master WHERE rootpage IN () ORDER BY 1",
-          "expect": "t1"
-        }
-      ]
-    },
-    {
-      "name": "index9-4.0",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "CREATE INDEX t1x4 ON t1(x) WHERE y=-9223372036854775808"
-        }
-      ]
-    },
-    {
-      "name": "index9-4.1",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "EXPLAIN  SELECT * FROM t1 WHERE y=-9.223372036854776e+18 ORDER BY x"
-        },
-        {
-          "type": "query",
-          "sql": "SELECT name FROM sqlite_master WHERE rootpage IN () ORDER BY 1",
-          "expect": "t1 t1x4"
-        }
-      ]
-    },
-    {
-      "name": "index9-4.2",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "EXPLAIN  SELECT * FROM t1 WHERE y=-9223372036854775807 ORDER BY x"
-        },
-        {
-          "type": "query",
-          "sql": "SELECT name FROM sqlite_master WHERE rootpage IN () ORDER BY 1",
-          "expect": "t1"
-        }
-      ]
-    },
-    {
-      "name": "index9-4.3",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "EXPLAIN  SELECT * FROM t1 WHERE y=-9.223372036854776e+18 ORDER BY x"
-        },
-        {
-          "type": "query",
-          "sql": "SELECT name FROM sqlite_master WHERE rootpage IN () ORDER BY 1",
-          "expect": "t1"
-        }
-      ]
-    },
-    {
-      "name": "index9-4.4",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "EXPLAIN  SELECT * FROM t1 WHERE -9.223372036854776e+18=y ORDER BY x"
-        },
-        {
-          "type": "query",
-          "sql": "SELECT name FROM sqlite_master WHERE rootpage IN () ORDER BY 1",
-          "expect": "t1 t1x4"
-        }
-      ]
-    },
-    {
-      "name": "index9-4.5",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "EXPLAIN  SELECT * FROM t1 WHERE -9.223372036854776e+18=y ORDER BY x"
-        },
-        {
-          "type": "query",
-          "sql": "SELECT name FROM sqlite_master WHERE rootpage IN () ORDER BY 1",
-          "expect": "t1"
-        }
-      ]
+     "type": "exec",
+     "sql": "CREATE TABLE t1(x, y);\n  CREATE INDEX t1x ON t1(x) WHERE y=45;"
     }
-  ]
+   ]
+  },
+  {
+   "name": "index9-1.1",
+   "steps": [
+    {
+     "type": "runtime_var_set",
+     "variable": "y",
+     "sql": "45"
+    },
+    {
+     "type": "explain_rows",
+     "sql": "EXPLAIN SELECT * FROM t1 WHERE x=? AND y=$y",
+     "variable": "a",
+     "rawVarExpansion": true,
+     "explainBody": "if {$a(opcode)==\"OpenRead\"} { set ::T($a(p2)) 1 }"
+    },
+    {
+     "type": "runtime_expr",
+     "sql": "join [array names ::T] ,",
+     "variable": "in"
+    },
+    {
+     "type": "query",
+     "sql": "SELECT name FROM sqlite_master WHERE rootpage IN ($in) ORDER BY 1",
+     "expect": "t1 t1x",
+     "rawVarExpansion": true
+    }
+   ]
+  },
+  {
+   "name": "index9-1.2",
+   "steps": [
+    {
+     "type": "runtime_var_set",
+     "variable": "y",
+     "sql": "45.1"
+    },
+    {
+     "type": "explain_rows",
+     "sql": "EXPLAIN SELECT * FROM t1 WHERE x=? AND y=$y",
+     "variable": "a",
+     "rawVarExpansion": true,
+     "explainBody": "if {$a(opcode)==\"OpenRead\"} { set ::T($a(p2)) 1 }"
+    },
+    {
+     "type": "runtime_expr",
+     "sql": "join [array names ::T] ,",
+     "variable": "in"
+    },
+    {
+     "type": "query",
+     "sql": "SELECT name FROM sqlite_master WHERE rootpage IN ($in) ORDER BY 1",
+     "expect": "t1",
+     "rawVarExpansion": true
+    }
+   ]
+  },
+  {
+   "name": "index9-1.3",
+   "steps": [
+    {
+     "type": "runtime_var_set",
+     "variable": "y",
+     "sql": "44"
+    },
+    {
+     "type": "explain_rows",
+     "sql": "EXPLAIN SELECT * FROM t1 WHERE x=? AND y=$y",
+     "variable": "a",
+     "rawVarExpansion": true,
+     "explainBody": "if {$a(opcode)==\"OpenRead\"} { set ::T($a(p2)) 1 }"
+    },
+    {
+     "type": "runtime_expr",
+     "sql": "join [array names ::T] ,",
+     "variable": "in"
+    },
+    {
+     "type": "query",
+     "sql": "SELECT name FROM sqlite_master WHERE rootpage IN ($in) ORDER BY 1",
+     "expect": "t1",
+     "rawVarExpansion": true
+    }
+   ]
+  },
+  {
+   "name": "index9-1.4",
+   "steps": [
+    {
+     "type": "runtime_var_unset",
+     "variable": "y"
+    },
+    {
+     "type": "explain_rows",
+     "sql": "EXPLAIN SELECT * FROM t1 WHERE x=? AND y=$y",
+     "variable": "a",
+     "rawVarExpansion": true,
+     "explainBody": "if {$a(opcode)==\"OpenRead\"} { set ::T($a(p2)) 1 }"
+    },
+    {
+     "type": "runtime_expr",
+     "sql": "join [array names ::T] ,",
+     "variable": "in"
+    },
+    {
+     "type": "query",
+     "sql": "SELECT name FROM sqlite_master WHERE rootpage IN ($in) ORDER BY 1",
+     "expect": "t1",
+     "rawVarExpansion": true
+    }
+   ]
+  },
+  {
+   "name": "index9-1.5",
+   "steps": [
+    {
+     "type": "runtime_var_set",
+     "variable": "y",
+     "sql": "'45'"
+    },
+    {
+     "type": "explain_rows",
+     "sql": "EXPLAIN SELECT * FROM t1 WHERE x=? AND y=$y",
+     "variable": "a",
+     "rawVarExpansion": true,
+     "explainBody": "if {$a(opcode)==\"OpenRead\"} { set ::T($a(p2)) 1 }"
+    },
+    {
+     "type": "runtime_expr",
+     "sql": "join [array names ::T] ,",
+     "variable": "in"
+    },
+    {
+     "type": "query",
+     "sql": "SELECT name FROM sqlite_master WHERE rootpage IN ($in) ORDER BY 1",
+     "expect": "t1",
+     "rawVarExpansion": true
+    }
+   ]
+  },
+  {
+   "name": "index9-2.0",
+   "steps": [
+    {
+     "type": "exec",
+     "sql": "CREATE INDEX t1x2 ON t1(x) WHERE y=-20111000111"
+    }
+   ]
+  },
+  {
+   "name": "index9-2.1",
+   "steps": [
+    {
+     "type": "runtime_var_set",
+     "variable": "y",
+     "sql": "'45'"
+    },
+    {
+     "type": "explain_rows",
+     "sql": "EXPLAIN SELECT * FROM t1 WHERE y=$y ORDER BY x",
+     "variable": "a",
+     "rawVarExpansion": true,
+     "explainBody": "if {$a(opcode)==\"OpenRead\"} { set ::T($a(p2)) 1 }"
+    },
+    {
+     "type": "runtime_expr",
+     "sql": "join [array names ::T] ,",
+     "variable": "in"
+    },
+    {
+     "type": "query",
+     "sql": "SELECT name FROM sqlite_master WHERE rootpage IN ($in) ORDER BY 1",
+     "expect": "t1",
+     "rawVarExpansion": true
+    }
+   ]
+  },
+  {
+   "name": "index9-2.2",
+   "steps": [
+    {
+     "type": "runtime_var_set",
+     "variable": "y",
+     "sql": "-20111000111"
+    },
+    {
+     "type": "explain_rows",
+     "sql": "EXPLAIN SELECT * FROM t1 WHERE y=$y ORDER BY x",
+     "variable": "a",
+     "rawVarExpansion": true,
+     "explainBody": "if {$a(opcode)==\"OpenRead\"} { set ::T($a(p2)) 1 }"
+    },
+    {
+     "type": "runtime_expr",
+     "sql": "join [array names ::T] ,",
+     "variable": "in"
+    },
+    {
+     "type": "query",
+     "sql": "SELECT name FROM sqlite_master WHERE rootpage IN ($in) ORDER BY 1",
+     "expect": "t1 t1x2",
+     "rawVarExpansion": true
+    }
+   ]
+  },
+  {
+   "name": "index9-2.3",
+   "steps": [
+    {
+     "type": "runtime_var_set",
+     "variable": "y",
+     "sql": "-20111000110"
+    },
+    {
+     "type": "explain_rows",
+     "sql": "EXPLAIN SELECT * FROM t1 WHERE y=$y ORDER BY x",
+     "variable": "a",
+     "rawVarExpansion": true,
+     "explainBody": "if {$a(opcode)==\"OpenRead\"} { set ::T($a(p2)) 1 }"
+    },
+    {
+     "type": "runtime_expr",
+     "sql": "join [array names ::T] ,",
+     "variable": "in"
+    },
+    {
+     "type": "query",
+     "sql": "SELECT name FROM sqlite_master WHERE rootpage IN ($in) ORDER BY 1",
+     "expect": "t1",
+     "rawVarExpansion": true
+    }
+   ]
+  },
+  {
+   "name": "index9-2.4",
+   "steps": [
+    {
+     "type": "runtime_var_set",
+     "variable": "y",
+     "sql": "-20111000112"
+    },
+    {
+     "type": "explain_rows",
+     "sql": "EXPLAIN SELECT * FROM t1 WHERE y=$y ORDER BY x",
+     "variable": "a",
+     "rawVarExpansion": true,
+     "explainBody": "if {$a(opcode)==\"OpenRead\"} { set ::T($a(p2)) 1 }"
+    },
+    {
+     "type": "runtime_expr",
+     "sql": "join [array names ::T] ,",
+     "variable": "in"
+    },
+    {
+     "type": "query",
+     "sql": "SELECT name FROM sqlite_master WHERE rootpage IN ($in) ORDER BY 1",
+     "expect": "t1",
+     "rawVarExpansion": true
+    }
+   ]
+  },
+  {
+   "name": "index9-3.0",
+   "steps": [
+    {
+     "type": "exec",
+     "sql": "CREATE INDEX t1x3 ON t1(x) WHERE y=9223372036854775807"
+    }
+   ]
+  },
+  {
+   "name": "index9-3.1",
+   "steps": [
+    {
+     "type": "runtime_var_set",
+     "variable": "y",
+     "sql": "9223372036854775807"
+    },
+    {
+     "type": "explain_rows",
+     "sql": "EXPLAIN SELECT * FROM t1 WHERE y=$y ORDER BY x",
+     "variable": "a",
+     "rawVarExpansion": true,
+     "explainBody": "if {$a(opcode)==\"OpenRead\"} { set ::T($a(p2)) 1 }"
+    },
+    {
+     "type": "runtime_expr",
+     "sql": "join [array names ::T] ,",
+     "variable": "in"
+    },
+    {
+     "type": "query",
+     "sql": "SELECT name FROM sqlite_master WHERE rootpage IN ($in) ORDER BY 1",
+     "expect": "t1 t1x3",
+     "rawVarExpansion": true
+    }
+   ]
+  },
+  {
+   "name": "index9-3.2",
+   "steps": [
+    {
+     "type": "runtime_var_set",
+     "variable": "y",
+     "sql": "9.223372036854776e+18"
+    },
+    {
+     "type": "explain_rows",
+     "sql": "EXPLAIN SELECT * FROM t1 WHERE y=$y ORDER BY x",
+     "variable": "a",
+     "rawVarExpansion": true,
+     "explainBody": "if {$a(opcode)==\"OpenRead\"} { set ::T($a(p2)) 1 }"
+    },
+    {
+     "type": "runtime_expr",
+     "sql": "join [array names ::T] ,",
+     "variable": "in"
+    },
+    {
+     "type": "query",
+     "sql": "SELECT name FROM sqlite_master WHERE rootpage IN ($in) ORDER BY 1",
+     "expect": "t1",
+     "rawVarExpansion": true
+    }
+   ]
+  },
+  {
+   "name": "index9-3.3",
+   "steps": [
+    {
+     "type": "runtime_var_set",
+     "variable": "y",
+     "sql": "9223372036854775806"
+    },
+    {
+     "type": "explain_rows",
+     "sql": "EXPLAIN SELECT * FROM t1 WHERE y=$y ORDER BY x",
+     "variable": "a",
+     "rawVarExpansion": true,
+     "explainBody": "if {$a(opcode)==\"OpenRead\"} { set ::T($a(p2)) 1 }"
+    },
+    {
+     "type": "runtime_expr",
+     "sql": "join [array names ::T] ,",
+     "variable": "in"
+    },
+    {
+     "type": "query",
+     "sql": "SELECT name FROM sqlite_master WHERE rootpage IN ($in) ORDER BY 1",
+     "expect": "t1",
+     "rawVarExpansion": true
+    }
+   ]
+  },
+  {
+   "name": "index9-3.4",
+   "steps": [
+    {
+     "type": "runtime_var_unset",
+     "variable": "y"
+    },
+    {
+     "type": "explain_rows",
+     "sql": "EXPLAIN SELECT * FROM t1 WHERE y=$y ORDER BY x",
+     "variable": "a",
+     "rawVarExpansion": true,
+     "explainBody": "if {$a(opcode)==\"OpenRead\"} { set ::T($a(p2)) 1 }"
+    },
+    {
+     "type": "runtime_expr",
+     "sql": "join [array names ::T] ,",
+     "variable": "in"
+    },
+    {
+     "type": "query",
+     "sql": "SELECT name FROM sqlite_master WHERE rootpage IN ($in) ORDER BY 1",
+     "expect": "t1",
+     "rawVarExpansion": true
+    }
+   ]
+  },
+  {
+   "name": "index9-3.5",
+   "steps": [
+    {
+     "type": "runtime_var_unset",
+     "variable": "y"
+    },
+    {
+     "type": "explain_rows",
+     "sql": "EXPLAIN SELECT * FROM t1 WHERE y=$y ORDER BY x",
+     "variable": "a",
+     "rawVarExpansion": true,
+     "explainBody": "if {$a(opcode)==\"OpenRead\"} { set ::T($a(p2)) 1 }"
+    },
+    {
+     "type": "runtime_expr",
+     "sql": "join [array names ::T] ,",
+     "variable": "in"
+    },
+    {
+     "type": "query",
+     "sql": "SELECT name FROM sqlite_master WHERE rootpage IN ($in) ORDER BY 1",
+     "expect": "t1",
+     "rawVarExpansion": true
+    }
+   ]
+  },
+  {
+   "name": "index9-4.0",
+   "steps": [
+    {
+     "type": "exec",
+     "sql": "CREATE INDEX t1x4 ON t1(x) WHERE y=-9223372036854775808"
+    }
+   ]
+  },
+  {
+   "name": "index9-4.1",
+   "steps": [
+    {
+     "type": "runtime_var_set",
+     "variable": "y",
+     "sql": "-9223372036854775808"
+    },
+    {
+     "type": "explain_rows",
+     "sql": "EXPLAIN SELECT * FROM t1 WHERE y=$y ORDER BY x",
+     "variable": "a",
+     "rawVarExpansion": true,
+     "explainBody": "if {$a(opcode)==\"OpenRead\"} { set ::T($a(p2)) 1 }"
+    },
+    {
+     "type": "runtime_expr",
+     "sql": "join [array names ::T] ,",
+     "variable": "in"
+    },
+    {
+     "type": "query",
+     "sql": "SELECT name FROM sqlite_master WHERE rootpage IN ($in) ORDER BY 1",
+     "expect": "t1 t1x4",
+     "rawVarExpansion": true
+    }
+   ]
+  },
+  {
+   "name": "index9-4.2",
+   "steps": [
+    {
+     "type": "runtime_var_set",
+     "variable": "y",
+     "sql": "-9223372036854775807"
+    },
+    {
+     "type": "explain_rows",
+     "sql": "EXPLAIN SELECT * FROM t1 WHERE y=$y ORDER BY x",
+     "variable": "a",
+     "rawVarExpansion": true,
+     "explainBody": "if {$a(opcode)==\"OpenRead\"} { set ::T($a(p2)) 1 }"
+    },
+    {
+     "type": "runtime_expr",
+     "sql": "join [array names ::T] ,",
+     "variable": "in"
+    },
+    {
+     "type": "query",
+     "sql": "SELECT name FROM sqlite_master WHERE rootpage IN ($in) ORDER BY 1",
+     "expect": "t1",
+     "rawVarExpansion": true
+    }
+   ]
+  },
+  {
+   "name": "index9-4.3",
+   "steps": [
+    {
+     "type": "runtime_var_set",
+     "variable": "y",
+     "sql": "-9.223372036854776e+18"
+    },
+    {
+     "type": "explain_rows",
+     "sql": "EXPLAIN SELECT * FROM t1 WHERE y=$y ORDER BY x",
+     "variable": "a",
+     "rawVarExpansion": true,
+     "explainBody": "if {$a(opcode)==\"OpenRead\"} { set ::T($a(p2)) 1 }"
+    },
+    {
+     "type": "runtime_expr",
+     "sql": "join [array names ::T] ,",
+     "variable": "in"
+    },
+    {
+     "type": "query",
+     "sql": "SELECT name FROM sqlite_master WHERE rootpage IN ($in) ORDER BY 1",
+     "expect": "t1",
+     "rawVarExpansion": true
+    }
+   ]
+  },
+  {
+   "name": "index9-4.4",
+   "steps": [
+    {
+     "type": "runtime_var_set",
+     "variable": "y",
+     "sql": "-9223372036854775808"
+    },
+    {
+     "type": "explain_rows",
+     "sql": "EXPLAIN SELECT * FROM t1 WHERE $y=y ORDER BY x",
+     "variable": "a",
+     "rawVarExpansion": true,
+     "explainBody": "if {$a(opcode)==\"OpenRead\"} { set ::T($a(p2)) 1 }"
+    },
+    {
+     "type": "runtime_expr",
+     "sql": "join [array names ::T] ,",
+     "variable": "in"
+    },
+    {
+     "type": "query",
+     "sql": "SELECT name FROM sqlite_master WHERE rootpage IN ($in) ORDER BY 1",
+     "expect": "t1 t1x4",
+     "rawVarExpansion": true
+    }
+   ]
+  },
+  {
+   "name": "index9-4.5",
+   "steps": [
+    {
+     "type": "runtime_var_unset",
+     "variable": "y"
+    },
+    {
+     "type": "explain_rows",
+     "sql": "EXPLAIN SELECT * FROM t1 WHERE $y=y ORDER BY x",
+     "variable": "a",
+     "rawVarExpansion": true,
+     "explainBody": "if {$a(opcode)==\"OpenRead\"} { set ::T($a(p2)) 1 }"
+    },
+    {
+     "type": "runtime_expr",
+     "sql": "join [array names ::T] ,",
+     "variable": "in"
+    },
+    {
+     "type": "query",
+     "sql": "SELECT name FROM sqlite_master WHERE rootpage IN ($in) ORDER BY 1",
+     "expect": "t1",
+     "rawVarExpansion": true
+    }
+   ]
+  }
+ ]
 }

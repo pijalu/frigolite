@@ -519,6 +519,22 @@ func (i *Interp) dbEval(rawWords []rawWord, args []string, localVars map[string]
 			if len(rawWords) >= 4 && rawWords[3].Braced && collectsFirstColumn(rawWords[3].Text) {
 				typ = "query_first_column"
 			}
+			// `db eval "EXPLAIN $sql" a { if {$a(opcode)=="OpenRead"} { set
+			// ::T($a(p2)) 1 } }` (index9.test's sqluses): the EXPLAIN row
+			// stream drives a per-row callback over the array elements
+			// a(addr)...a(comment). The body is arbitrary Tcl over the row
+			// array — capture it as an explain_rows step; the harness runs
+			// it through the callback interpreter (the S25 push/pull).
+			if i.conversionMode && len(rawWords) >= 4 && rawWords[3].Braced && len(args) >= 3 && isExplainQuery(sql) {
+				i.stmts = append(i.stmts, Stmt{
+					Type:        "explain_rows",
+					SQL:         sql,
+					Variable:    strings.TrimPrefix(args[2], "::"),
+					ExplainBody: rawWords[3].Text,
+					TestName:    i.curTest,
+				})
+				return nil
+			}
 		}
 		i.stmts = append(i.stmts, Stmt{
 			Type:     i.stmtType(typ),
@@ -534,6 +550,13 @@ func (i *Interp) dbEval(rawWords []rawWord, args []string, localVars map[string]
 		}
 	}
 	return nil
+}
+
+// isExplainQuery reports whether the SQL text is an EXPLAIN statement (the
+// explain_rows callback capture only applies to EXPLAIN row streams; other
+// queries' callback shapes are separate carded classes).
+func isExplainQuery(sql string) bool {
+	return strings.HasPrefix(strings.ToUpper(strings.TrimSpace(sql)), "EXPLAIN")
 }
 
 // collectsFirstColumn reports whether a `db eval` callback script only
