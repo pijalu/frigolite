@@ -31,28 +31,32 @@ func (e *SelectEngine) validateViewFromClause(s *sql.SelectStmt) error {
 // SQLite pushes predicates through UNION ALL so each branch can use its index
 // (SEARCH instead of SCAN). Returns nil when the FROM is not a compound view
 // (caller falls through to the normal single-table/join plan).
-func (e *SelectEngine) planViewCompound(s *sql.SelectStmt) *Result {
+// planViewCompoundNodes renders a compound-body view reference's plan nodes.
+// ok=true carries the nodes (the callers wrap them: the EQP as text, the
+// EXPLAIN row stream as opcode rows); ok=false means the FROM term is not a
+// compound view.
+func (e *SelectEngine) planViewCompoundNodes(s *sql.SelectStmt) ([]planNode, bool) {
 	if s.From.Name == "" || len(s.Joins) > 0 {
-		return nil
+		return nil, false
 	}
 	// Only when it is a view, not a real table.
 	if _, _, err := e.ctx.FindTable(s.From.Name); err == nil {
-		return nil
+		return nil, false
 	}
 	viewEntry, _, viewErr := e.ctx.FindView(s.From.Name)
 	if viewErr != nil {
-		return nil
+		return nil, false
 	}
 	bodySel := parseViewSelectBody(viewEntry.SQL)
 	if bodySel == nil || bodySel.Union == nil {
-		return nil // not a compound view
+		return nil, false // not a compound view
 	}
 	// Predicate pushdown: AND the outer WHERE into each branch and copy the
 	// outer ORDER BY so each branch's plan reflects index usage.
 	if s.Where != nil || len(s.OrderBy) > 0 {
 		pushPredicatesIntoBranches(bodySel, s.Where, s.OrderBy)
 	}
-	return planTreeResult(e.planCompound(bodySel))
+	return e.planCompound(bodySel), true
 }
 
 // pushPredicatesIntoBranches walks the compound SELECT chain and ANDs the

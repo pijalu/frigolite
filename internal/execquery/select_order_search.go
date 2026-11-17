@@ -790,6 +790,13 @@ func (e *SelectEngine) indexIsUnique(token string) bool {
 // order, GROUP BY / DISTINCT grouping order, skip-scans, virtual tables —
 // keep the legacy sortCoveredByIndex heuristic.
 func (e *SelectEngine) orderByConsumedByLoop(tables []queryTable, s *sql.SelectStmt, loop scanLoop) bool {
+	// Constant ORDER BY terms are satisfied without the loop's help (where.c
+	// marks constant terms ordered in the obSat walk — where.c:5342); when
+	// EVERY term is constant the sorter is never built (where2-2.6's
+	// ORDER BY abs(5) vs 2.5's random(), oracle-verified).
+	if e.allOrderTermsConstant(s.OrderBy) {
+		return true
+	}
 	if len(tables) != 1 {
 		return false
 	}
