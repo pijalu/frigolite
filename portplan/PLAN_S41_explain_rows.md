@@ -253,3 +253,40 @@ TestSOLID_ ./...` + TestS22_ after every engine stage. Quality gate
 - vacuum2-5.4 (the query+catch mixed expectation shape).
 - QPSG modeling (the harness hand-pins express the observable; a real QPSG
   planner flag is a separate engine unit if other fixtures need it).
+
+## STATUS
+
+- **Stage 1 COMPLETE (2026-11-17)** — `internal/execquery/explain_rows.go`:
+  the synthetic opcode row stream. All DML (INSERT/UPDATE/DELETE) renders
+  write-cursor streams through `emitDMLRows` (the WIP checkpoint's dispatch
+  routed UPDATE through the read-scan path — fixed); the maintained-index
+  set is the faithful update.c port (chngKey / indexWhereClauseMightChange /
+  indexColumnIsBeingUpdated incl. expression-index column-reference walk at
+  the tokenizer level — `exprReferencesChangedCols`). `explain.go`'s
+  `execExplain` delegates to the stream; EQP and the stream share ONE plan
+  derivation (`explainQueryPlanSelectNodes` / `explainDMLPlanNodes`).
+- **Oracle pins ALL OK** (`tmp_probe` validation vs testfixture 3.51.0
+  captures in /tmp/s41/oracle/ — tf_i9full.tcl et al.): index9's 15
+  hand-pin literal forms (OpenRead p2 sets + SorterOpen presence),
+  where2-2.5/2.5b/2.6 (SorterOpen + random p4), bestindexF plain shapes
+  (IdxInsert presence), indexexpr2-4.200/4.210/4.220 (UPDATE maintained
+  sets t2,t2abc / +t2cd / +t2def).
+- **Constant-ORDER-BY optimization landed** (`allOrderTermsConstant` +
+  `exprIsConstantExpr` in explain_rows.go, consulted by
+  `orderByConsumedByLoop`): where2-2.6/2.6b keep NOT matching; integer
+  ordinals (ORDER BY 1) are POSITIONAL in this engine's pipeline (C
+  resolves them earlier) and never count as constants — EQP text and row
+  order for the ordinal class are unchanged (base-probe verified).
+- **where2-2.5/2.5b already closed** by the stream (plain regex wants
+  SorterOpen + random p4 — no harness work needed; the plan's Stage 4
+  target fell in Stage 1).
+- Sweeps (python raw byte scan, leaf-only, two-direction vs
+  /tmp/s41_baseline_universe.json built from the verified merge gate):
+  where 4,290 leaves 0 fails (where2 2 GONE = the targets);
+  select 9,036 leaves NEW=0 GONE=0; index universe (bestindex*/index*/
+  autoindex*/e_reindex) NEW=0 GONE=0; vacuum NEW=0 (vacuum-into-500 GONE =
+  the carded watchlist dither). No `explain`-named families exist in the
+  fixture set — EXPLAIN assertions ride the where/select/index families.
+- **Stage 2 next**: the explain() TVF (eponymous vtab over the same
+  stream) — port of ext/misc/explain.c (xBestIndex sql-EQ → idxNum 1,
+  xFilter non-TEXT → DONE).

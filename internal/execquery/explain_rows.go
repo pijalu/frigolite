@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/pijalu/frigolite/internal/schema"
 	"github.com/pijalu/frigolite/internal/sql"
 )
 
@@ -49,9 +50,10 @@ func (e *SelectEngine) emitExplainRows(stmt sql.Stmt) *Result {
 	// resolveP2Values); its jump target and comment fill in after the body
 	// is laid out and Halt's address is known.
 	prog.emit("", 0, 0, 0, "", 0, "")
-	if _, isDML := stmt.(*sql.InsertStmt); isDML {
+	switch stmt.(type) {
+	case *sql.InsertStmt, *sql.UpdateStmt, *sql.DeleteStmt:
 		e.emitDMLRows(prog, stmt)
-	} else {
+	default:
 		nodes, ok := e.planExplainNodes(stmt)
 		if !ok {
 			return nil
@@ -87,19 +89,16 @@ func explainRowsResult(rows []explainRow) *Result {
 // planExplainNodes derives the plan-node tree the stream renders. It shares
 // the EQP derivation: the same dispatch, so the stream and the QUERY PLAN
 // text cannot drift. ok is false for statements with no plan (schema
-// errors surface as results from the EQP path instead).
+// errors surface as results from the EQP path instead). Write statements
+// render through emitDMLRows (the write-cursor stream), not the plan-node
+// walk.
 func (e *SelectEngine) planExplainNodes(stmt sql.Stmt) ([]planNode, bool) {
-	switch s := stmt.(type) {
-	case *sql.SelectStmt:
+	if s, ok := stmt.(*sql.SelectStmt); ok {
 		nodes, errResult := e.explainQueryPlanSelectNodes(s)
 		if errResult != nil {
 			return nil, false
 		}
 		return nodes, true
-	case *sql.DeleteStmt:
-		return e.explainDMLPlanNodes(s.Table, s.Where, 1), true
-	case *sql.UpdateStmt:
-		return e.explainDMLPlanNodes(s.Table, s.Where, 2), true
 	}
 	return nil, false
 }
@@ -291,12 +290,18 @@ func sortTermFunction(term sql.Expr) string {
 // allOrderTermsConstant reports whether every ORDER BY term is a constant
 // expression — sqlite3ExprIsConstant(0, term) parity: no column references,
 // no bound parameters, no subqueries, and functions are constant only when
-// deterministic (resolve.c's EP_ConstFunc) with constant arguments.
-func (e *SelectEngine) allOrderTermsConstant(terms []sql.OrderByTerm) bool {
+// deterministic (resolve.c's EP_ConstFunc) with constant arguments. An
+// integer literal in 1..nCols is a POSITIONAL term in this engine's pipeline
+// (resolveOrderByOrdinalTerms rewrites it at sort time; C resolves it in
+// resolve.c before the constant test runs) — never constant.
+func (e *SelectEngine) allOrderTermsConstant(terms []sql.OrderByTerm, nCols int) bool {
 	if len(terms) == 0 {
 		return false
 	}
 	for _, ob := range terms {
+		if pos, _ := ordinalPosition(ob.Expr, nCols); pos > 0 {
+			return false
+		}
 		if !e.exprIsConstantExpr(ob.Expr) {
 			return false
 		}
@@ -393,46 +398,56 @@ func parseScanDetail(detail string) *scanDetailShape {
 		return nil
 	}
 	shape := &scanDetailShape{seek: seek}
-	if strings.HasSuffix(rest, " EXISTS") {
-		rest = strings.TrimSuffix(rest, " EXISTS")
-	}
+	rest = strings.TrimSuffix(rest, " EXISTS")
 	// The virtual-table tail: "VIRTUAL TABLE INDEX <n>:<str>".
 	if i := strings.Index(rest, " VIRTUAL TABLE INDEX "); i >= 0 {
-		shape.table = rest[:i]
-		shape.vtab = true
-		shape.vtabIdxStr = rest[i+len(" VIRTUAL TABLE INDEX "):]
-		if c := strings.IndexByte(shape.vtabIdxStr, ':'); c >= 0 {
-			shape.vtabIdxStr = shape.vtabIdxStr[c+1:]
-		}
+		parseVtabTail(rest, i, shape)
 		return shape
 	}
 	// The USING tails.
 	if i := strings.Index(rest, " USING "); i >= 0 {
 		shape.table = rest[:i]
-		using := rest[i+len(" USING "):]
-		switch {
-		case strings.HasPrefix(using, "INTEGER PRIMARY KEY"):
-			shape.index = "INTEGER PRIMARY KEY"
-		case strings.HasPrefix(using, "COVERING INDEX "):
-			shape.index = stripSeekConditions(strings.TrimPrefix(using, "COVERING INDEX "))
-		case strings.HasPrefix(using, "INDEX "):
-			shape.index = stripSeekConditions(strings.TrimPrefix(using, "INDEX "))
-		case strings.HasPrefix(using, "AUTOMATIC COVERING INDEX"):
-			shape.index = "AUTOMATIC COVERING INDEX"
-		case strings.HasPrefix(using, "AUTOMATIC PARTIAL COVERING INDEX"):
-			shape.index = "AUTOMATIC PARTIAL COVERING INDEX"
-		default:
-			// "USING <label> <conditions>" (skip-scan / unusual labels):
-			// the label's INDEX token if recognizable, else no index rows.
-			fields := strings.SplitN(using, " ", 2)
-			if len(fields) > 1 && fields[0] == "INDEX" {
-				shape.index = stripSeekConditions(fields[1])
-			}
-		}
+		parseUsingTail(rest[i+len(" USING "):], shape)
 		return shape
 	}
 	shape.table = rest
 	return shape
+}
+
+// parseVtabTail fills a shape from the "VIRTUAL TABLE INDEX <n>:<str>" tail
+// of a vtab scan node: the table name ends before the tail and the idxStr is
+// everything after the separating colon.
+func parseVtabTail(rest string, tail int, shape *scanDetailShape) {
+	shape.table = rest[:tail]
+	shape.vtab = true
+	shape.vtabIdxStr = rest[tail+len(" VIRTUAL TABLE INDEX "):]
+	if c := strings.IndexByte(shape.vtabIdxStr, ':'); c >= 0 {
+		shape.vtabIdxStr = shape.vtabIdxStr[c+1:]
+	}
+}
+
+// parseUsingTail fills a shape's index field from a scan node's "USING ..."
+// tail (the EQP grammar's index-delivery forms).
+func parseUsingTail(using string, shape *scanDetailShape) {
+	switch {
+	case strings.HasPrefix(using, "INTEGER PRIMARY KEY"):
+		shape.index = "INTEGER PRIMARY KEY"
+	case strings.HasPrefix(using, "COVERING INDEX "):
+		shape.index = stripSeekConditions(strings.TrimPrefix(using, "COVERING INDEX "))
+	case strings.HasPrefix(using, "INDEX "):
+		shape.index = stripSeekConditions(strings.TrimPrefix(using, "INDEX "))
+	case strings.HasPrefix(using, "AUTOMATIC COVERING INDEX"):
+		shape.index = "AUTOMATIC COVERING INDEX"
+	case strings.HasPrefix(using, "AUTOMATIC PARTIAL COVERING INDEX"):
+		shape.index = "AUTOMATIC PARTIAL COVERING INDEX"
+	default:
+		// "USING <label> <conditions>" (skip-scan / unusual labels):
+		// the label's INDEX token if recognizable, else no index rows.
+		fields := strings.SplitN(using, " ", 2)
+		if len(fields) > 1 && fields[0] == "INDEX" {
+			shape.index = stripSeekConditions(fields[1])
+		}
+	}
 }
 
 // stripSeekConditions removes a SEARCH node's trailing "(<constraints>)"
@@ -511,114 +526,89 @@ func openComment(name string, root int64) string {
 	return fmt.Sprintf("root=%d iDb=0; %s", root, name)
 }
 
-// emitDMLRows renders an INSERT's program frame: the table cursor opens
-// (OpenWrite), one cursor per index the insert maintains, and the row
-// insertion. The scan node detail (from explainDMLPlanNodes for
-// INSERT ... SELECT) renders first when a driving SELECT exists.
+// emitDMLRows renders a write statement's program frame: the target table
+// opens for writing (OpenWrite), the positioning cluster rides the write
+// cursor, the maintained indexes open (update.c aToOpen), and the row writes
+// follow. INSERT ... SELECT renders the driving query's plan first (C
+// compiles the sub-program before the insert machinery).
 func (e *SelectEngine) emitDMLRows(prog *explainProgram, stmt sql.Stmt) {
 	switch s := stmt.(type) {
 	case *sql.InsertStmt:
-		if s.Select != nil {
-			// INSERT ... SELECT renders the driving query's plan first
-			// (C compiles the sub-program before the insert machinery).
-			driveNodes, errResult := e.explainQueryPlanSelectNodes(s.Select)
-			if errResult == nil {
-				for _, n := range driveNodes {
-					e.emitPlanNodeRows(prog, n, s.Select)
-				}
-			}
-		}
-		e.emitTableWriteOpen(prog, s.Table)
-		prog.emit("IdxInsert", 0, 0, 1, "", 0, "key=r[1]")
+		e.emitInsertRows(prog, s)
 	case *sql.DeleteStmt:
-		e.emitTableWriteOpen(prog, s.Table)
-		e.emitWhereScanRows(prog, s.Table, s.Where)
-		prog.emit("IdxDelete", 0, 0, 1, s.Table, 0, "key=r[1]")
+		e.emitDeleteRows(prog, s)
 	case *sql.UpdateStmt:
-		e.emitTableWriteOpen(prog, s.Table)
-		e.emitWhereScanRows(prog, s.Table, s.Where)
-		// One maintenance cluster per index the update maintains (update.c's
-		// compile-time indexColumnIsBeingUpdated decision: the index's
-		// columns intersect the SET column list): the old entry deletes and
-		// the new one inserts. The OpenWrite rows carry the maintained
-		// index's root page — the explain() TVF's rootpage=explain.p2 join
-		// (indexexpr2-4.2xx) reads exactly them.
-		for _, idx := range e.updateMaintainedIndexes(s) {
-			root, cols := e.indexRootPage(s.Table, idx)
-			if root < 0 {
-				continue
-			}
-			prog.emit("OpenWrite", prog.nextCursor(), root, 0, e.indexRecordShape(idx, cols), 0, openComment(idx, root))
-			prog.emit("IdxDelete", 0, 0, 1, idx, 0, "key=r[1]")
-			prog.emit("IdxInsert", 0, 0, 1, "", 0, "key=r[1]")
-		}
+		e.emitUpdateRows(prog, s)
 	}
 }
 
-// nextCursor returns the next synthetic cursor number (the row count so far
-// is a stable per-program sequence).
-func (p *explainProgram) nextCursor() int64 { return int64(len(p.rows)) }
-
-// updateMaintainedIndexes returns the names of the indexes an UPDATE
-// maintains, by update.c's compile-time decision (indexColumnIsBeingUpdated):
-// an index is opened for maintenance when any of its indexed columns is in
-// the statement's SET column list. The rowid (a column-less index key or a
-// SET rowid) maintains every index. This is the plan-side twin of the
-// executor's per-row maintenance decision (execdml maintainedUpdateIndexes);
-// the EXPLAIN stream renders the compile-time set the C program opens.
-func (e *SelectEngine) updateMaintainedIndexes(s *sql.UpdateStmt) []string {
-	entry, _, err := e.ctx.FindTable(s.Table)
-	if err != nil || entry == nil {
-		return nil
-	}
-	changed := map[string]bool{}
-	for _, a := range s.Assignments {
-		changed[strings.ToLower(a.Column)] = true
-	}
-	var out []string
-	entries, err2 := e.ctx.Schema().GetEntries("")
-	if err2 != nil {
-		return nil
-	}
-	for _, ent := range entries {
-		if ent.Type != "index" || !strings.EqualFold(ent.TblName, s.Table) {
-			continue
-		}
-		var cols []string
-		if ent.SQL == "" {
-			cols = e.autoindexColumns(ent.TblName, ent.Name)
-		} else {
-			cols = e.ctx.ParseIndexColumns(ent.SQL)
-		}
-		for _, col := range cols {
-			if changed[strings.ToLower(col)] {
-				out = append(out, ent.Name)
-				break
+// emitInsertRows renders INSERT's stream: the driving query (if any), the
+// write cursor, and one open + insertion per index (insert.c opens every
+// index: aToOpen is all-ones on insert).
+func (e *SelectEngine) emitInsertRows(prog *explainProgram, s *sql.InsertStmt) {
+	if s.Select != nil {
+		driveNodes, errResult := e.explainQueryPlanSelectNodes(s.Select)
+		if errResult == nil {
+			for _, n := range driveNodes {
+				e.emitPlanNodeRows(prog, n, s.Select)
 			}
 		}
 	}
-	return out
+	e.emitTableWriteOpen(prog, s.Table)
+	for _, idx := range e.tableIndexNames(s.Table) {
+		e.emitIndexWriteOpen(prog, s.Table, idx)
+		prog.emit("IdxInsert", 0, 0, 1, "", 0, "key=r[1]")
+	}
+	prog.emit("IdxInsert", 0, 0, 1, "", 0, "key=r[1]")
 }
 
-// emitTableWriteOpen renders the write cursor's OpenWrite for a DML target
-// table (C opens DELETE/UPDATE/INSERT targets for writing: vdbeaux.c
-// OP_OpenWrite).
-func (e *SelectEngine) emitTableWriteOpen(prog *explainProgram, tableName string) {
-	root := e.tableRootPage(tableName)
-	if root < 0 {
+// emitDeleteRows renders DELETE's stream: the write cursor, the positioning
+// cluster, and one open + deletion per index (delete.c opens every index —
+// every deleted row's entries must go).
+func (e *SelectEngine) emitDeleteRows(prog *explainProgram, s *sql.DeleteStmt) {
+	e.emitTableWriteOpen(prog, s.Table)
+	for _, idx := range e.tableIndexNames(s.Table) {
+		e.emitIndexWriteOpen(prog, s.Table, idx)
+	}
+	e.emitDMLScanRows(prog, s.Table, s.Where, 1)
+	prog.emit("IdxDelete", 0, 0, 1, s.Table, 0, "key=r[1]")
+}
+
+// emitUpdateRows renders UPDATE's stream: the write cursor, the positioning
+// cluster, and one maintenance cluster per index the update maintains
+// (update.c's compile-time aToOpen decision) — the old entry deletes and the
+// new one inserts. The OpenWrite rows carry the maintained index's root page;
+// the explain() TVF's rootpage=explain.p2 join (indexexpr2-4.2xx) reads
+// exactly them.
+func (e *SelectEngine) emitUpdateRows(prog *explainProgram, s *sql.UpdateStmt) {
+	e.emitTableWriteOpen(prog, s.Table)
+	for _, idx := range e.updateMaintainedIndexes(s) {
+		e.emitIndexWriteOpen(prog, s.Table, idx)
+		prog.emit("IdxDelete", 0, 0, 1, idx, 0, "key=r[1]")
+		prog.emit("IdxInsert", 0, 0, 1, "", 0, "key=r[1]")
+	}
+	e.emitDMLScanRows(prog, s.Table, s.Where, 2)
+}
+
+// emitDMLScanRows renders the statement's driving scan (the plan node the EQP
+// renders — explainDMLPlanNodes' first node) positioned on the write cursor,
+// then the FK child-check scans as read-cursor clusters (C compiles the FK
+// scans against their own cursors).
+func (e *SelectEngine) emitDMLScanRows(prog *explainProgram, table string, where sql.Expr, childScans int) {
+	nodes := e.explainDMLPlanNodes(table, where, childScans)
+	if len(nodes) == 0 {
 		return
 	}
-	prog.emit("OpenWrite", 0, root, 0, e.tableRecordShape(tableName), 0, openComment(tableName, root))
+	e.emitWriteScanCluster(prog, table, nodes[0].detail)
+	for _, n := range nodes[1:] {
+		e.emitScanRows(prog, n.detail)
+	}
 }
 
-// emitWhereScanRows renders the positioning cluster of a DELETE/UPDATE whose
-// WHERE drives a seek or a scan over the already-opened write cursor
-// (explainDMLPlan's dmlSearchDetail analysis shared with the EQP).
-func (e *SelectEngine) emitWhereScanRows(prog *explainProgram, tableName string, where sql.Expr) {
-	detail := "SCAN " + tableName
-	if search := e.dmlSearchDetail(tableName, where); search != "" {
-		detail = search
-	}
+// emitWriteScanCluster renders the positioning decision of the driving scan
+// on the already-opened write cursor (the scan detail analysis shared with
+// the EQP).
+func (e *SelectEngine) emitWriteScanCluster(prog *explainProgram, tableName, detail string) {
 	shape := parseScanDetail(detail)
 	if shape == nil {
 		return
@@ -635,4 +625,159 @@ func (e *SelectEngine) emitWhereScanRows(prog *explainProgram, tableName string,
 	}
 	prog.emit("Rewind", 0, 0, 0, "", 0, "")
 	prog.emit("Next", 0, 0, 0, "", 1, "")
+}
+
+// tableIndexNames returns the index names of the table in schema order (the
+// maintenance-cursor set of insert.c/delete.c).
+func (e *SelectEngine) tableIndexNames(tableName string) []string {
+	entries, err := e.ctx.Schema().GetEntries("")
+	if err != nil {
+		return nil
+	}
+	var out []string
+	for _, ent := range entries {
+		if ent.Type == "index" && strings.EqualFold(ent.TblName, tableName) {
+			out = append(out, ent.Name)
+		}
+	}
+	return out
+}
+
+// emitIndexWriteOpen renders one index write cursor's OpenWrite.
+func (e *SelectEngine) emitIndexWriteOpen(prog *explainProgram, tableName, indexName string) {
+	root, cols := e.indexRootPage(tableName, indexName)
+	if root < 0 {
+		return
+	}
+	prog.emit("OpenWrite", prog.nextCursor(), root, 0, e.indexRecordShape(indexName, cols), 0, openComment(indexName, root))
+}
+
+// nextCursor returns the next synthetic cursor number (the row count so far
+// is a stable per-program sequence).
+func (p *explainProgram) nextCursor() int64 { return int64(len(p.rows)) }
+
+// updateMaintainedIndexes returns the names of the indexes an UPDATE
+// maintains, by update.c's compile-time decision (update.c:564-585): every
+// index is maintained when the statement changes a key column (chngKey); an
+// individual index is maintained when its partial WHERE might change values
+// (indexWhereClauseMightChange) or when any of its indexed keys — a plain
+// column or an expression — references a changed column
+// (indexColumnIsBeingUpdated). This is the plan-side twin of the executor's
+// per-row maintenance decision (execdml maintainedUpdateIndexes); the EXPLAIN
+// stream renders the compile-time set the C program opens.
+func (e *SelectEngine) updateMaintainedIndexes(s *sql.UpdateStmt) []string {
+	entry, _, err := e.ctx.FindTable(s.Table)
+	if err != nil || entry == nil {
+		return nil
+	}
+	changed := map[string]bool{}
+	for _, a := range s.Assignments {
+		changed[strings.ToLower(a.Column)] = true
+	}
+	entries, err2 := e.ctx.Schema().GetEntries("")
+	if err2 != nil {
+		return nil
+	}
+	keyChanged := e.updateChangesKey(entry, changed)
+	var out []string
+	for _, ent := range entries {
+		if ent.Type != "index" || !strings.EqualFold(ent.TblName, s.Table) {
+			continue
+		}
+		if keyChanged || e.indexWhereMightChange(ent, changed) || updateIndexKeyTouched(e.indexEntryColumns(ent), changed) {
+			out = append(out, ent.Name)
+		}
+	}
+	return out
+}
+
+// updateChangesKey reports the statement's chngKey flag (update.c): the rowid
+// changed, or a PRIMARY KEY column changed (the rowid alias for rowid tables,
+// the declared PK for WITHOUT ROWID tables). chngKey maintains every index.
+func (e *SelectEngine) updateChangesKey(entry *schema.Entry, changed map[string]bool) bool {
+	if changed["rowid"] {
+		return true
+	}
+	for _, def := range e.ctx.ParseColumnDefs(entry.Name, entry.SQL) {
+		if def.PrimaryKey && changed[strings.ToLower(def.Name)] {
+			return true
+		}
+	}
+	return false
+}
+
+// indexWhereMightChange reports whether the index's partial WHERE clause
+// might change values due to the UPDATE (update.c
+// indexWhereClauseMightChange): the predicate references a changed column.
+func (e *SelectEngine) indexWhereMightChange(ent *schema.Entry, changed map[string]bool) bool {
+	if ent.SQL == "" {
+		return false // automatic indexes carry no partial predicate
+	}
+	wm := indexWhereRe.FindStringSubmatch(ent.SQL)
+	if wm == nil {
+		return false
+	}
+	return exprReferencesChangedCols(wm[1], changed)
+}
+
+// updateIndexKeyTouched reports whether any indexed key of the UPDATE target
+// is a changed column or an expression referencing one (update.c
+// indexColumnIsBeingUpdated).
+func updateIndexKeyTouched(keys []string, changed map[string]bool) bool {
+	for _, key := range keys {
+		if isIdentifier(key) {
+			if changed[strings.ToLower(key)] {
+				return true
+			}
+			continue
+		}
+		if exprReferencesChangedCols(key, changed) {
+			return true
+		}
+	}
+	return false
+}
+
+// exprReferencesChangedCols reports whether the index expression text
+// references any changed column (update.c sqlite3ExprReferencesUpdatedColumn's
+// TK_COLUMN walk, at the tokenizer level): an identifier token matching a
+// changed column name. Function names (identifier followed by "(") and
+// COLLATE arguments are not column references.
+func exprReferencesChangedCols(exprText string, changed map[string]bool) bool {
+	tok := sql.NewTokenizer(exprText)
+	afterCollate := false
+	for {
+		t := tok.Next()
+		switch t.Type {
+		case sql.TokenEOF, sql.TokenError:
+			return false
+		case sql.TokenKeyword:
+			afterCollate = strings.EqualFold(t.Value, "COLLATE")
+			continue
+		case sql.TokenIdentifier:
+			if afterCollate {
+				afterCollate = false
+				continue // a collation name, never a column reference
+			}
+			afterCollate = false
+			if !changed[strings.ToLower(t.Value)] {
+				continue
+			}
+			if t.End < len(exprText) && exprText[t.End] == '(' {
+				continue // a function name, not a column reference
+			}
+			return true
+		}
+	}
+}
+
+// emitTableWriteOpen renders the write cursor's OpenWrite for a DML target
+// table (C opens DELETE/UPDATE/INSERT targets for writing: vdbeaux.c
+// OP_OpenWrite).
+func (e *SelectEngine) emitTableWriteOpen(prog *explainProgram, tableName string) {
+	root := e.tableRootPage(tableName)
+	if root < 0 {
+		return
+	}
+	prog.emit("OpenWrite", 0, root, 0, e.tableRecordShape(tableName), 0, openComment(tableName, root))
 }

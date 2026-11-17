@@ -1727,3 +1727,52 @@ everywhere; go vet + go build clean.
 - Census after the slice: savepoint 8→5 (bucket-K residue), without_rowid3
   21→16 (bucket-J residue + 18.8/18.11 IGNORE), fkey2 22→17,
   tkt-f7b4edec 2→0. 15 leaves closed (10 planned + 5 fkey2 bonus).
+
+## S41 record (2026-11-17) — the EXPLAIN-row substrate (Stage 1)
+
+- **The synthetic EXPLAIN stream's ONE derivation rule pays off immediately**:
+  routing both EQP and the row stream through the same plan-node derivation
+  (`explainQueryPlanSelectNodes`/`explainDMLPlanNodes`) means the stream
+  inherits every planner fix automatically, and the detail-string grammar
+  (`SCAN t USING INDEX i (...)`) is the interchange format — parseScanDetail
+  parses exactly what the EQP renders, so the two surfaces cannot drift.
+- **ALL DML must render write-cursor streams** (OpenWrite + aToOpen), not the
+  EQP's read-scan nodes: the WIP checkpoint dispatched UPDATE/DELETE through
+  the plan-node walk and emitted OpenRead READ cursors for write statements
+  (the WIP's emitDMLRows UpdateStmt branch was unreachable dead code — only
+  INSERT reached it). C's delete.c/insert.c open EVERY index (aToOpen all
+  ones); update.c opens exactly the maintained set.
+- **update.c's compile-time maintenance decision ported exactly**
+  (update.c:564-585): chngKey (rowid or any PK column changed → every index)
+  OR indexWhereClauseMightChange (the partial WHERE references a changed
+  column) OR indexColumnIsBeingUpdated (any indexed key — plain column or
+  EXPRESSION — references a changed column). Expression indexes are the
+  observable: t2abc(a+b+c) must be maintained when SET b=b+1 — the
+  expression text is walked at the tokenizer level (sql.Tokenizer;
+  identifiers followed by "(" are function names, COLLATE arguments are
+  skipped). False positives are only performance (C's own doc); false
+  negatives corrupt indexes.
+- **INT64-min partial-index trap**: `-9223372036854775808` as an SQL literal
+  implies the partial index (oracle tf_i9c: OpenRead {t1, t1x4}) but the
+  BOUND $y=INT64-min form does NOT imply on a first-ever prepare (oracle
+  tf_i9b: t1 only) — C's exprCompareVariable needs pParse->pReprepare, which
+  only a reprepare-on-bind round provides; the C TEST's statement-cache
+  prior-executions reach the implied plan. The fixture hand-pins bake the
+  literal form, which is what the engine must (and does) answer.
+- **ORDER BY integer literals are POSITIONAL in this engine** — resolve.c
+  resolves ordinals to columns BEFORE the constant test sees them, but our
+  resolveOrderByOrdinalTerms runs at sort time; an allOrderTermsConstant
+  that treats NumericLit as constant would flip `ORDER BY 1`'s EQP/plan.
+  ordinalPosition(expr, nCols) must gate the constant test. Verified the
+  base's behavior first (scratch worktree probe): the EQP already suppressed
+  the sorter node for single-table constant/ordinal ORDER BY; the change is
+  EQP/stream-text only — execution always sorts.
+- **Oracle capture beats C-source inference for stream shapes**: the full
+  15-case index9 pin (tf_i9full.tcl, full schema, literal hand-pin forms)
+  took one testfixture run and settled every question the plan's table left
+  open (2.1's y is TEXT '45' at runtime — the C test reuses 1.5's binding).
+- **A substring sweep extracts NOTHING for absent families**: no
+  `explain`-named fixture families exist; the plan's `FRIGOLITE_TEST=explain`
+  target is vacuous — EXPLAIN assertions ride where/select/index families.
+  The sweep-diff must filter by families that RAN (=== RUN sets), else every
+  unrun baseline family shows up as phantom GONE.
