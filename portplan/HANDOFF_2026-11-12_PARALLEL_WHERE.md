@@ -171,3 +171,36 @@ greens; vs the 1317 baseline: 61 GONE, 12 NEW, all residual cards).
   verification (36 non-target families), then S35b/S35c per
   PLAN_S35abc.md; then S35d-g per TRIAGE_wal_residue_2026-11-16.md;
   then S42/S43 per TRIAGE_index_callback_2026-11-16.md.
+
+## 2026-11-18: the S35a-d WAL small-slices arc complete (1317→1218 across the day)
+
+**State: feature/perf @ 4bb2a2911, full-suite truth 1218 failing leaves**
+(/tmp/full_s35_merge_gate.log; vs the 1268 baseline: 52 GONE — 50 real,
+commit-attributed, +2 resetdb load flaps that re-run red — NEW=2, both
+documented dithers: temptable2-4.1.1, walfault-15's flap).
+
+- **S35a** the lifecycle-for-named-db pre-scan flip + the pager4
+  rename_file pin (pager4 5→0; wal9/walcrash2 + 24 same-class artifacts).
+- **S35b + S35c.1/.3** (15c7e8789): sync-flag levels (0x0A), the
+  walmode-4.9 BUSY propagation, the SetPageSize double-refusal, the
+  subjournal backup pin, the large-sector write rule + changecounter
+  rider, the missing-main garbage rule. **31 adjudicated ride-alongs**
+  across 11 non-wal families (exclusive/snapshot3/snapshot4/schema/
+  schema2/parser1/e_changes/e_blobclose/multiplex/tkt-d82e3) — verified
+  fixed at 15c7e8789 by pre-commit probes, mechanism = the page_size/
+  journal-mode/exclusive-WAL surfaces.
+- **S35c.2** (08897585f): the two-path wal-index header split (real-shm
+  trusts; heap re-validates salts+capacity and rebuilds). Byte-identical
+  wal-universe (74=74).
+- **S35d** (15d293152/a9e1d2b3f): the NOOP checkpoint mode + the in-txn
+  SQLITE_LOCKED veto + register_function's fixture-proc interpreter round
+  trip + binary format c* + the converter's braced-body proc collection.
+  walckptnoop 7→1 + tkt-f7772-1.2.
+- **New cards**: the btree PAGE-DENSITY divergence (bulk-insert WAL
+  mxFrame 451 vs C's 298 — own unit), the walfault-15 cross-case JOIN
+  flap (isolation-pass/family-fail signature in lessons), walfault-11's
+  trial-cap (647s/case), the resetdb load flap (watchlist).
+- **Restart point**: S35e (no-shm WAL, B1) → S35f (wal-hook, B10) →
+  S35g (error-injection + faultsim converter) → the density unit →
+  S42/S43. Plans: PLAN_S35d_walckptnoop.md (STATUS), PLAN_S35abc.md
+  (STATUS); lessons: the S35b/c/d records.
