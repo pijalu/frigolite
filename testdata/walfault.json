@@ -4,6 +4,16 @@
   "ordered": true,
   "tests": [
     {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "runtime_expr",
+          "sql": "file dirname $argv0",
+          "variable": "testdir"
+        }
+      ]
+    },
+    {
       "name": "__RESET_DB__",
       "steps": []
     },
@@ -148,7 +158,7 @@
       "steps": []
     },
     {
-      "name": "setup_0",
+      "name": "setup_1",
       "steps": [
         {
           "type": "faultsim_save_close"
@@ -434,6 +444,11 @@
               "variable": "stmt_1"
             },
             {
+              "type": "runtime_expr",
+              "sql": "stmt_1",
+              "variable": "stmt"
+            },
+            {
               "type": "stmt_step",
               "sql": "SELECT zzz FROM z WHERE zz IN (1, 2, 3)",
               "variable": "stmt_1"
@@ -478,6 +493,8 @@
           "prep": [
             {
               "type": "close_named_db",
+              "variable": "__catchrc",
+              "catchResult": true,
               "database": "db2"
             },
             {
@@ -549,6 +566,15 @@
               "sql": "shm",
               "variable": "test.db",
               "database": "shmfault"
+            }
+          ],
+          "body": [
+            {
+              "type": "wal_checkpoint_rc",
+              "sql": "passive",
+              "variable": "rc",
+              "catchResult": true,
+              "database": "db"
             }
           ],
           "testScript": "\n  db close\n  faultsim_test_result {0 {}}\n",

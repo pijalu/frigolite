@@ -582,14 +582,28 @@ func (p *Pager) CheckExternalFileErr(pinWAL bool) (bool, error) {
 // the next header read fails to parse and walIndexRecover rebuilds the index
 // from the -wal file. No-op when not in WAL mode.
 func (p *Pager) CorruptWalIndex() {
+	p.CorruptWalIndexWith([]byte("blahblahblahblahblahblahblahblahblahblahblahblah"))
+}
+
+// CorruptWalIndexWith seeds the shared wal-index's header region with seed —
+// the generalized form of CorruptWalIndex for test_vfs.c's
+// `tvfs shm FILE VALUE` prep (walfault-12 pre-seeds 40 zero bytes: the next
+// header read fails to parse and the recovery rebuilds). The seed also
+// persists to the -shm file, so a later opener sees it. No-op when not in
+// WAL mode.
+func (p *Pager) CorruptWalIndexWith(seed []byte) {
 	p.mu.Lock()
 	defer p.mu.Unlock()
-	if p.wal == nil || p.wal.wi == nil {
+	if p.wal == nil || p.wal.wi == nil || len(seed) == 0 {
 		return
 	}
 	_ = p.wal.wi.WriterSection(func() error {
 		page0 := p.wal.wi.pageLocked(0)
-		copy(page0[:48], []byte("blahblahblahblahblahblahblahblahblahblahblahblah"))
+		n := len(seed)
+		if n > len(page0) {
+			n = len(page0)
+		}
+		copy(page0[:n], seed)
 		p.wal.wi.markDirtyLocked(0)
 		p.wal.wi.persistAllLocked()
 		return nil

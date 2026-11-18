@@ -45,6 +45,7 @@ type TestStep struct {
 	TransformArgs     []string          `json:"transformArgs,omitempty"`
 	Condition         string            `json:"condition,omitempty"`
 	CatchResult       bool              `json:"catchResult,omitempty"`
+	ShmSeed           string            `json:"shmSeed,omitempty"`
 	AuthProc          string            `json:"authProc,omitempty"`
 	CatchMessage      string            `json:"catchMessage,omitempty"`
 	ExplainBody       string            `json:"explainBody,omitempty"` // explain_rows: the per-row callback body (index9's sqluses)
@@ -556,6 +557,7 @@ func stepFromStmt(s tcl.Stmt) TestStep {
 		TransformArgs:     s.TransformArgs,
 		Condition:         tcl.StripRuntimeValues(s.Condition),
 		CatchResult:       s.CatchResult,
+		ShmSeed:           s.ShmSeed,
 		AuthProc:          s.AuthProc,
 		CatchMessage:      s.CatchMessage,
 		ExplainBody:       tcl.StripRuntimeValues(s.ExplainBody),

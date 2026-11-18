@@ -1,6 +1,7 @@
 package tcl
 
 import (
+	"os"
 	"fmt"
 	"strconv"
 	"strings"
@@ -454,7 +455,17 @@ func commandTestVFSConfig(i *Interp, args []string, cmd string) error {
 	if len(args) < 2 {
 		return nil
 	}
+	if os.Getenv("TCLCONV_DBG") != "" {
+		fmt.Fprintf(os.Stderr, "TCLCONV testvfs_config cmd=%s args=%q\n", cmd, args)
+	}
 	step := Stmt{Type: "testvfs_config", Database: cmd, SQL: args[0], Variable: args[1], TestName: i.curTest}
+	if args[0] == "shm" && len(args) >= 3 {
+		// `tvfs shm FILE VALUE` (test_vfs.c CMD_SHM): the VALUE's bytes are
+		// seeded into the fixture's shm buffer for FILE — walfault-12's
+		// prep pre-seeds 40 zero bytes so the trial's checkpoint sees a
+		// zeroed wal-index header. The bytes travel with the step.
+		step.ShmSeed = args[2]
+	}
 	if args[0] == "script" {
 		step.FunctionProc = args[1]
 		// The script proc's body travels with the step (the harness loads

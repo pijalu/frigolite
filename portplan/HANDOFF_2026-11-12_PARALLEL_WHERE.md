@@ -323,3 +323,75 @@ context: the JOIN card). Then the btree page-density unit (walckptnoop +
 resetdb-300's 13-vs-12 page_count — this session's resetdb-300 was green
 once: the density divergence may be trial-sensitive), S42/S43, the carded
 converter classes, the perf phase.
+
+---
+
+## HANDOVER 2026-11-18 (mid-flight): walfault-12 threading — the working tree holds UNCOMMITTED, COMPILING groundwork; the trial-runner wiring is half-applied and REVERTED to compile
+
+**Branch feature/perf @ the S35g-slice-1 commit chain (ae4ccd13ae + docs
+9b628d3b7). Full-suite truth 1193 leaves
+(portplan/baselines/s35g_gate_fails.txt, gate /tmp/s35g_full_gate2.log).**
+
+### The uncommitted working tree (all of it COMPILES: `go vet .` green,
+`go vet ./tools/...` green):
+
+1. **tools/tclconvert/tcl/interp.go** — decodeBackslashEscape gained TCL's
+   OCTAL escapes (`\ddd` 1-3 digits → the raw byte): `\000` is a NUL
+   (the old code dropped the backslash and kept the digits — "000").
+   substituteExprAtoms' escape site now routes through the same decoder.
+2. **tools/tclconvert/tcl/interp_stmt.go** — commandTestVFSConfig captures
+   `tvfs shm FILE VALUE`'s VALUE into Stmt.ShmSeed (walfault-12's prep:
+   `shmfault shm test.db [string repeat "\000" 40]` — 40 NUL bytes).
+   A temporary TCLCONV_DBG trace print is STILL IN (remove before commit).
+3. **tools/tclconvert/main.go** — the JSON TestStep carries ShmSeed
+   (`json:"shmSeed,omitempty"`) + the Stmt→TestStep mapping.
+4. **internal/pager/wallocks.go** — CorruptWalIndex generalized to
+   CorruptWalIndexWith(seed []byte) (the seed writes into the registry
+   index's page0 + persists to the -shm; CorruptWalIndex delegates with
+   its "blah..." bytes).
+5. **testdata/walfault.json** — REGENERATED with the seed: walfault-12's
+   prep's testvfs_config step now carries `"shmSeed": "\u0000"×40`.
+6. **frigolite_harness_test.go** — the TestStep struct gained ShmSeed.
+   **A stray `namedDBList` helper was appended at the file tail** (used by
+   the reverted runner patch — keep or remove with the wiring).
+
+### The HALF-APPLIED piece (REVERTED to compile — the exact remaining work):
+
+The trial-runner fixture threading. The intended patch (write it in one
+python block whose asserts ALL pass before the write — the failed attempt
+aborted before the write, leaving only the main-loop call line edited,
+which I reverted):
+
+1. `runFaultsimTest` signature += `fixtures map[string]*testvfsFixture,
+   defaultVFS *string`; its prep/body `runFaultsimStep` calls pass them.
+2. `runFaultsimStep` signature += the same two; new cases:
+   - `register_testvfs`: create the fixture in `fixtures` (isDefault from
+     step.SQL=="default", noShm from noshm/iversion, devcharBits -1); on
+     default set `*defaultVFS`.
+   - `testvfs_config`: `sql=="shm"` → resolve step.Variable against
+     fixtureDBDir; for *dbp + namedDBList(namedDBs) whose .path matches,
+     `CorruptWalIndexWith([]byte(step.ShmSeed))`; else
+     `fx.configure(...)` + the default-script install.
+   The existing cases (faultsim_*/reopen_db/reset_db/register_function/
+   delete_*/open_*/close_named_db/prepare_stmt/stmt_step/exec) stay.
+3. The main loop's `case "faultsim_test":` call passes
+   `testvfsFixtures, &testvfsDefault` (the one-line change I reverted —
+   re-apply it LAST so the tree compiles between steps).
+4. Verify: `go vet .`; `FRIGOLITE_TEST=walfault-12` → the leaf must run
+   the trial grid (the prep's shm seed zeroes the wal-index header — the
+   pager's CorruptWalIndexWith — and the ioerr injection fires during the
+   checkpoint's recovery); then `FRIGOLITE_TEST=walfault` (walfault-11 is
+   the 789s trial-cap — it blocks the family sweep; budget ~15 min);
+   the 15-family identity diff vs
+   portplan/baselines/s35g_gate_fails.txt (walfault2/walsetlk_recover are
+   GONE there; walfault-12 joining them is the win); `go test
+   ./internal/...`; the full gate; commit.
+
+### The carded-after state (unchanged):
+
+walfault-11's trial-cap (789s/run — its trial grid burns the full budget),
+walfault-15 (the exclusive-INSERT lock interplay — passes in isolation,
+fails in family context: the JOIN card), then the btree page-density unit
+(walckptnoop's 451-vs-298 frames; resetdb-300's 13-vs-12 page_count —
+green once this session: possibly trial-sensitive), S42/S43, the carded
+converter classes, the perf phase.

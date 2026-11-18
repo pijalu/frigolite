@@ -61,6 +61,7 @@ type Stmt struct {
 	CollectVar      string
 	ExplainBody     string            // explain_rows: the per-row callback body (index9's db eval "EXPLAIN $sql" a {...})
 	CatchResult     bool              // the step stores its success code in Variable (a `catch` result)
+	ShmSeed         string            // testvfs_config shm FILE VALUE: the bytes seeded into the -shm (wal_common's prep)
 	CatchMessage    string            // the variable the catch's error message is stored in
 	AuthProc        string            // the Tcl authorizer proc name (a `db auth <proc>` step)
 	ExpectedExpr    string            // the expectation is itself a runtime expression
@@ -627,6 +628,17 @@ func decodeBackslashEscape(s string, pos int) (string, int) {
 		code, err := strconv.ParseUint(s[pos+2:pos+6], 16, 16)
 		if err == nil {
 			return string(rune(code)), pos + 6
+		}
+	}
+	// \ddd: 1-3 octal digits produce the raw byte (TCL's backslash
+	// substitution — "\000" is a NUL byte, walfault-12's shm seed).
+	if pos+1 < len(s) && s[pos+1] >= '0' && s[pos+1] <= '7' {
+		end := pos + 1
+		for end < len(s) && end < pos+4 && s[end] >= '0' && s[end] <= '7' {
+			end++
+		}
+		if code, err := strconv.ParseUint(s[pos+1:end], 8, 32); err == nil && code <= 0xFF {
+			return string([]byte{byte(code)}), end
 		}
 	}
 	return string(escapeChar(s[pos+1])), pos + 2
@@ -1354,8 +1366,9 @@ func (i *Interp) substituteExprAtoms(s string, localVars map[string]string) stri
 		ch := s[pos]
 		switch {
 		case ch == '\\' && pos+1 < len(s):
-			result.WriteByte(escapeChar(s[pos+1]))
-			pos += 2
+			decoded, next := decodeBackslashEscape(s, pos)
+			result.WriteString(decoded)
+			pos = next
 		case ch == '$':
 			var val string
 			var ok bool

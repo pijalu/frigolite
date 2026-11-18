@@ -321,6 +321,7 @@ type TestStep struct {
 	TransformArgs        []string          `json:"transformArgs,omitempty"` // append "scan N sort M" (SQLite's statement-status counters)
 	Condition            string            `json:"condition,omitempty"`     // the step runs only when this Tcl expression is true
 	CatchResult          bool              `json:"catchResult,omitempty"`   // the step stores its success code in Variable
+	ShmSeed              string            `json:"shmSeed,omitempty"`       // testvfs_config shm: the bytes seeded into the -shm (walfault-12's prep)
 	AuthProc             string            `json:"authProc,omitempty"`      // the Tcl authorizer proc (a `db auth <proc>` step)
 	CatchMessage         string            `json:"catchMessage,omitempty"`  // the variable the catch's error message goes to
 	ExpectedExpr         string            `json:"expectedExpr,omitempty"`  // the expectation is itself a runtime expression
@@ -8254,4 +8255,15 @@ func harnessBodyTouchesLifecycleDB(body string) bool {
 		}
 		i = j
 	}
+}
+
+// namedDBList snapshots the named connections (the shm-seed walk's targets).
+func namedDBList(namedDBs map[string]*DB) []*DB {
+	out := make([]*DB, 0, len(namedDBs))
+	for _, conn := range namedDBs {
+		if conn != nil {
+			out = append(out, conn)
+		}
+	}
+	return out
 }
