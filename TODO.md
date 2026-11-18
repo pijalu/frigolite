@@ -8,17 +8,19 @@
 
 `close all gaps with sqlite — functional first, then performance.`
 
-## State (2026-11-18, feature/perf @ 146a3c00e)
+## State (2026-11-18, feature/perf @ ae4ccd13ae)
 
-Full-suite truth **1207 failing leaves** (verified gate
-/tmp/s35e_full_gate2.log; the durable per-leaf baseline now lives in the
-repo: portplan/baselines/s35e_gate_fails.txt — /tmp baselines proved
-ephemeral across sessions). Vs the 1218 state: **e_wal 10→0 (S35e,
-all ten leaves commit-attributed at 146a3c00e)**; every other family
-leaf-identical against a 27-family diff run at the pre-change commit
-6b7513599 in a worktree (e_walhook 10=10, wal2 25=25, walckptnoop 5=5,
-resetdb 7=7 — resetdb-300's worktree pass during the parallel run was a
-contention flake; it fails at both commits — the density card).
+Full-suite truth **1193 failing leaves** (verified gate
+/tmp/s35g_full_gate2.log; the durable per-leaf baselines live in the repo:
+portplan/baselines/s35{e,f,g}_gate_fails.txt — /tmp baselines proved
+ephemeral across sessions). The arc: **e_wal 10→0 (S35e, 146a3c00e)**,
+**e_walhook 10→0 (S35f, cae6073ce)**, **walfault2 2→0 + walsetlk_recover
+superseded by the native TestWalSetlkRecoverEngine (S35g slice 1,
+ae4ccd13ae)**; every family leaf-identical against worktree diffs run at
+the pre-change commits (the 27-family diff at 6b7513599 for S35e; the
+13-family WAL universe for S35f; the 15-family universe for S35g). The
+GONE-also list: resetdb-300 + where2-2.4 (the documented flakes); NEW=1:
+atof1-2.40 (the documented S32 random-dice).
 
 The WAL small-slices arc (S35a-e) is COMPLETE and merged:
 
@@ -54,6 +56,33 @@ The WAL small-slices arc (S35a-e) is COMPLETE and merged:
   C's 298 — the leaves hold ~2/3 of C's rows at this cell size); the
   faultsim lifecycle cards (walfault-15's cross-case JOIN,
   walfault-11's trial-cap) for S35g.
+- **S35f** (cae6073ce): the wal-hook surface — C's doWalCallbacks position
+  pinned (vdbeapi.c:723: the hook fires at the committing statement's
+  completion, after the commit + the write-lock release; per-db
+  read-and-clear of the log's TOTAL frame count, wal.c:4237/4415; the
+  raw-code return fails the statement while the commit stands). Engine:
+  the statement-tail dispatch (fireWalCallbacks + walHookErrStr), the hook
+  signature at C's shape (dbName, nEntry), wal_autocheckpoint=N replaces
+  the script hook (main.c:2496). Converter: the register_wal_hook step +
+  re-registration on hook-proc redefinitions (C's TCL late binding) + the
+  top-level global literal-set emission. Harness: the hook interp's
+  sqlite3 opener (2.1's in-hook db2 read), the runtime_var expect
+  evaluation (wal_frame_count), the lifecycle promotion scan for hook
+  procs opening test.db. **e_walhook 10→0.** Latent pager unit breaks
+  fixed (the WAL-mode AllocatePage nil-header panic; TestWalCheckpoint's
+  premise + the RESTART observables; the checkpoint seam's read-mark
+  deadlock; TestWALCallbackEntry pins read-and-clear).
+- **S35g slice 1** (ae4ccd13ae): walfault2 2→0 (the stale JSON
+  regenerated; the faultsim runner gained close_db + the URI reopen —
+  the first cut leaked the reopen to the process CWD and pagerfault-36
+  caught it), the walsetlk_recover native port (TestWalSetlkRecoverEngine —
+  the testfixture_nb subprocess class), the recovery restructure (the
+  -wal reads outside the index mutex — C's private-buffer shape; the
+  endianness bit: the magic's checksum-order flag is the value's low
+  byte, buf[3]), PRAGMA busy_timeout implemented + wired to the WAL layer,
+  the xSleep/xRead hook emissions. Remaining carded: walfault-11 (the
+  trial-cap), -12 (the fixture-registry threading into the trial runner),
+  -15 (the exclusive-INSERT lock interplay — passes in isolation).
 - **S35e** (146a3c00e): the no-shm WAL class — the C choreography pinned
   from source (PLAN_S35e_noshm.md §UPDATE): lockBtree's version-2/2 WAL
   entry at the first schema-needing statement's parse (btree.c:3337), the
