@@ -812,7 +812,10 @@ func (i *Interp) rewriteEmbeddedQueryExpr(inner string) (string, bool) {
 
 // commandBinary implements the `binary encode hex <string>` form
 // (func6.test's loadhex/hexrecord build their comparisons with it): each
-// byte renders as two lowercase hex digits, exactly TCL's output.
+// byte renders as two lowercase hex digits, exactly TCL's output — and the
+// `binary format` form's `c` field (tclBinary.c FormatBinary's 'c' case):
+// `c*` packs every element of the list argument as one byte
+// (walckptnoop.test's myrandomblob).
 func commandBinary(i *Interp, rawWords []rawWord, args []string, localVars map[string]string) error {
 	if len(args) >= 3 && args[0] == "encode" && args[1] == "hex" {
 		const digits = "0123456789abcdef"
@@ -824,7 +827,70 @@ func commandBinary(i *Interp, rawWords []rawWord, args []string, localVars map[s
 		i.vars[""] = string(out)
 		return nil
 	}
+	if len(args) >= 3 && args[0] == "format" {
+		out, err := binaryFormatFields(args[1], args[2:])
+		if err != nil {
+			return err
+		}
+		i.vars[""] = string(out)
+		return nil
+	}
 	return fmt.Errorf("unsupported binary form: %s", strings.Join(args, " "))
+}
+
+// binaryFormatFields packs the values per the format string's `c` fields: a
+// count suffix of `*` consumes every element of the list argument; an
+// integer count consumes exactly that many; a bare letter consumes one.
+// TCL truncates each integer to its low 8 bits; a non-integer element fails
+// loudly like C's "expected integer but got". The other field letters are
+// the separate binary-class unit (TODO queue).
+func binaryFormatFields(format string, valueArgs []string) ([]byte, error) {
+	if len(valueArgs) == 0 {
+		return nil, fmt.Errorf("wrong # args: should be \"binary format formatString ?arg ...?\"")
+	}
+	list := strings.Fields(valueArgs[0])
+	var out []byte
+	pos := 0
+	for k := 0; k < len(format); {
+		// A field is a letter optionally followed by a count: digits
+		// (repeat that many times) or `*` (consume the whole list).
+		letter := format[k]
+		k++
+		count, star := 1, false
+		if k < len(format) && (format[k] == '*' || format[k] >= '0' && format[k] <= '9') {
+			if format[k] == '*' {
+				star = true
+				k++
+			} else {
+				start := k
+				for k < len(format) && format[k] >= '0' && format[k] <= '9' {
+					k++
+				}
+				n, err := strconv.Atoi(format[start:k])
+				if err != nil {
+					return nil, fmt.Errorf("bad field specifier %q", format)
+				}
+				count = n
+			}
+		}
+		switch letter {
+		case 'c':
+			if star || pos+count > len(list) {
+				count = len(list) - pos
+			}
+			for k := 0; k < count; k++ {
+				v, err := strconv.Atoi(strings.TrimSpace(list[pos+k]))
+				if err != nil {
+					return nil, fmt.Errorf("expected integer but got %q", list[pos+k])
+				}
+				out = append(out, byte(v))
+			}
+			pos += count
+		default:
+			return nil, fmt.Errorf("unsupported binary field %q", string(letter))
+		}
+	}
+	return out, nil
 }
 
 // runtimeCommandHead reports the head word when the command text starts with
