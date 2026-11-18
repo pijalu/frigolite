@@ -288,3 +288,38 @@ lock choreography, walfault2's do_faultsim_test emission; the walfault-15
 cross-case JOIN card and walfault-11's trial-cap). Then the btree
 page-density unit (walckptnoop + resetdb-300's 13-vs-12 page_count), S42/S43,
 the carded converter classes, the perf phase.
+
+---
+
+## 2026-11-18 (latest): S35g slice 1 delivered (ae4ccd13ae) — walfault2 2→0, the walsetlk native port, the recovery restructure
+
+Full-suite truth **1193 leaves** (the gate /tmp/s35g_full_gate2.log; the
+durable baseline portplan/baselines/s35g_gate_fails.txt). The arc so far:
+e_wal 10→0 (S35e) → e_walhook 10→0 (S35f) → walfault2 2→0 + the
+walsetlk_recover native port (S35g slice 1). The census block in TODO.md
+carries the per-family truth.
+
+Key mechanisms this slice:
+- The recovery SPLIT: the -wal file reads (the xRead sites) outside the
+  wal-index writer section (C's private-buffer shape) — the section-
+  enclosed form remains for the commit-path callers. The endianness bit:
+  the WAL magic's checksum-order flag is the value's low byte (buf[3]).
+- PRAGMA busy_timeout implemented (it had NO handler) + wired to the WAL
+  layer; the busy sleeps emit xSleep; the recovery's reads emit xRead.
+- The faultsim runner: close_db + the URI reopen (the shared-mem URIs
+  route to the shared-cache machinery; everything else resolves inside
+  the fixture dir — the first cut leaked to the process CWD and
+  pagerfault-36 caught it in family context).
+- walsetlk_recover superseded by TestWalSetlkRecoverEngine (the
+  testfixture_nb class): the concurrent recovery holds the
+  WRITER+RECOVER locks, the second connection times out into "database
+  is locked" with xSleep count > 0, the post-recovery read succeeds.
+
+Restart point: **the S35g remainder** — walfault-11 (the trial-cap, 789s
+per run), -12 (the fixture-registry threading into runFaultsimStep: the
+prep's register_testvfs/testvfs_config), -15 (the exclusive-INSERT lock
+interplay with the trial state — passes in isolation, fails in family
+context: the JOIN card). Then the btree page-density unit (walckptnoop +
+resetdb-300's 13-vs-12 page_count — this session's resetdb-300 was green
+once: the density divergence may be trial-sensitive), S42/S43, the carded
+converter classes, the perf phase.
