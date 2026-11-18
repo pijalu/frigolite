@@ -249,3 +249,42 @@ wal_autocheckpoint overwrite (TestWalHookEngine's substrate). Then S35g
 (error-injection + the faultsim converter + the walfault-15/11 cards), the
 btree page-density unit (walckptnoop + resetdb-300's 13-vs-12 page_count),
 S42/S43, carded converter classes, the perf phase.
+
+---
+
+## 2026-11-18 (later): S35f delivered — e_walhook 10→0 (cae6073ce), the wal-hook surface complete
+
+C's doWalCallbacks position pinned from source: the sqlite3_wal_hook fires
+at the committing statement's COMPLETION (vdbeapi.c:723-742, on
+`rc==SQLITE_DONE && db->autoCommit`) — after the commit and its write-lock
+release — per btree via the read-and-clear of the log's TOTAL frame count
+(wal.c:4237 sets iCallback=iFrame; 4415 hands it over; R-18913-19355's
+nEntry is not the per-commit delta). The hook's raw-code return fails the
+statement (sqlite3ErrStr's canned text — 1/5/14) while the commit stands.
+Three layers landed: the engine dispatch (fireWalCallbacks at Engine.Exec's
+success tail + walHookErrStr + the C-shaped hook signature + the
+wal_autocheckpoint replacement), the converter (the register_wal_hook step,
+re-registration on hook-proc redefinitions — C's TCL late binding — the
+top-level global literal-set emission), the harness (the hook interp's
+sqlite3 opener for 2.1's in-hook db2 read, the runtime_var expect
+evaluation with wal_frame_count, the lifecycle promotion scan for hook
+procs opening test.db).
+
+ALSO: latent internal/pager unit breaks fixed (the tests had not run since
+the WAL-slice work — the harness gates alone let them rot): the WAL-mode
+AllocatePage nil-header panic, TestWalCheckpoint's premise + the RESTART
+observables, the pager-level checkpoint seam's read-mark deadlock, and the
+new TestWALCallbackEntry (read-and-clear). LESSON: run `go test
+./internal/...` in every unit's verify step.
+
+Verify: e_walhook 10→0; the 13-family WAL universe leaf-identical; full
+gate **1198 leaves** (NEW=1: where2-2.4 — the documented S41-era flap,
+green in isolation); the durable baseline at
+portplan/baselines/s35f_gate_fails.txt.
+
+Restart point: **S35g** — error-injection surfaces + the faultsim
+converter (sqlite3_interrupt/memdebug_fail/xShmMap scripts, the restart/exit
+lock choreography, walfault2's do_faultsim_test emission; the walfault-15
+cross-case JOIN card and walfault-11's trial-cap). Then the btree
+page-density unit (walckptnoop + resetdb-300's 13-vs-12 page_count), S42/S43,
+the carded converter classes, the perf phase.
