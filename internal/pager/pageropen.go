@@ -342,6 +342,9 @@ func attachWalAtOpen(pr *Pager, cleanPath string) error {
 	// wal-index instead (pager.c:7596 — e_wal 1.1.2's EXCLUSIVE-then-WAL
 	// works); without it the attach declines lazily.
 	if pr.shmUnavailable && !pr.walExclusiveLatched {
+		if os.Getenv("FRIGOLITE_WALDBG") != "" {
+			fmt.Fprintf(os.Stderr, "WALDBG attach refuse path=%s\n", cleanPath)
+		}
 		pr.walOpenRefused = true
 		return nil
 	}
@@ -359,6 +362,9 @@ func attachWalAtOpen(pr *Pager, cleanPath string) error {
 	// pagerPagecount's nPage==0 branch deletes the log (pager.c:3348-3351)
 	// before anything reads it — wal4-1.3's "no such table: t1".
 	if fi, err := os.Stat(cleanPath); (err == nil && fi.Size() == 0) || os.IsNotExist(err) {
+		if os.Getenv("FRIGOLITE_WALDBG") != "" {
+			fmt.Fprintf(os.Stderr, "WALDBG attach garbage-rule path=%s mainsz=%d\n", cleanPath, fi.Size())
+		}
 		if _, werr := os.Stat(cleanPath + "-wal"); werr == nil && !walIndexLiveEntry(cleanPath) {
 			_ = os.Remove(cleanPath + "-wal")
 			_ = os.Remove(cleanPath + "-shm")

@@ -11,6 +11,8 @@
 package pager
 
 import (
+	"fmt"
+
 	"encoding/binary"
 	"io/fs"
 	"os"
@@ -456,10 +458,19 @@ func (p *Pager) PageSize() uint32 { return p.pageSize }
 // log untouched. Caller holds p.mu.
 func (p *Pager) walCloseCheckpoint() {
 	w := p.wal
+	if os.Getenv("FRIGOLITE_WALDBG") != "" {
+		fmt.Fprintf(os.Stderr, "WALDBG closeCkpt enter wal=%v refs=%d\n", w != nil, map[bool]int{true: w.wi.RefCount(), false: -1}[w != nil && w.wi != nil])
+	}
 	if w == nil || w.wi == nil || w.wi.RefCount() != 1 {
+		if os.Getenv("FRIGOLITE_WALDBG") != "" {
+			fmt.Fprintf(os.Stderr, "WALDBG closeCkpt skip-gate\n")
+		}
 		return
 	}
 	busy, _, _, err := w.checkpoint(WalCkptPassive)
+	if os.Getenv("FRIGOLITE_WALDBG") != "" {
+		fmt.Fprintf(os.Stderr, "WALDBG closeCkpt ran busy=%d err=%v\n", busy, err)
+	}
 	if err != nil || busy != 0 {
 		return
 	}

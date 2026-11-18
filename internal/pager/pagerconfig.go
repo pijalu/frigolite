@@ -258,6 +258,9 @@ func (p *Pager) SetShmUnavailable() {
 	// failed pagerOpenWal leaves the pager without one — the first read
 	// then reports the refusal.
 	isWal := p.wal != nil || (len(p.header) >= 20 && p.header[18] == 2 && p.header[19] == 2)
+	if os.Getenv("FRIGOLITE_WALDBG") != "" {
+		fmt.Fprintf(os.Stderr, "WALDBG SetShmUnavailable isWal=%v walAttached=%v\n", isWal, p.wal != nil)
+	}
 	if !isWal {
 		return
 	}
