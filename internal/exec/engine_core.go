@@ -898,7 +898,17 @@ func (e *Engine) Exec(stmt sql.Stmt) *Result {
 		e.restoreStatementSnapsIfAny(snaps)
 		return res
 	}
-	return e.execAfterWrite(stmt, res, isDML)
+	res = e.execAfterWrite(stmt, res, isDML)
+	if res.Error == nil {
+		// vdbeapi.c doWalCallbacks: the sqlite3_wal_hook runs at the
+		// committing statement's completion and a non-OK return fails the
+		// statement (the commit stands). The dispatch is C's
+		// `rc==SQLITE_DONE && db->autoCommit` tail.
+		if err := e.fireWalCallbacks(); err != nil {
+			return &Result{Error: err}
+		}
+	}
+	return res
 }
 
 // resetOuterStatementScopes resets the outermost statement's scopes: the

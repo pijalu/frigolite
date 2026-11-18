@@ -1,6 +1,7 @@
 package exec
 
 import (
+	"fmt"
 	"strconv"
 	"time"
 )
@@ -35,14 +36,80 @@ func (e *Engine) SetUpdateHook(fn func(op, db, table string, rowid int64)) {
 }
 
 // SetWalHook registers the connection's WAL hook (sqlite3_wal_hook). The
-// callback fires after each WAL-mode commit with (frames appended this
-// commit, frames checkpointed). A nil callback clears the hook. The hook is
-// also pushed onto the main database's pager so it fires once that pager
-// enters WAL mode (even if registered beforehand, mirroring SQLite).
-func (e *Engine) SetWalHook(fn func(nLog, nCkpt int) int) {
+// callback fires after each WAL-mode commit completes, at the committing
+// statement's completion (vdbeapi.c doWalCallbacks), with the committing
+// database's name and the log's total frame count (R-18913-19355). A
+// non-zero return fails that statement with the raw code's sqlite3ErrStr
+// text — the commit itself stands (R-14034-00929). A nil callback clears
+// the hook (and disables the autocheckpoint mechanism, C's
+// sqlite3_wal_hook contract).
+func (e *Engine) SetWalHook(fn func(dbName string, nEntry int) int) {
 	e.walHook = fn
-	if e.mainDB != nil && e.mainDB.Pager != nil {
-		e.mainDB.Pager.SetWalHook(fn)
+}
+
+// fireWalCallbacks ports vdbeapi.c doWalCallbacks (L723-742): at an
+// autocommit statement's successful completion (`rc==SQLITE_DONE &&
+// db->autoCommit` — the explicit-transaction statements never dispatch;
+// the COMMIT statement's own tail does, autoCommit being true again by
+// then), every database's pager hands over the frame count its last commit
+// appended (sqlite3PagerWalCallback — wal.c:4415's read-and-clear
+// iCallback) and the registered sqlite3_wal_hook runs ONCE per committing
+// pager. A non-OK return fails the statement with the raw code's
+// sqlite3ErrStr text; the commit itself stands (R-14034-00929).
+func (e *Engine) fireWalCallbacks() error {
+	if e.walHook == nil {
+		return nil
+	}
+	if e.tx.inTransaction {
+		return nil
+	}
+	rc := 0
+	for _, ctx := range e.dbList {
+		if ctx == nil || ctx.Pager == nil || rc != 0 {
+			continue
+		}
+		if nEntry := ctx.Pager.TakeWALCallbackEntry(); nEntry > 0 {
+			rc = e.walHook(ctx.Name, nEntry)
+		}
+	}
+	if rc != 0 {
+		return walHookErrStr(rc)
+	}
+	return nil
+}
+
+// walHookErrStr renders a raw result code the way sqlite3ErrStr does for a
+// callback return: the primary code masked (0xff), the canned text. The
+// sqlite3_wal_hook contract propagates whatever code the callback returns
+// (e_walhook-4.1/4.2/4.3's 1/5/14).
+func walHookErrStr(rc int) error {
+	switch rc & 0xff {
+	case 1: // SQLITE_ERROR
+		return fmt.Errorf("SQL logic error")
+	case 3: // SQLITE_PERM
+		return fmt.Errorf("access permission denied")
+	case 4: // SQLITE_ABORT
+		return fmt.Errorf("query aborted")
+	case 5, 6: // SQLITE_BUSY / SQLITE_LOCKED
+		return fmt.Errorf("database is locked")
+	case 7: // SQLITE_NOMEM
+		return fmt.Errorf("out of memory")
+	case 8: // SQLITE_READONLY
+		return fmt.Errorf("attempt to write a readonly database")
+	case 9: // SQLITE_INTERRUPT
+		return fmt.Errorf("interrupted")
+	case 10: // SQLITE_IOERR
+		return fmt.Errorf("disk I/O error")
+	case 11: // SQLITE_CORRUPT
+		return fmt.Errorf("database disk image is malformed")
+	case 13: // SQLITE_FULL
+		return fmt.Errorf("database or disk is full")
+	case 14: // SQLITE_CANTOPEN
+		return fmt.Errorf("unable to open database file")
+	case 19: // SQLITE_CONSTRAINT
+		return fmt.Errorf("constraint failed")
+	default:
+		return fmt.Errorf("SQL logic error")
 	}
 }
 

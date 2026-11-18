@@ -748,6 +748,24 @@ func commandSet(i *Interp, rawWords []rawWord, args []string, localVars map[stri
 		// computed list in the other).
 		delete(i.dynamicVars, strings.TrimPrefix(args[0], "::"))
 	}
+	// A GLOBAL literal assignment (`set ::NAME <literal>`) must reach the
+	// harness's runtime variables: the callback procs read and increment
+	// these globals (e_walhook's `set ::wal_hook_count 0` pre-set before
+	// 1.1.1's runtime_var read — the hook never fired in rollback mode, so
+	// the pre-set is the only writer). Emit a runtime_expr step whose
+	// literal evaluates into the runtime set. Local (non-::) sets stay
+	// conversion-time state.
+	if len(args) >= 2 && strings.HasPrefix(args[0], "::") && !assignedFromQuery {
+		value := strings.TrimSpace(args[1])
+		if value != "" && !strings.ContainsAny(value, "$[]\"{") {
+			i.stmts = append(i.stmts, Stmt{
+				Type:     "runtime_expr",
+				SQL:      value,
+				Variable: strings.TrimPrefix(args[0], "::"),
+				TestName: i.curTest,
+			})
+		}
+	}
 	return nil
 }
 

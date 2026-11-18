@@ -156,9 +156,12 @@ func (db *DB) SetBusyHandler(fn func(count int) bool) {
 }
 
 // SetWalHook registers the connection's WAL hook (sqlite3_wal_hook). The
-// callback fires after each WAL-mode commit with (frames appended this
-// commit, frames checkpointed). A nil callback clears the hook.
-func (db *DB) SetWalHook(fn func(nLog, nCkpt int) int) {
+// callback fires after each WAL-mode commit completes, at the committing
+// statement's completion, with the committing database's name and the
+// log's total frame count (R-18913-19355). A non-zero return fails that
+// statement with the raw code's sqlite3ErrStr text — the commit itself
+// stands. A nil callback clears the hook.
+func (db *DB) SetWalHook(fn func(dbName string, nEntry int) int) {
 	if db != nil && db.engine != nil {
 		db.engine.SetWalHook(fn)
 	}

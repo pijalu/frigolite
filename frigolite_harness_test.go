@@ -3516,6 +3516,20 @@ func TestSQLiteSuite(t *testing.T) {
 					if strings.HasPrefix(step.Type, "faultsim_save") {
 						usesReopen = true
 					}
+					// A WAL-hook registration whose proc body touches the
+					// lifecycle file: e_walhook-2.1's my_wal_hook opens
+					// `sqlite3 db2 test.db` INSIDE the callback — a reopen the
+					// static step scan cannot see — and the hook's nEntry is
+					// the -wal's frame count (R-18913-19355), a file-semantic
+					// value. The family's main connection must be the
+					// file-backed lifecycle (tester.tcl's default test.db).
+					if step.Type == "register_wal_hook" {
+						for _, pr := range step.CallbackProcs {
+							if harnessBodyTouchesLifecycleDB(pr.Body) {
+								usesReopen = true
+							}
+						}
+					}
 				}
 			}
 			if usesReopen {
@@ -4917,6 +4931,82 @@ func TestSQLiteSuite(t *testing.T) {
 								return strings.TrimSpace(answer) == "0"
 							})
 							continue
+						case "register_wal_hook":
+							// `db wal_hook NAME` (tclsqlite.c DbWalHookCmd): the
+							// fixture proc is the connection's
+							// sqlite3_wal_hook — invoked at the committing
+							// statement's completion (vdbeapi.c doWalCallbacks)
+							// with the database name and the log's total frame
+							// count (R-18913-19355). The proc's integer result
+							// propagates: a non-zero code fails that statement
+							// with the raw code's sqlite3ErrStr text while the
+							// commit stands (R-14034-00929). The proc's globals
+							// (wal_hook_count/read_ok/wal_hook_args) sync back
+							// into the runtime set per invocation. Registering
+							// the hook replaces any earlier one (and disables
+							// the autocheckpoint — main.c:2484's contract).
+							var wproc *callbackProc
+							for i := range step.CallbackProcs {
+								if strings.TrimPrefix(step.CallbackProcs[i].Name, "::") == strings.TrimPrefix(step.FunctionProc, "::") {
+									wproc = &step.CallbackProcs[i]
+								}
+							}
+							if wproc == nil {
+								t.Errorf("register_wal_hook: proc %q missing", step.FunctionProc)
+								continue
+							}
+							hookInterp := tcl.NewInterp()
+							hookInterp.LoadProcedures([]tcl.Proc{{Name: strings.TrimPrefix(wproc.Name, "::"), Args: wproc.Args, Body: wproc.Body}})
+							registerInterpDBCommands(hookInterp, execDB, namedDBs, fixtureDBDir)
+							// The hook's body may open its own connection
+							// (`sqlite3 db2 test.db`, e_walhook-2.1's
+							// after-commit read — R-65366-15139): bind the
+							// opener, resolving the file against the fixture
+							// directory and registering the handle in the
+							// shared named set (a re-open replaces, TCL's
+							// command-replacement semantics).
+							hookInterp.RegisterCallbackCommand("sqlite3", func(args []string) (string, error) {
+								if len(args) < 2 {
+									return "", fmt.Errorf("wrong # of arguments")
+								}
+								name, file := args[0], args[1]
+								if prior := namedDBs[name]; prior != nil && !prior.closedFlag {
+									_ = prior.Close()
+									delete(namedDBs, name)
+								}
+								openPath := file
+								if openPath != "" && openPath != ":memory:" && !filepath.IsAbs(openPath) {
+									openPath = filepath.Join(fixtureDBDir, openPath)
+								}
+								opened, oerr := Open(openPath)
+								if oerr != nil {
+									return "", oerr
+								}
+								registerTest1Functions(t, opened)
+								namedDBs[name] = opened
+								return "", nil
+							})
+							hookTargets := tcl.NotifyScriptVarTargets(wproc.Body)
+							hookProcName := strings.TrimPrefix(wproc.Name, "::")
+							hookConn := execDB
+							hookConn.engine.SetWalHook(func(dbName string, nEntry int) int {
+								for _, name := range hookTargets {
+									if v, ok := runtimeVars[name]; ok {
+										hookInterp.SetVariable(name, v)
+									}
+								}
+								answer, _ := hookInterp.InvokeProcedure(hookProcName, dbName, strconv.Itoa(nEntry))
+								for _, name := range hookTargets {
+									if v, ok := hookInterp.Variable(name); ok {
+										runtimeVars[name] = v
+									} else if v, ok := hookInterp.Variable("::" + name); ok {
+										runtimeVars[name] = v
+									}
+								}
+								n, _ := strconv.Atoi(strings.TrimSpace(answer))
+								return n
+							})
+							continue
 						case "register_testvfs":
 							// SQL carries the -default/-noshm/-iversion flag the
 							// converter extracted from `testvfs <name> <opt> 1`.
@@ -5934,7 +6024,25 @@ func TestSQLiteSuite(t *testing.T) {
 								// is the ENGINE counter, not a Tcl variable.
 								got = fmt.Sprint(execDB.engine.XferoptCount())
 							}
-							if diff := matchExpectation(got, step.Expect); diff != "" {
+							expect := step.Expect
+							// A runtime-computed expectation: the C source's expected
+							// word carries a bracketed command whose value exists only
+							// at run time (e_walhook-3.1.2's
+							// `[list aux [wal_frame_count test.db2-wal 1024]]` — the
+							// -wal's frame count after the commit, R-18913-19355).
+							// Evaluate it through the runtime command layer, the
+							// fixture paths resolved.
+							if trimmed := strings.TrimSpace(expect); strings.HasPrefix(trimmed, "[") && strings.HasSuffix(trimmed, "]") && firstWordIsRuntimeCommand(trimmed[1:]) {
+								computed, cerr := evalHarnessTclCommandText(trimmed[1:len(trimmed)-1], runtimeVars, func(name string) string {
+									return filepath.Join(fixtureDBDir, name)
+								})
+								if cerr != nil {
+									t.Errorf("runtime expectation error: %v\n  expect: %s", cerr, step.Expect)
+									continue
+								}
+								expect = computed
+							}
+							if diff := matchExpectation(got, expect); diff != "" {
 								t.Errorf("runtime variable mismatch\\n  got: [%q]\\n  %s", got, diff)
 							}
 						case "runtime_var_set":
@@ -8103,4 +8211,25 @@ func evalFaultsimTestScript(testScript string, rc int, result string, nfail bool
 		return "", fmt.Errorf("nfail=0 rc=%d result=%s want %s", rc, t, args[0])
 	})
 	return interp.Execute(testScript)
+}
+
+// harnessBodyTouchesLifecycleDB reports whether a fixture proc body opens
+// the lifecycle file by name ("test.db"): tester.tcl's default connection IS
+// test.db, and a callback that opens it (`sqlite3 db2 test.db`,
+// e_walhook-2.1) needs the family's main connection file-backed. The match
+// excludes numbered siblings (test.db2/test.db3 are ATTACH targets with
+// their own file semantics — e_walhook-3.0's aux opens test.db2 regardless
+// of main's backing).
+func harnessBodyTouchesLifecycleDB(body string) bool {
+	for i := 0; ; {
+		j := strings.Index(body[i:], "test.db")
+		if j < 0 {
+			return false
+		}
+		j += i + len("test.db")
+		if j >= len(body) || body[j] < '0' || body[j] > '9' {
+			return true
+		}
+		i = j
+	}
 }

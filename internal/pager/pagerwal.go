@@ -286,6 +286,14 @@ func (p *Pager) CheckpointMode(mode WalCheckpointMode) (busy, nLog, nCkpt int, e
 		// not in WAL mode reports {0 -1 -1} (e_walckpt-2.2.2.b/4.x).
 		return 0, -1, -1, nil
 	}
+	// C's checkpoint runs OUTSIDE any read transaction (sqlite3PagerCheckpoint's
+	// eState contract): the caller's own read mark would deadlock the
+	// RESTART/TRUNCATE tail's exclusive read-lock take (wal.c:2347 blocks on
+	// ALL reader marks, the caller's included). Release this connection's
+	// read snapshot first — the engine's statement tail does this at every
+	// statement end (WALEndRead), so the pragma path arrives here clean; a
+	// pager-level caller (the native probe seam) may arrive holding one.
+	p.wal.walEndReadTxn()
 	return p.wal.checkpoint(mode)
 }
 

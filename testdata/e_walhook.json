@@ -4,8 +4,37 @@
   "ordered": true,
   "tests": [
     {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "runtime_expr",
+          "sql": "file dirname $argv0",
+          "variable": "testdir"
+        },
+        {
+          "type": "runtime_expr",
+          "sql": "0",
+          "variable": "wal_hook_count"
+        }
+      ]
+    },
+    {
       "name": "e_walhook-1.1.1",
       "steps": [
+        {
+          "type": "register_wal_hook",
+          "callbackProcs": [
+            {
+              "Name": "my_wal_hook",
+              "Args": [
+                "args"
+              ],
+              "Body": "\n  incr ::wal_hook_count\n  return 0\n",
+              "Defaults": null
+            }
+          ],
+          "functionProc": "my_wal_hook"
+        },
         {
           "type": "exec",
           "sql": "CREATE TABLE t1(x);\n    INSERT INTO t1 VALUES(1);"
@@ -36,7 +65,11 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "INSERT INTO t1 VALUES(2)",
+          "sql": "INSERT INTO t1 VALUES(2)"
+        },
+        {
+          "type": "runtime_var",
+          "variable": "wal_hook_count",
           "expect": "1"
         }
       ]
@@ -46,8 +79,36 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "BEGIN;\n      INSERT INTO t1 VALUES(3);\n      INSERT INTO t1 VALUES(4);\n    COMMIT;",
+          "sql": "BEGIN;\n      INSERT INTO t1 VALUES(3);\n      INSERT INTO t1 VALUES(4);\n    COMMIT;"
+        },
+        {
+          "type": "runtime_var",
+          "variable": "wal_hook_count",
           "expect": "2"
+        }
+      ]
+    },
+    {
+      "name": "setup_1",
+      "steps": [
+        {
+          "type": "runtime_expr",
+          "sql": "0",
+          "variable": "read_ok"
+        },
+        {
+          "type": "register_wal_hook",
+          "callbackProcs": [
+            {
+              "Name": "my_wal_hook",
+              "Args": [
+                "args"
+              ],
+              "Body": "\n  sqlite3 db2 test.db\n  if {[db2 eval { SELECT * FROM t1 }] == \"1 2 3 4 5\"} {\n    set ::read_ok 1\n  }\n  db2 close\n",
+              "Defaults": null
+            }
+          ],
+          "functionProc": "my_wal_hook"
         }
       ]
     },
@@ -62,6 +123,26 @@
           "type": "runtime_var",
           "variable": "read_ok",
           "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "setup_2",
+      "steps": [
+        {
+          "type": "register_wal_hook",
+          "callbackProcs": [
+            {
+              "Name": "my_wal_hook",
+              "Args": [
+                "dbname",
+                "nEntry"
+              ],
+              "Body": "\n  set ::wal_hook_args [list $dbname $nEntry]\n",
+              "Defaults": null
+            }
+          ],
+          "functionProc": "my_wal_hook"
         }
       ]
     },
@@ -88,8 +169,22 @@
       "name": "e_walhook-3.1.1",
       "steps": [
         {
+          "type": "runtime_var_reset",
+          "variable": "wal_hook_args"
+        },
+        {
           "type": "exec",
           "sql": "INSERT INTO t2 VALUES('a')"
+        }
+      ]
+    },
+    {
+      "name": "e_walhook-3.1.2",
+      "steps": [
+        {
+          "type": "runtime_var",
+          "variable": "wal_hook_args",
+          "expect": "[list aux [wal_frame_count test.db2-wal 1024]]"
         }
       ]
     },
@@ -97,8 +192,41 @@
       "name": "e_walhook-3.2.1",
       "steps": [
         {
+          "type": "runtime_var_reset",
+          "variable": "wal_hook_args"
+        },
+        {
           "type": "exec",
           "sql": "INSERT INTO t1 VALUES(6)"
+        }
+      ]
+    },
+    {
+      "name": "e_walhook-3.1.2",
+      "steps": [
+        {
+          "type": "runtime_var",
+          "variable": "wal_hook_args",
+          "expect": "[list main [wal_frame_count test.db-wal 1024]]"
+        }
+      ]
+    },
+    {
+      "name": "setup_3",
+      "steps": [
+        {
+          "type": "register_wal_hook",
+          "callbackProcs": [
+            {
+              "Name": "my_wal_hook",
+              "Args": [
+                "args"
+              ],
+              "Body": " return 1 ;# SQLITE_ERROR ",
+              "Defaults": null
+            }
+          ],
+          "functionProc": "my_wal_hook"
         }
       ]
     },
@@ -113,12 +241,50 @@
       ]
     },
     {
+      "name": "setup_4",
+      "steps": [
+        {
+          "type": "register_wal_hook",
+          "callbackProcs": [
+            {
+              "Name": "my_wal_hook",
+              "Args": [
+                "args"
+              ],
+              "Body": " return 5 ;# SQLITE_BUSY ",
+              "Defaults": null
+            }
+          ],
+          "functionProc": "my_wal_hook"
+        }
+      ]
+    },
+    {
       "name": "e_walhook-4.2",
       "steps": [
         {
           "type": "catch",
           "sql": "INSERT INTO t1 VALUES(8)",
           "expect": "1 {database is locked}"
+        }
+      ]
+    },
+    {
+      "name": "setup_5",
+      "steps": [
+        {
+          "type": "register_wal_hook",
+          "callbackProcs": [
+            {
+              "Name": "my_wal_hook",
+              "Args": [
+                "args"
+              ],
+              "Body": " return 14 ;# SQLITE_CANTOPEN ",
+              "Defaults": null
+            }
+          ],
+          "functionProc": "my_wal_hook"
         }
       ]
     },
@@ -143,6 +309,30 @@
       ]
     },
     {
+      "name": "setup_6",
+      "steps": [
+        {
+          "type": "runtime_expr",
+          "sql": "0",
+          "variable": "old_wal_hook"
+        },
+        {
+          "type": "register_wal_hook",
+          "callbackProcs": [
+            {
+              "Name": "my_old_wal_hook",
+              "Args": [
+                "args"
+              ],
+              "Body": "\n  incr ::old_wal_hook \n  return 0\n",
+              "Defaults": null
+            }
+          ],
+          "functionProc": "my_old_wal_hook"
+        }
+      ]
+    },
+    {
       "name": "e_walhook-5.1",
       "steps": [
         {
@@ -157,6 +347,25 @@
       ]
     },
     {
+      "name": "setup_7",
+      "steps": [
+        {
+          "type": "register_wal_hook",
+          "callbackProcs": [
+            {
+              "Name": "my_new_wal_hook",
+              "Args": [
+                "args"
+              ],
+              "Body": " return 0 ",
+              "Defaults": null
+            }
+          ],
+          "functionProc": "my_new_wal_hook"
+        }
+      ]
+    },
+    {
       "name": "e_walhook-5.2",
       "steps": [
         {
@@ -167,6 +376,36 @@
           "type": "runtime_var",
           "variable": "old_wal_hook",
           "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "setup_8",
+      "steps": [
+        {
+          "type": "runtime_expr",
+          "sql": "0",
+          "variable": "old_wal_hook"
+        },
+        {
+          "repeatCount": 2,
+          "repeatBody": [
+            {
+              "type": "register_wal_hook",
+              "callbackProcs": [
+                {
+                  "Name": "my_old_wal_hook",
+                  "Args": [
+                    "args"
+                  ],
+                  "Body": " incr ::old_wal_hook ; return 0 ",
+                  "Defaults": null
+                }
+              ],
+              "functionProc": "my_old_wal_hook"
+            }
+          ],
+          "type": "repeat"
         }
       ]
     },

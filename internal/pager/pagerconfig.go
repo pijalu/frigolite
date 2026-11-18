@@ -789,12 +789,18 @@ func (p *Pager) ApplyPendingJournalMode() {
 	p.pendingJournalMode = ""
 }
 
-// SetWalHook registers the sqlite3_wal_hook callback, invoked after each WAL
-// commit with (frames appended, frames checkpointed).
-func (p *Pager) SetWalHook(fn func(nLog, nCkpt int) int) {
+// TakeWALCallbackEntry hands over wal.c:4415's sqlite3WalCallback value:
+// the TOTAL frame count of the log after the last commit (wal.c:4237 sets
+// it from iFrame), read-and-cleared. The engine's statement-completion
+// dispatch (vdbeapi.c doWalCallbacks) invokes the registered
+// sqlite3_wal_hook once per committing pager with it. 0 = no commit since
+// the last read.
+func (p *Pager) TakeWALCallbackEntry() int {
 	p.mu.Lock()
 	defer p.mu.Unlock()
-	p.walHook = fn
+	entry := int(p.walCallbackEntry)
+	p.walCallbackEntry = 0
+	return entry
 }
 
 // SetWalFault installs an I/O fault injector for WAL writes (test_syscall

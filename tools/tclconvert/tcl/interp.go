@@ -153,6 +153,7 @@ type Interp struct {
 	sharedCacheFlag    bool                        // the sqlite3_enable_shared_cache conversion-time flag (the restore bakes the previous value)
 	testvfsNames       map[string]bool             // the named testvfs wrapper VFSes (test_vfs.c)
 	testvfsScriptProcs map[string]bool             // proc names bound as testvfs callback scripts
+	walHookProcs       map[string]bool             // proc names registered as a connection's wal_hook (redefinitions rebind)
 	rtgeomBoxProcs     map[string]bool             // proc names bound as box-geometry callback observers
 	backupHandles      map[string]backupHandleInfo // the sqlite3_backup command objects (test_backup.c)
 	pendingVFS         string                      // the -vfs option of the sqlite3 open being converted
@@ -1894,6 +1895,21 @@ func (i *Interp) cmdProc(rawWords []rawWord) error {
 	// config usually precedes the definition — walvfs's `tvfs script xSync`
 	// then `proc xSync {...}` — so the seeding happens here too).
 	if i.testvfsScriptProcs[strings.TrimPrefix(name, "::")] {
+		i.seedCallbackTargets(body)
+	}
+	// A (re)definition of a proc registered as the connection's wal_hook:
+	// C's sqlite3_wal_hook holds the proc NAME (tclsqlite.c's callback
+	// rebinds at call time), so a later `proc my_wal_hook {...}` silently
+	// replaces the hook's behavior (e_walhook's 2.1/3.x/4.x redefinitions
+	// between registrations). Emit a fresh registration carrying the new
+	// body.
+	if i.walHookProcs[strings.TrimPrefix(name, "::")] {
+		i.stmts = append(i.stmts, Stmt{
+			Type:           "register_wal_hook",
+			FunctionProc:   strings.TrimPrefix(name, "::"),
+			CallbackProcs:  []Proc{*proc},
+			TestName:       i.curTest,
+		})
 		i.seedCallbackTargets(body)
 	}
 	// A proc whose body writes a global (e_droptrigger's

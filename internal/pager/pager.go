@@ -273,8 +273,11 @@ type Pager struct {
 	dirtyMark  map[uint32]uint64
 	// wal is non-nil while the pager is in WAL mode.
 	wal *walWriter
-	// walHook is the sqlite3_wal_hook callback, fired after each WAL commit.
-	walHook func(nLog, nCkpt int) int
+	// walCallbackEntry is wal.c's pWal->iCallback: the TOTAL frame count of
+	// the log after the last commit (R-18913-19355), handed to the
+	// sqlite3_wal_hook callback at the statement's completion
+	// (TakeWALCallbackEntry — read-and-clear, wal.c:4415).
+	walCallbackEntry uint32
 	// testvfs hook layer (vfshooks.go): the fixture VFS's observable I/O
 	// events, the devchar override, and the WAL sync-flag level.
 	vfsHook func(op, path string, details []string) error

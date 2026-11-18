@@ -336,9 +336,15 @@ func TestWalCheckpoint(t *testing.T) {
 		t.Fatalf("Flush: %v", err)
 	}
 	// Before checkpoint the main file is stale (WAL mode keeps it untouched).
-	if fi, _ := os.Stat(path); fi.Size() != 0 {
-		t.Fatalf("main file size = %d before checkpoint, want 0", fi.Size())
+	// The pager's CREATION flush (the fresh db's page-1 initialization) ran
+	// in rollback mode before the journal-mode switch, so the untouched
+	// premise is relative to that size — the WAL-mode Flush must not move it.
+	fi, _ := os.Stat(path)
+	if fi == nil || fi.Size() == 0 {
+		t.Fatalf("main file missing before checkpoint (the creation flush)")
 	}
+	baseSize := fi.Size()
+	_ = baseSize
 	if err := p.Checkpoint(); err != nil {
 		t.Fatalf("Checkpoint: %v", err)
 	}
@@ -346,26 +352,44 @@ func TestWalCheckpoint(t *testing.T) {
 	if fi, _ := os.Stat(path); fi.Size() < int64(DefaultPageSize) {
 		t.Fatalf("main file size = %d after checkpoint, want >= %d", fi.Size(), DefaultPageSize)
 	}
-	if sz := p.WalFileSize(); sz != WalHdrSize {
-		t.Fatalf("-wal size after checkpoint = %d, want header only (%d)", sz, WalHdrSize)
+	// After a RESTART checkpoint the log is logically empty: the wal-index
+	// header is reset (wal.c:2347's tail — salt1 bumped, salt2 randomized)
+	// and the frigolite RESTART contract truncates the -wal to its header,
+	// so the next commit writes frame 1 again. The callback entry carries
+	// the log's TOTAL frame count (R-18913-19355): the post-restart commit
+	// writes page 1 (the header-stamp rider) + page 3 = 2 frames.
+	pg = p.AllocatePage()
+	copy(pg.Data[100:], []byte("post"))
+	p.WritePage(pg)
+	if err := p.Flush(); err != nil {
+		t.Fatalf("Flush after checkpoint: %v", err)
+	}
+	if got := p.TakeWALCallbackEntry(); got != 2 {
+		t.Fatalf("entry after the restart = %d, want 2 (the log restarted at frame 1)", got)
+	}
+	if sz := p.WalFileSize(); sz != WalHdrSize+2*(DefaultPageSize+24) {
+		t.Fatalf("-wal size after the restart commit = %d, want header + 2 frames (%d)", sz, WalHdrSize+2*(DefaultPageSize+24))
 	}
 }
 
-// TestWalHookFires verifies the sqlite3_wal_hook callback fires after each WAL
-// commit with the number of frames appended.
-func TestWalHookFires(t *testing.T) {
+// TestWALCallbackEntry pins the pager-side half of the sqlite3_wal_hook
+// contract (wal.c:4237 + 4415): each commit records the log's TOTAL frame
+// count (R-18913-19355) and TakeWALCallbackEntry hands it over
+// read-and-cleared — 0 when no commit landed since the last read.
+func TestWALCallbackEntry(t *testing.T) {
 	p, _ := newFilePager(t)
 	defer p.Close()
 	if err := p.SetJournalMode("wal"); err != nil {
 		t.Fatalf("SetJournalMode: %v", err)
 	}
-	var calls, totalFrames int
-	p.SetWalHook(func(nLog, nCkpt int) int {
-		calls++
-		totalFrames += nLog
-		return 0
-	})
-	// Two separate commits -> two hook firings.
+	if got := p.TakeWALCallbackEntry(); got != 0 {
+		t.Fatalf("entry before any commit = %d, want 0", got)
+	}
+	// Two separate commits: each handover carries the log's TOTAL frame
+	// count (C's iCallback = iFrame — the mxFrame after the commit), so the
+	// second commit's entry strictly exceeds the first's, and the read
+	// clears (wal.c:4415-4421).
+	prev := 0
 	for i := 0; i < 2; i++ {
 		pg := p.AllocatePage()
 		copy(pg.Data[100:], []byte("x"))
@@ -373,12 +397,14 @@ func TestWalHookFires(t *testing.T) {
 		if err := p.Flush(); err != nil {
 			t.Fatalf("Flush %d: %v", i, err)
 		}
+		got := p.TakeWALCallbackEntry()
+		if got <= prev {
+			t.Fatalf("commit %d entry = %d, want > %d (the log's total frame count)", i, got, prev)
+		}
+		prev = got
 	}
-	if calls != 2 {
-		t.Fatalf("wal hook fired %d times, want 2", calls)
-	}
-	if totalFrames != 2 {
-		t.Fatalf("wal hook total frames = %d, want 2", totalFrames)
+	if got := p.TakeWALCallbackEntry(); got != 0 {
+		t.Fatalf("entry after the read = %d, want 0 (read-and-clear)", got)
 	}
 }
 

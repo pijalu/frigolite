@@ -120,7 +120,7 @@ func TestWalHookEngine(t *testing.T) {
 	defer db.Close()
 
 	var hookCalls int
-	db.SetWalHook(func(nLog, nCkpt int) int {
+	db.SetWalHook(func(dbName string, nEntry int) int {
 		hookCalls++
 		return 0
 	})

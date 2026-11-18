@@ -2080,3 +2080,42 @@ everywhere; go vet + go build clean.
   full_s35_merge_fails.txt and the S35e sweep logs were wiped between
   sessions; the failing-leaf baselines belong in the repo
   (portplan/baselines/) from now on.
+
+## S35f record (2026-11-18) — the wal hook fires at the STATEMENT's completion, not the commit; proc redefinitions rebind; /tmp baselines move to the repo
+
+- **C's position** (vdbeapi.c:723-742 doWalCallbacks, called at sqlite3Step's
+  tail on `rc==SQLITE_DONE && db->autoCommit`): the sqlite3_wal_hook runs at
+  the committing statement's COMPLETION — after the commit and its
+  write-lock release (R-65366-15139: 2.1's in-hook db2 read must see the
+  commit) — per btree via sqlite3PagerWalCallback's READ-AND-CLEAR of
+  pWal->iCallback (wal.c:4415), which the commit set to the log's TOTAL
+  frame count (wal.c:4237 — R-18913-19355's nEntry, not the per-commit
+  delta). The hook's raw-code return becomes the statement's error
+  (sqlite3ErrStr's canned text) while the commit stands (R-14034-00929).
+- **TCL late binding**: C's hook holds the proc NAME — a later `proc
+  my_wal_hook {...}` redefinition silently replaces the hook's behavior
+  (e_walhook redefines my_wal_hook between registrations). The converter
+  emits a re-registration on each redefinition of a tracked hook proc
+  (i.walHookProcs); the harness's closure binds the snapshot per step.
+- **The harness reopen prime is open-adjacent machinery** (see the S35e
+  record): for the wal-hook family it ALSO matters that the hook proc's
+  body opening `sqlite3 db2 test.db` (e_walhook-2.1) is a reopen the
+  static step scan cannot see — the lifecycle promotion scans the
+  register_wal_hook steps' proc bodies (harnessBodyTouchesLifecycleDB).
+- **wal_frame_count** (wal_common.tcl) is a pure file-size formula:
+  (size-32)/(pgsz+24) — the harness's runtime command layer computes it
+  (the `list` command joined the table); the runtime_var handler now
+  evaluates a bracketed runtime-command EXPECT (the C source's composed
+  list expectation).
+- **Latent pager unit breaks fixed**: internal/pager's tests had not been
+  run since the WAL-slice work — TestWalHookFires PANICKED on a WAL-mode
+  AllocatePage's header stamp against a nil cached header (a fresh empty
+  file pager — the length guard added), TestWalCheckpoint's premise
+  predated newFilePager's creation flush (the untouched-main assertion is
+  relative to it) and asserted a TRUNCATE-only size after RESTART (the
+  restart resets the LOG; only TRUNCATE zeroes the file), and the
+  pager-level Checkpoint seam deadlocked on the caller's own read mark
+  (C's checkpoint runs outside any read transaction — wal.c:2347 blocks on
+  ALL reader marks; the seam now ends the caller's snapshot first). Run
+  `go test ./internal/...` in every unit's verify step — the harness gates
+  alone let unit tests rot.

@@ -332,9 +332,11 @@ type Engine struct {
 	commitHook   func() int
 	rollbackHook func()
 	updateHook   func(op, db, table string, rowid int64)
-	// walHook holds the sqlite3_wal_hook callback (fires after each WAL
-	// commit with (frames appended, frames checkpointed)).
-	walHook func(nLog, nCkpt int) int
+	// walHook holds the sqlite3_wal_hook callback. It fires at the
+	// committing statement's completion (vdbeapi.c doWalCallbacks) with the
+	// committing database's name and the log's total frame count; a
+	// non-zero return fails the statement (the commit stands).
+	walHook func(dbName string, nEntry int) int
 	// busyHandler holds the sqlite3_busy_handler callback (invoked between
 	// lock retries; true = retry the attempt, false = return busy).
 	busyHandler func(count int) bool

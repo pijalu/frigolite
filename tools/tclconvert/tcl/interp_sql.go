@@ -190,6 +190,34 @@ func (i *Interp) cmdDB(rawWords []rawWord, args []string, localVars map[string]s
 			}
 		}
 		return nil
+	case "wal_hook":
+		// `db wal_hook NAME` (tclsqlite.c DbWalHookCmd): register NAME as the
+		// connection's sqlite3_wal_hook. The proc's CURRENT definition
+		// travels with the step — the corpus redefines my_wal_hook between
+		// registrations (e_walhook's 1.x/2.x/3.x/4.x/5.x/6.x sequence), so
+		// each registration snapshots its moment's body. Registering the
+		// hook also disables the autocheckpoint mechanism (main.c:2484 —
+		// C's sqlite3_wal_hook overwrites the default hook).
+		if len(args) >= 2 {
+			procName := strings.TrimPrefix(strings.TrimSpace(args[1]), "::")
+			if procName != "" && !strings.ContainsAny(procName, "$[") {
+				if i.walHookProcs == nil {
+					i.walHookProcs = make(map[string]bool)
+				}
+				i.walHookProcs[procName] = true
+				step := Stmt{
+					Type:         "register_wal_hook",
+					FunctionProc: procName,
+					TestName:     i.curTest,
+				}
+				if proc, ok := i.procs[procName]; ok {
+					step.CallbackProcs = []Proc{{Name: proc.Name, Args: proc.Args, Body: proc.Body}}
+					i.seedCallbackTargets(proc.Body)
+				}
+				i.stmts = append(i.stmts, step)
+			}
+		}
+		return nil
 	case "eval":
 		return i.dbEval(rawWords, args, localVars)
 	case "changes":

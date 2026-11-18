@@ -286,6 +286,11 @@ func (e *Engine) WalAutoCheckpoint(value string) *execpragma.Result {
 	if value != "" {
 		n, _ := strconv.ParseInt(strings.TrimSpace(value), 10, 64)
 		e.settings.walAutoCheckpoint = n
+		// main.c:2496 sqlite3_wal_autocheckpoint → sqlite3_wal_hook(db,
+		// sqlite3WalDefaultHook, n): the SET REPLACES any script hook
+		// (R-57445-43425 — e_walhook-6.1.2's INSERTs stop firing the
+		// script). n=0 disables: sqlite3_wal_hook(db, 0, 0).
+		e.SetWalHook(nil)
 	}
 	cur := e.settings.walAutoCheckpoint
 	if e.walHook != nil {

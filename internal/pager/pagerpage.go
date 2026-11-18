@@ -165,7 +165,13 @@ func (p *Pager) allocateExtendLocked() *Page {
 	// meta bytes (btree writes those directly into the page buffer).
 	if p.wal != nil {
 		p.markDirtyLocked(1)
-		binary.BigEndian.PutUint32(p.header[28:32], p.numPages)
+		// The cached header can be nil before page 1 is first read (a fresh
+		// empty file opened straight into WAL mode — the pager-level
+		// AllocatePage probes): the stamp lands on the cached image only
+		// when it exists, the page-1 buffer carrying it regardless.
+		if len(p.header) >= 32 {
+			binary.BigEndian.PutUint32(p.header[28:32], p.numPages)
+		}
 		if pg1, ok := p.pages[1]; ok && pg1 != nil && len(pg1.Data) >= 32 {
 			binary.BigEndian.PutUint32(pg1.Data[28:32], p.numPages)
 		}

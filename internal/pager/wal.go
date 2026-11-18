@@ -600,9 +600,13 @@ func (w *walWriter) commit() (int, error) {
 	// sync bits are non-zero (synchronous=FULL; NORMAL's walSyncFlags carry
 	// only the checkpoint bits).
 	p.vfsSync(w.path, walCommitSyncBits(p.walSyncFlags))
-	if p.walHook != nil {
-		p.walHook(appended, 0)
-	}
+	// wal.c:4237 — the commit records the log's TOTAL frame count for the
+	// sqlite3_wal_hook callback (R-18913-19355: nEntry = the pages currently
+	// in the -wal, including those just committed). The hook itself runs at
+	// the statement's completion (vdbeapi.c doWalCallbacks) — the engine
+	// reads TakeWALCallbackEntry there, after the commit and its write-lock
+	// release (R-65366-15139: 2.1's in-hook db2 read must see the commit).
+	p.walCallbackEntry = w.hdr.MxFrame
 	return appended, nil
 }
 

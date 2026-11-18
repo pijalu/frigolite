@@ -1100,6 +1100,32 @@ func evalHarnessTclCommand(words []string, vars map[string]string, resolvePath f
 		return harnessCmdLindex(words)
 	case "join":
 		return harnessCmdJoin(words)
+	case "list":
+		// Tcl `list ?arg ...?`: the properly quoted list of the words.
+		return tclListString(words[1:]), nil
+	case "wal_frame_count":
+		// wal_common.tcl's wal_frame_count FILE PGSZ: the frame count a
+		// -wal file holds — (size-32)/(pgsz+24) — 0 for a missing or
+		// header-only log.
+		if len(words) < 3 {
+			return "", fmt.Errorf("wal_frame_count: wrong # of arguments")
+		}
+		info, err := os.Stat(resolvePath(words[1]))
+		if err != nil {
+			if os.IsNotExist(err) {
+				return "0", nil
+			}
+			return "", err
+		}
+		size := info.Size()
+		if size < 32 {
+			return "0", nil
+		}
+		pgsz, perr := strconv.ParseInt(words[2], 10, 64)
+		if perr != nil || pgsz <= 0 {
+			return "", fmt.Errorf("wal_frame_count: bad page size %q", words[2])
+		}
+		return strconv.FormatInt((size-32)/(pgsz+24), 10), nil
 	case "array":
 		return harnessCmdArrayNames(words, vars)
 	case "file":
@@ -1271,8 +1297,8 @@ func harnessCommandValue(out string) tclExprVal {
 // whose first word is one of these evaluates as a COMMAND (`join [array
 // names ::T] ,` — index9's set-in line) rather than as an expression.
 var harnessRuntimeCommands = map[string]bool{
-	"lsearch": true, "lindex": true, "join": true,
-	"array": true, "file": true, "expr": true,
+	"lsearch": true, "lindex": true, "join": true, "list": true,
+	"array": true, "file": true, "expr": true, "wal_frame_count": true,
 }
 
 // firstWordIsRuntimeCommand reports whether the text's leading word is one of
