@@ -163,10 +163,11 @@ the per-leaf truth is portplan/baselines/s35e_gate_fails.txt.)
 
 ## Immediate next action
 
-1. **S35g** — error-injection surfaces + the faultsim converter (B6/B3):
-   sqlite3_interrupt/memdebug_fail/xShmMap scripts, the restart/exit lock
-   choreography, walfault2's do_faultsim_test emission; plus the
-   walfault-15 cross-case JOIN card and walfault-11's trial-cap.
+1. **S35g remainder** — walfault-11 (the trial-cap), -12 (the
+   fixture-registry threading into runFaultsimStep: the prep's
+   register_testvfs/testvfs_config), -15 (the exclusive-INSERT lock
+   interplay with the trial state — the JOIN card); then the
+   sqlite3_interrupt/memdebug_fail surfaces if any family needs them.
 2. **The btree page-density unit** (NEW card): bulk-insert WAL frame
    accounting (ours 451 vs C's 298 on the walckptnoop workload — probe:
    isolate leaf/interior/index counts; the splitter's balance point).
