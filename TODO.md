@@ -134,23 +134,20 @@ the per-leaf truth is portplan/baselines/s35e_gate_fails.txt.)
 
 ## Immediate next action
 
-1. **S35f** — the wal-hook surface (B10, 10 leaves): db wal_hook converter
-   + the commit-end hook with rc propagation + the wal_autocheckpoint
-   overwrite (reuse TestWalHookEngine's substrate).
-3. **S35g** — error-injection surfaces + the faultsim converter (B6/B3):
+1. **S35g** — error-injection surfaces + the faultsim converter (B6/B3):
    sqlite3_interrupt/memdebug_fail/xShmMap scripts, the restart/exit lock
    choreography, walfault2's do_faultsim_test emission; plus the
    walfault-15 cross-case JOIN card and walfault-11's trial-cap.
-4. **The btree page-density unit** (NEW card): bulk-insert WAL frame
+2. **The btree page-density unit** (NEW card): bulk-insert WAL frame
    accounting (ours 451 vs C's 298 on the walckptnoop workload — probe:
    isolate leaf/interior/index counts; the splitter's balance point).
-5. **S42/S43** (TRIAGE_index_callback): the S41 residual surfaces
+3. **S42/S43** (TRIAGE_index_callback): the S41 residual surfaces
    (trigger7-2.x sub-program rows, misc3-6.11, distinctagg 5), the
    tcl-module completion (~34, bestindexF remainder).
-6. **Carded converter classes**: expridx1 fossil 10, indexexpr2/3 11,
+4. **Carded converter classes**: expridx1 fossil 10, indexexpr2/3 11,
    e_expr regen drift/callbackVars, A2/A9 engine slices, the fts3*
    residue ~53.
-7. **The performance phase** (F1c/F3 lanes in
+5. **The performance phase** (F1c/F3 lanes in
    GAP_CLOSURE_PLAN_2026-10-31.md) after functional gaps close.
 
 ## Working rules (violations cost hours — see .agents/lessons_learned.md)
