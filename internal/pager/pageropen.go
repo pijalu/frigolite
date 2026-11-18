@@ -338,7 +338,10 @@ func attachWalAtOpen(pr *Pager, cleanPath string) error {
 	// -iversion 1). The refusal is lazy in C — sqlite3_open succeeds, the
 	// pagerOpenWal inside the first read transaction fails — so the open
 	// itself succeeds here and every later page read reports the refusal.
-	if pr.shmUnavailable {
+	// C's bNoShm: the EXCLUSIVE latch routes the attach to the heap
+	// wal-index instead (pager.c:7596 — e_wal 1.1.2's EXCLUSIVE-then-WAL
+	// works); without it the attach declines lazily.
+	if pr.shmUnavailable && !pr.walExclusiveLatched {
 		pr.walOpenRefused = true
 		return nil
 	}
@@ -414,6 +417,14 @@ func attachWalAtOpen(pr *Pager, cleanPath string) error {
 		}
 	}
 	return nil
+}
+
+// attachWALNow re-runs the open-time WAL attach for the pager's current
+// path (C's pagerOpenWal retry at every read transaction): the refused
+// attach succeeds once the EXCLUSIVE latch routes it to the heap wal-index
+// (e_wal 1.2.2/1.3.2). Caller holds p.mu.
+func (p *Pager) attachWALNow() error {
+	return attachWalAtOpen(p, p.path)
 }
 
 // readWalPageSize returns the page size recorded in a "-wal" file's header, if

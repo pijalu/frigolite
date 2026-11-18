@@ -137,9 +137,15 @@ func openWal(p *Pager, dbPath string, pageSize uint32) (*walWriter, error) {
 	walPath := dbPath + "-wal"
 	// The WAL open maps the -shm region (C's xShmMap): a fixture callback
 	// returning SQLITE_READONLY fails the access with the readonly-db
-	// message (walvfs-5.5's db2 SELECT).
-	if err := p.vfsCall("xShmMap", walPath+"-shm"); err != nil {
-		return nil, translateVFSHookError(err)
+	// message (walvfs-5.5's db2 SELECT). C's bNoShm path (exclusiveMode at
+	// sqlite3WalOpen, pager.c:7596) skips the shm map AND the shm file
+	// entirely — the heap-memory wal-index replaces it (e_wal 2.1.2's
+	// {0 1}: no -shm under EXCLUSIVE).
+	heapIndex := p.walExclusiveLatched
+	if !heapIndex {
+		if err := p.vfsCall("xShmMap", walPath+"-shm"); err != nil {
+			return nil, translateVFSHookError(err)
+		}
 	}
 	// C's TEST io-error injector covers xOpen too — the wal file's open
 	// counts against the pending counter.
@@ -150,13 +156,18 @@ func openWal(p *Pager, dbPath string, pageSize uint32) (*walWriter, error) {
 	if err != nil {
 		return nil, fmt.Errorf("pager: open wal %s: %w", walPath, err)
 	}
-	wi, err := acquireWALIndex(dbPath)
-	if err != nil {
-		f.Close()
-		return nil, err
+	var wi *WALIndex
+	if heapIndex {
+		wi = newHeapWALIndex()
+	} else {
+		wi, err = acquireWALIndex(dbPath)
+		if err != nil {
+			f.Close()
+			return nil, err
+		}
 	}
 	w := &walWriter{p: p, path: walPath, file: f, pageSize: pageSize, wi: wi, readLock: -1,
-		heapMemory: p.walExclusiveLatched}
+		heapMemory: heapIndex}
 	if err := w.walInitHeader(); err != nil {
 		wi.release()
 		f.Close()

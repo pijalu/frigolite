@@ -7,6 +7,7 @@ package pager
 
 import (
 	"encoding/binary"
+	"errors"
 	"fmt"
 	"os"
 	"strings"
@@ -536,12 +537,24 @@ func (p *Pager) SetJournalMode(mode string) error {
 // "-wal"/"-shm" companions via openWal, writes a WAL header, and routes
 // future commits through the WAL writer (the main file is then only updated
 // by an explicit Checkpoint). Caller holds p.mu.
+// ErrWALUnsupported reports C's eNew=eOld refusal: the VFS lacks the
+// version-2 shared-memory methods and the EXCLUSIVE latch is not set, so
+// the WAL mode is not entered and OP_JournalMode answers the CURRENT mode
+// (vdbe.c !sqlite3PagerWalSupported; e_wal 1.1.1/3.4.2's `delete`).
+var ErrWALUnsupported = errors.New("pager: wal unsupported on this vfs")
+
 func (p *Pager) enableWALModeLocked() error {
 	if p.wal != nil {
 		return nil // already in WAL mode
 	}
 	if p.file == nil {
 		return fmt.Errorf("pager: cannot enable WAL on in-memory pager")
+	}
+	// sqlite3PagerWalSupported's shm gate: an xShm-less VFS refuses the WAL
+	// unless the EXCLUSIVE latch routes the wal-index to the heap (C's
+	// bNoShm, pager.c:7596 — e_wal 1.1.2's EXCLUSIVE-then-WAL works).
+	if p.shmUnavailable && !p.walExclusiveLatched {
+		return ErrWALUnsupported
 	}
 	// Switching from PERSIST/TRUNCATE to WAL: close and unlink the
 	// existing rollback-journal file (it is no longer the active

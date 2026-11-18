@@ -1102,6 +1102,17 @@ func evalHarnessTclCommand(words []string, vars map[string]string, resolvePath f
 	case "array":
 		return harnessCmdArrayNames(words, vars)
 	case "file":
+		if len(words) >= 2 && strings.EqualFold(words[1], "dirname") {
+			// `file dirname <path>` (tester.tcl's `set testdir [file dirname
+			// $argv0]`): the directory portion of the path. An unresolvable
+			// argument (a $var the runtime set does not carry, e.g. argv0 —
+			// testfixture's binary path) leaves the word as-is, whose
+			// dirname is ".".
+			if len(words) < 3 {
+				return "", fmt.Errorf("file dirname: wrong # of arguments")
+			}
+			return filepath.Dir(words[2]), nil
+		}
 		return harnessCmdFileSize(words, resolvePath)
 	case "expr":
 		if len(words) < 2 {

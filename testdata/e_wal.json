@@ -7,6 +7,11 @@
       "name": "setup_0",
       "steps": [
         {
+          "type": "runtime_expr",
+          "sql": "file dirname $argv0",
+          "variable": "testdir"
+        },
+        {
           "type": "close_db"
         }
       ]
@@ -25,6 +30,7 @@
       "steps": [
         {
           "type": "register_testvfs",
+          "sql": "iversion",
           "variable": "oldvfs"
         },
         {

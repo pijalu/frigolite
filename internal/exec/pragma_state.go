@@ -180,6 +180,12 @@ func (e *Engine) setJournalMode(ctx *DatabaseContext, schema, m string) *execpra
 		// "database is locked" surfaces (walmode-4.9's second connection
 		// holds the pager's wal-index RefCount gate; wal.test 25.x is the
 		// ATTACH journal-mode sweep, no contention).
+		if errors.Is(err, pager.ErrWALUnsupported) {
+			// vdbe.c OP_JournalMode's !sqlite3PagerWalSupported branch
+			// (vdbe.c:8021): eNew = eOld — the statement SUCCEEDS and
+			// answers the CURRENT mode (e_wal 1.1.1/3.4.2's `delete`).
+			return journalModeResult(ctx.Pager.JournalMode())
+		}
 		return &execpragma.Result{Error: err}
 	}
 	return journalModeResult(ctx.Pager.JournalMode())

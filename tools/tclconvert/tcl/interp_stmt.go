@@ -351,11 +351,17 @@ func commandTestVFS(i *Interp, _ []rawWord, args []string, _ map[string]string) 
 	i.testvfsNames[name] = true
 	// `-default 1` makes the wrapper the process DEFAULT VFS: every
 	// connection opened afterwards (db and the named handles) routes its
-	// I/O through it (pagerfault's faultsim fixtures).
+	// I/O through it (pagerfault's faultsim fixtures). `-noshm 1` /
+	// `-iversion 1` mark an xShm-less wrapper (e_wal.test's oldvfs: iVersion
+	// 1 lacks the version-2 shared-memory methods) — the register_testvfs
+	// step's SQL names the marker and the harness fixture consumes it.
 	option := ""
 	for k := 1; k+1 < len(args); k += 2 {
-		if args[k] == "-default" && strings.TrimSpace(args[k+1]) != "0" {
+		switch {
+		case args[k] == "-default" && strings.TrimSpace(args[k+1]) != "0":
 			option = "default"
+		case (args[k] == "-noshm" || args[k] == "-iversion") && strings.TrimSpace(args[k+1]) != "0":
+			option = strings.TrimPrefix(args[k], "-")
 		}
 	}
 	i.stmts = append(i.stmts, Stmt{Type: "register_testvfs", Variable: name, SQL: option, TestName: i.curTest})

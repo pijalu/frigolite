@@ -216,8 +216,19 @@ func (p *Pager) ReadPage(pageNum uint32) (*Page, error) {
 	// C's pagerOpenWal refusal surfaces at the first page acquire (the lazy
 	// sqlite3_open): a WAL db through an xShm-less VFS reports CANTOPEN
 	// "unable to open database file" on every statement (pager1-21.1/21.2).
+	// C re-runs pagerOpenWal at every read transaction: once the EXCLUSIVE
+	// latch is set, sqlite3WalOpen's bNoShm heap path succeeds (pager.c:7596;
+	// e_wal 1.2.2/1.3.2 — locking_mode=EXCLUSIVE after a refused reopen),
+	// so the refused attach is retried here under the latch.
 	if p.walOpenRefused {
-		return nil, fmt.Errorf("unable to open database file")
+		if !p.walExclusiveLatched {
+			return nil, fmt.Errorf("unable to open database file")
+		}
+		p.walOpenRefused = false
+		if err := p.attachWALNow(); err != nil {
+			p.walOpenRefused = true
+			return nil, fmt.Errorf("unable to open database file")
+		}
 	}
 	// C's getPageNormal (pager.c:5577-5580): a content fetch of the lock-byte
 	// page (the PENDING_BYTE page, PAGER_SJ_PGNO) is corruption. A database

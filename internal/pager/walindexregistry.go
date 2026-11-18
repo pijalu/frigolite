@@ -46,12 +46,20 @@ func walReadLockIdx(i int) int { return 3 + i }
 type WALIndex struct {
 	key   string // registry key (cleaned absolute db path)
 	shmFd *os.File
+	heap  bool // C's bNoShm: an unregistered in-memory index (locking_mode=EXCLUSIVE at the first WAL access — pager.c:7596); no -shm file exists
 
 	mu    sync.Mutex
 	pages [][]byte     // wal-index pages, 32KiB each (page 0 = header)
 	dirty map[int]bool // pages whose buffer changed but is not persisted
 	aLock [8]int       // in-process lock shadow: 0 free, -1 exclusive, n>0 shared count
 	refs  int          // connections attached to this index
+}
+
+// newHeapWALIndex builds C's heap-memory wal-index (wal.c sqlite3WalOpen's
+// bNoShm path): no shm fd, no registry entry, no -shm file — the index lives
+// only in this connection's memory and dies with the walWriter.
+func newHeapWALIndex() *WALIndex {
+	return &WALIndex{heap: true, key: "::heap::", dirty: make(map[int]bool), refs: 1}
 }
 
 // walIndexRegistry is the process-wide registry (lockreg.Global precedent,
@@ -113,6 +121,15 @@ func walIndexLiveEntry(dbPath string) bool {
 // release drops one connection reference; the last detach closes the shm fd
 // and drops the registry entry (the next attach re-runs the DMS protocol).
 func (w *WALIndex) release() {
+	if w.heap {
+		// C's heap wal-index dies with the connection: no registry, no shm
+		// fd, nothing to unlink.
+		w.mu.Lock()
+		w.pages = nil
+		w.dirty = make(map[int]bool)
+		w.mu.Unlock()
+		return
+	}
 	walIndexRegistry.mu.Lock()
 	defer walIndexRegistry.mu.Unlock()
 	w.mu.Lock()
