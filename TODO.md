@@ -8,15 +8,19 @@
 
 `close all gaps with sqlite — functional first, then performance.`
 
-## State (2026-11-18, feature/perf @ 4bb2a2911)
+## State (2026-11-18, feature/perf @ 146a3c00e)
 
-Full-suite truth **1218 failing leaves** (verified gate
-/tmp/full_s35_merge_gate.log; vs the 1268 baseline: 52 GONE — 50 real,
-each commit-attributed below, +2 resetdb flaps that re-run red — and
-NEW=2, both documented dithers: temptable2-4.1.1 the random-sequence
-dither, walfault-15 the cross-case JOIN flap).
+Full-suite truth **1207 failing leaves** (verified gate
+/tmp/s35e_full_gate2.log; the durable per-leaf baseline now lives in the
+repo: portplan/baselines/s35e_gate_fails.txt — /tmp baselines proved
+ephemeral across sessions). Vs the 1218 state: **e_wal 10→0 (S35e,
+all ten leaves commit-attributed at 146a3c00e)**; every other family
+leaf-identical against a 27-family diff run at the pre-change commit
+6b7513599 in a worktree (e_walhook 10=10, wal2 25=25, walckptnoop 5=5,
+resetdb 7=7 — resetdb-300's worktree pass during the parallel run was a
+contention flake; it fails at both commits — the density card).
 
-The WAL small-slices arc (S35a-d) is COMPLETE and merged:
+The WAL small-slices arc (S35a-e) is COMPLETE and merged:
 
 - **S35a** (s35-wal-small): the lifecycle-for-named-db pre-scan flip
   (open_named_db on test.db joins the reopen lifecycle) — wal9-1.1/1.7,
@@ -50,6 +54,21 @@ The WAL small-slices arc (S35a-d) is COMPLETE and merged:
   C's 298 — the leaves hold ~2/3 of C's rows at this cell size); the
   faultsim lifecycle cards (walfault-15's cross-case JOIN,
   walfault-11's trial-cap) for S35g.
+- **S35e** (146a3c00e): the no-shm WAL class — the C choreography pinned
+  from source (PLAN_S35e_noshm.md §UPDATE): lockBtree's version-2/2 WAL
+  entry at the first schema-needing statement's parse (btree.c:3337), the
+  CANTOPEN source sqlite3PagerOpenWal (pager.c:7641), the EXCLUSIVE
+  main-file lock taken+held under exclusiveMode (pagerOpenWal 7588 /
+  sqlite3PagerBegin 5928), the NORMAL-WAL persistent file-SHARED quirk
+  (pager.c:2158's unlock skip — wal.c:4474's op=0 rc=0), the heap-index
+  locking_mode no-op. Engine: the per-statement refusal gate
+  (WALAttachRefusal, pinWAL-gated), the heap conversion at the latch
+  (walConvertHeapEligibleLocked, windowed on walDataTouched with
+  SuppressAccessMark for the open's schema load + the harness reopen
+  prime), lockreg.walFileShared + e.walExclusiveFileHeld (the file-lock
+  hold surviving the journal_mode=DELETE exit). **e_wal 10→0**; the
+  27-family worktree diff leaf-identical; wal2-6.6's real-page-1-SELECT
+  discriminator carded in lessons.
 
 The pager + authorizer + EXPLAIN-substrate arcs (S22-S37+S41):
 
@@ -102,21 +121,20 @@ The parallel-where + pager arc (S22-S34, S33):
   isTable=true and skipped one row per divider (fixed a5ea11125).
   **where-25.4 stays green.**
 
-Census now: **walckptnoop 1** (the 1.1-1.5 density card), **walvfs 6**,
-**wal2 25** (the xShmLock trace class), **wal3 4**, **wal6 1**,
-**walfault 3 + walfault2 2**, e_wal 14, e_walhook 13, walsetlk_recover 2,
-wal-23.4, **where 1** (the 2.4 flake), **index9 0**, **bestindexF 17**,
-**indexexpr2 5**, distinctagg 5, trigger7 6, misc3 1, without_rowid 27,
-tkt 33, rtree 126, the fts3* residue, expr residue.
+Census now (verified at 146a3c00e): **walckptnoop 5** (the density card
+1.1-1.5 + 1.0/1.7-era residue re-count at the truthful filter), **walvfs
+6**, **wal2 25** (the xShmLock trace class), **wal3 4**, **wal6 1**,
+**walfault 3 + walfault2 2**, **e_wal 0** (S35e complete), **e_walhook
+10** (S35f), walsetlk_recover 2, wal-23.4, **where 1** (the 2.4 flake),
+**index9 0**, **bestindexF 17**, **indexexpr2 5**, distinctagg 5,
+trigger7 6, misc3 1, without_rowid3 16 + without_rowid7 4, tkt 14,
+rtree 126, the fts3* residue, expr residue. (The old census's grouped
+counts — e_wal 14, tkt 33, without_rowid 27 — mixed substring filters;
+the per-leaf truth is portplan/baselines/s35e_gate_fails.txt.)
 
 ## Immediate next action
 
-1. **S35e** — the no-shm WAL class (B1, 14 leaves, ~250-400 LOC):
-   converter `testvfs X -iversion/-noshm` + the engine rules (journal_mode
-   refusal on shm-unavailable, CANTOPEN without shm, EXCLUSIVE heap
-   wal-index, the stuck-EXCLUSIVE no-op, db2 BUSY) per
-   TRIAGE_wal_residue_2026-11-16.md §S35e.
-2. **S35f** — the wal-hook surface (B10, 10 leaves): db wal_hook converter
+1. **S35f** — the wal-hook surface (B10, 10 leaves): db wal_hook converter
    + the commit-end hook with rc propagation + the wal_autocheckpoint
    overwrite (reuse TestWalHookEngine's substrate).
 3. **S35g** — error-injection surfaces + the faultsim converter (B6/B3):

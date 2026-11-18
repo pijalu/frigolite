@@ -204,3 +204,48 @@ documented dithers: temptable2-4.1.1, walfault-15's flap).
   S35g (error-injection + faultsim converter) → the density unit →
   S42/S43. Plans: PLAN_S35d_walckptnoop.md (STATUS), PLAN_S35abc.md
   (STATUS); lessons: the S35b/c/d records.
+
+---
+
+## 2026-11-18: S35e delivered — e_wal 10→0 (146a3c00e), the no-shm WAL class complete
+
+The C choreography was pinned from source (wal.c/pager.c/btree.c/parse.c —
+PLAN_S35e_noshm.md §UPDATE has the full chain): the WAL entry for a header-2/2
+db runs at the first SCHEMA-NEEDING statement's parse (a bare PRAGMA never
+calls sqlite3ReadSchema), so `PRAGMA locking_mode=EXCLUSIVE` in the same
+execsql as the first SELECT opens the WAL with bNoShm=1 (heap index, no -shm).
+Three engine pieces landed:
+
+1. **The per-statement refusal gate** (execDBFileChecks →
+   Pager.WALAttachRefusal, pinWAL-gated): the open-time refused attach must
+   fail every btree-touching statement with CANTOPEN — the ReadPage hook alone
+   missed it while the schema caches stayed warm.
+2. **The heap conversion at the latch** (walConvertHeapEligibleLocked):
+   swap the registry index for the heap form + remove the -shm + re-validate
+   from the -wal file, windowed on `walDataTouched` — set at the first
+   statement-level WAL entry (the gate's refresh / WALBeginWrite),
+   with **SuppressAccessMark** bracketing the open's own schema load and the
+   harness reopen prime (`SELECT name FROM sqlite_master LIMIT 1` —
+   open-adjacent machinery C's driver never runs). The discriminator cost a
+   second iteration: page-scope (page 1 vs >1) broke wal2-6.6.1 (its real
+   page-1-only SELECT must CLOSE the window — the later locking_mode=NORMAL
+   must work, else the exclusive file-lock mark wedges 6.6.4's db2).
+3. **The EXCLUSIVE file-lock hold**: lockreg.walFileShared (the NORMAL-WAL
+   persistent file-SHARED — pager.c:2158's unlock-skip quirk; blocks only
+   EXCLUSIVE acquisitions) + e.walExclusiveFileHeld (the take at the
+   conversion and at WAL+exclusive writes; released by clearPersistentShared;
+   survives the journal_mode=DELETE exit per pager.c:7663).
+
+Verify: e_wal 10→0; a 27-family leaf-set diff against a 6b7513599 worktree
+run — every family identical; full gate **1207 leaves** with the durable
+baseline committed at portplan/baselines/s35e_gate_fails.txt (/tmp baselines
+proved ephemeral across sessions — the old 1218 file was lost). The census
+block in TODO.md now carries the truthful per-leaf counts (the old grouped
+counts mixed substring filters).
+
+Restart point: **S35f** — the wal-hook surface (e_walhook, 10 leaves): the
+db wal_hook converter + the commit-end hook with rc propagation +
+wal_autocheckpoint overwrite (TestWalHookEngine's substrate). Then S35g
+(error-injection + the faultsim converter + the walfault-15/11 cards), the
+btree page-density unit (walckptnoop + resetdb-300's 13-vs-12 page_count),
+S42/S43, carded converter classes, the perf phase.
