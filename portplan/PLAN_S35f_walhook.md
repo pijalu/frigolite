@@ -91,3 +91,49 @@
   caller's read snapshot first (C's checkpoint runs outside any read
   transaction — wal.c:2347's exclusive read-lock take would deadlock on the
   caller's own mark); TestWALCallbackEntry pins the read-and-clear contract.
+
+---
+
+# S35g slice 1 (2026-11-18, in flight on the same arc)
+
+- **walfault2 2→0**: the committed testdata/walfault2.json was a STALE
+  conversion (the setup leaves only — the faultsim_save/trial steps were
+  absent). Regenerated from ori (the source copied from the 3.51 tree —
+  the pinned corpus lacked it): setup_1/setup_2's faultsim_save_close
+  steps trigger the lifecycle promotion (the file-backed main — the
+  setups' journal_mode=wal now answers "wal"), the trial leaves run the
+  real faultsim grid. Harness: runFaultsimStep gained close_db (the trial
+  prep's `catch { db close }`) and the URI-form reopen
+  (file:test.db?psow=0 — normalizeURIPath + Open's URI handling).
+- **walsetlk_recover superseded by the native port**
+  (TestWalSetlkRecoverEngine): the testfixture_nb subprocess class (the
+  background recovery against a delayed VFS read) is not transpilable.
+  The native test drives the same engine-visible contract: a concurrent
+  recovery-in-progress holds the WRITER+RECOVER locks, a second
+  connection's read reports "database is locked" after its busy timeout
+  (1.2), the busy path sleeps through xSleep (1.5.2's sleep_count>0), the
+  read succeeds post-recovery (1.4). Listed in unsupportedTestFiles with
+  the pointer.
+- **C-shaped plumbing this forced**:
+  - The recovery SPLIT (walrecover.go): the read phase
+    (walIndexRecoverRead — the -wal file reads, the xRead hook sites)
+    runs OUTSIDE the wal-index writer section; the apply
+    (walIndexRecoverApplyLocked — the hash populate + the header publish)
+    inside. C builds the hash in private buffers — the old
+    section-enclosed recovery let a parked fixture xRead deadlock every
+    other connection's index probe (the native test exposed it). The
+    commit-path callers keep the section-enclosed form
+    (walIndexRecoverLocked).
+  - The xRead emissions at the recovery's -wal reads (C's sqlite3OsRead
+    on the wal fd).
+  - The xSleep emissions at the WAL busy-sleep sites (C's sqlite3OsSleep
+    under the busy path).
+  - PRAGMA busy_timeout implemented (PragTyp_BUSY_TIMEOUT — it had NO
+    handler!) and wired to the WAL layer (Engine.SetBusyTimeout pushes to
+    the pagers; the shm lock loops honor the deadline).
+- **Remaining carded**: walfault-11 (the trial-cap — 789s per run),
+  walfault-12 (the trial prep's register_testvfs/testvfs_config — the
+  fixture registry threading into runFaultsimStep), walfault-15 (the
+  signature shifted to "prep failed: database is locked" — the exclusive
+  INSERT's lock interplay with the trial state; the JOIN-flap card
+  stands).

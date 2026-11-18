@@ -1587,6 +1587,7 @@ var unsupportedTestFiles = map[string]string{
 	"walsetlk":          "testvfs -fullshm + xSleep counting untranspilable - superseded by frigolite_wallocks_test.go (P7.WAL-G7 slice 2)",
 	"walsetlk2":         "sqlite3_setlk_timeout C-API untranspilable - superseded by TestWalLockBusyTimeout (P7.WAL-G7 slice 2)",
 	"walsetlk3":         "sqlite3_setlk_timeout deadline C-API untranspilable - superseded by TestWalLockBusyTimeout (P7.WAL-G7 slice 2)",
+	"walsetlk_recover": "testfixture_nb subprocess (the background recovery against a delayed VFS read) untranspilable - superseded by TestWalSetlkRecoverEngine (the native concurrent-recovery port: the BUSY_RECOVERY timeout, the xSleep budget, the post-recovery rows)",
 	"walsetlk_snapshot": "testfixture_nb subprocess + blocking snapshot_open (slice-4 API) untranspilable - see portplan/NA_EVIDENCE.md P7.WAL-G7 slice 2",
 	"walshared":         "shared-cache table locks: separate subsystem, slice-5 disposition (P7.WAL-G7)",
 	"walslow":           "fixture setup re-run artifacts + long-running churn; covered by TestWalRestartConcurrent (slice 3 triage 2026-09-13)",
@@ -7685,6 +7686,14 @@ func runFaultsimStep(t *testing.T, dbp **DB, namedDBs map[string]*DB, prepared m
 	step.SQL = expandTCLRuntimeVarsSQL(step.SQL, runtimeVars)
 	step.Expect = expandTCLRuntimeVars(step.Expect, runtimeVars)
 	switch step.Type {
+	case "close_db":
+		// The trial prep's `catch { db close }` (walfault2's -prep): close
+		// the main handle so the restore replaces the files under no live
+		// connection.
+		if !(*dbp).closedFlag {
+			_ = (*dbp).Close()
+		}
+		return 0, "", true
 	case "faultsim_save", "faultsim_save_close", "faultsim_restore", "faultsim_restore_reopen":
 		if step.Type == "faultsim_restore_reopen" {
 			// C's db_restore_and_reopen (tester.tcl:2482): close FIRST
@@ -7718,9 +7727,22 @@ func runFaultsimStep(t *testing.T, dbp **DB, namedDBs map[string]*DB, prepared m
 		}
 		return 0, "", true
 	case "reopen_db":
+		// The reopen target may be a URI (`file:test.db?psow=0`,
+		// walfault2-1's -prep): a shared-mem URI opens through the
+		// shared-cache machinery; any other target resolves its path part
+		// against the fixture directory (the main executor's reopen_db
+		// semantics — a relative path NEVER escapes the fixture dir).
 		path := step.SQL
-		if !filepath.IsAbs(path) {
-			path = filepath.Join(fixtureDBDir, path)
+		if _, shared := sharedMemURI(step.SQL); !shared {
+			if name, _ := sharedMemURI(step.SQL); name == "" {
+				resolved := normalizeURIPath(step.SQL)
+				if resolved != "" && !filepath.IsAbs(resolved) {
+					resolved = filepath.Join(fixtureDBDir, resolved)
+				}
+				path = resolved
+			} else {
+				path = step.SQL
+			}
 		}
 		reopened, oerr := Open(path)
 		if oerr != nil {

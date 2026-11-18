@@ -39,6 +39,8 @@ package pager
 // SQLITE_PROTOCOL's "locking protocol".
 
 import (
+	"strconv"
+
 	"errors"
 	"fmt"
 	"io"
@@ -333,6 +335,7 @@ func (w *walWriter) walBusyLockExclusive(idx, n int) error {
 		if w.busyTimeout <= 0 || !time.Now().Before(deadline) {
 			return err
 		}
+		w.p.vfsCall("xSleep", w.path, strconv.Itoa(int(walBusySleep.Milliseconds())))
 		time.Sleep(walBusySleep)
 	}
 }

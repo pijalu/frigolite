@@ -175,6 +175,16 @@ func (e *Engine) SetBusyHandler(fn func(count int) bool) {
 // sleep-retry behavior between lock attempts.
 func (e *Engine) SetBusyTimeout(ms int) {
 	e.busyTimeoutMs = ms
+	// sqlite3_busy_timeout reaches the WAL layer too: the shm lock loops
+	// (walIndexReadHdr's BUSY_RECOVERY / WAL_RETRY rounds — wal.c's
+	// blocking-lock budget) honor the same deadline the rollback-journal
+	// paths get from the engine's busy callback. Attach-time pagers pick
+	// the timeout up when they enter WAL mode through their own seam.
+	for _, ctx := range e.dbList {
+		if ctx != nil && ctx.Pager != nil {
+			ctx.Pager.SetBusyTimeout(time.Duration(ms) * time.Millisecond)
+		}
+	}
 }
 
 // busyRetry invokes the busy handler after a failed lock attempt

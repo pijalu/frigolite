@@ -282,6 +282,22 @@ func tempDirAcceptable(path string) bool {
 // default wal hook is installed, 0 once a custom sqlite3_wal_hook replaced
 // it (the pragma reads db->pWalArg only through the
 // xWalCallback==sqlite3WalDefaultHook gate).
+// BusyTimeout implements PRAGMA busy_timeout (pragma.c PragTyp_BUSY_TIMEOUT):
+// the setter routes to sqlite3_busy_timeout (sqlite3Atoi semantics — junk is
+// 0), the getter reports the stored timeout; both return a single int row.
+// The timeout reaches the WAL layer through SetBusyTimeout (the shm lock
+// loops honor it — wal.c's blocking-lock budget).
+func (e *Engine) BusyTimeout(schema, value string) *execpragma.Result {
+	if value != "" {
+		n, _ := strconv.ParseInt(strings.TrimSpace(value), 10, 64)
+		if n < 0 {
+			n = 0
+		}
+		e.SetBusyTimeout(int(n))
+	}
+	return &execpragma.Result{Rows: [][]interface{}{{int64(e.busyTimeoutMs)}}}
+}
+
 func (e *Engine) WalAutoCheckpoint(value string) *execpragma.Result {
 	if value != "" {
 		n, _ := strconv.ParseInt(strings.TrimSpace(value), 10, 64)

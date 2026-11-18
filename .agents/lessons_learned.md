@@ -2119,3 +2119,40 @@ everywhere; go vet + go build clean.
   ALL reader marks; the seam now ends the caller's snapshot first). Run
   `go test ./internal/...` in every unit's verify step — the harness gates
   alone let unit tests rot.
+
+## S35g slice-1 record (2026-11-18) — the recovery reads outside the index mutex; the busy timeout reaches the WAL layer; walfault2's JSON was stale
+
+- **C's recovery structure** (wal.c walIndexRecover): the -wal file reads
+  run with the WRITER + RECOVER locks held and the wal-index mutex NOT
+  held (the hash tables are built in private buffers, memcpy'd at the
+  end). Our port held the writer section across the whole recovery — a
+  fixture hook parked in a recovery xRead then deadlocked every other
+  connection's index probe (the native walsetlk_recover port exposed it).
+  The split: walIndexRecoverRead (the file reads, the xRead sites —
+  outside the section) + walIndexRecoverApplyLocked (the hash populate +
+  the header publish — inside). The commit-path callers keep the
+  section-enclosed form (the corrupt-header-under-commit case).
+- **PRAGMA busy_timeout had NO handler** — the engine's SetBusyTimeout
+  was reachable only through the public API; the PRAGMA silently no-oped.
+  Implemented (PragTyp_BUSY_TIMEOUT) and wired into the pagers: the WAL
+  shm lock loops honor the deadline (C's blocking-lock budget), and the
+  busy sleeps emit the xSleep hook event (C's sqlite3OsSleep) — the
+  walsetlk_recover-1.5.2 sleep_count contract.
+- **The recovery's -wal reads are VFS xReads** (C's sqlite3OsRead on the
+  wal fd) — emitted at walIndexRecoverRead; the fixture fixtures park
+  there.
+- **testdata/walfault2.json was a STALE conversion** (the setup leaves
+  only — the faultsim_save/trial steps absent). The pinned corpus lacked
+  the file; copying it from the 3.51 tree and regenerating produced the
+  full faultsim structure (the promotion via the faultsim_save_close
+  steps fixed the setups' journal_mode=wal; the trial leaves run the
+  grid). The faultsim runner gained close_db and the URI-form reopen
+  (file:test.db?psow=0).
+- **The endianness bit**: the WAL magic's checksum-order flag is the
+  VALUE's low bit — stored big-endian, the low byte is buf[3]; reading
+  buf[0]&1 reads the MSB's bit and silently voids every recovery
+  (the header "checksum" never verifies). Mask the whole value:
+  BigEndian.Uint32(buf[0:])&0xFFFFFFFE != WalMagic.
+- **Run `go test ./internal/...` in every unit's verify** — the harness
+  gates alone let internal/pager's unit tests rot for weeks (the nil-
+  header panic, the stale checkpoint premises).

@@ -89,6 +89,12 @@ type EngineState interface {
 	// TRUNCATE): it folds the WAL into the main database and resets the WAL.
 	WalCheckpoint(schema, value string) *Result
 
+	// BusyTimeout implements PRAGMA busy_timeout (pragma.c
+	// PragTyp_BUSY_TIMEOUT): the setter routes to sqlite3_busy_timeout
+	// (junk parses as 0 — sqlite3Atoi), the getter reports the current
+	// timeout; both forms return a single int row.
+	BusyTimeout(schema, value string) *Result
+
 	// WalAutoCheckpoint implements PRAGMA wal_autocheckpoint (pragma.c
 	// PragTyp_WAL_AUTOCHECKPOINT): the setter stores the page threshold and
 	// both forms return a single row with the effective value — the stored
@@ -573,6 +579,12 @@ var pragmaHandlers = map[string]Handler{
 	// (getSafetyLevel+1)&3; the getter reports safety_level-1.
 	"SYNCHRONOUS": func(st EngineState, s *sql.PragmaStmt) *Result {
 		return st.Synchronous(s.Schema, s.Value)
+	},
+	// PRAGMA busy_timeout — mirrors src/pragma.c PragTyp_BUSY_TIMEOUT
+	// (line 1463): sqlite3_busy_timeout(db, N) for the setter (junk is 0),
+	// db->busyTimeout for the getter; both returnSingleInt.
+	"BUSY_TIMEOUT": func(st EngineState, s *sql.PragmaStmt) *Result {
+		return st.BusyTimeout(s.Schema, s.Value)
 	},
 	// PRAGMA wal_autocheckpoint — mirrors src/pragma.c
 	// PragTyp_WAL_AUTOCHECKPOINT (line 2409): the setter stores the

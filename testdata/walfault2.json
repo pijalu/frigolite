@@ -4,6 +4,16 @@
   "ordered": true,
   "tests": [
     {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "runtime_expr",
+          "sql": "file dirname $argv0",
+          "variable": "testdir"
+        }
+      ]
+    },
+    {
       "name": "walfault2-1.0",
       "steps": [
         {
@@ -14,8 +24,54 @@
       ]
     },
     {
+      "name": "setup_1",
+      "steps": [
+        {
+          "type": "faultsim_save_close"
+        }
+      ]
+    },
+    {
+      "name": "1",
+      "steps": [
+        {
+          "type": "faultsim_test",
+          "sql": "ioerr-transient ioerr-persistent full",
+          "variable": "1",
+          "prep": [
+            {
+              "type": "close_db",
+              "variable": "__catchrc",
+              "catchResult": true
+            },
+            {
+              "type": "faultsim_restore"
+            },
+            {
+              "type": "reopen_db",
+              "sql": "file:test.db?psow=0"
+            },
+            {
+              "type": "exec",
+              "sql": "PRAGMA wal_checkpoint;\n    PRAGMA journal_size_limit = 10000;\n    PRAGMA synchronous = full;"
+            }
+          ],
+          "body": [
+            {
+              "type": "exec",
+              "sql": "INSERT INTO t1 VALUES(1,1)"
+            }
+          ],
+          "testScript": "\n  faultsim_test_result {0 {}}\n",
+          "testPatterns": [
+            "0 {}"
+          ]
+        }
+      ]
+    },
+    {
       "name": "__RESET_DB__",
-      "steps": null
+      "steps": []
     },
     {
       "name": "walfault2-2.0",
@@ -24,6 +80,43 @@
           "type": "query",
           "sql": "PRAGMA auto_vacuum = 0;\n  CREATE TABLE t1(a, b);\n  PRAGMA journal_mode = wal;\n  WITH s(i) AS (\n    SELECT 1 UNION ALL SELECT i+1 FROM s LIMIT 30\n  )\n  INSERT INTO t1 SELECT randomblob(400), randomblob(400) FROM s;",
           "expect": "wal"
+        }
+      ]
+    },
+    {
+      "name": "setup_2",
+      "steps": [
+        {
+          "type": "faultsim_save_close"
+        }
+      ]
+    },
+    {
+      "name": "2",
+      "steps": [
+        {
+          "type": "faultsim_test",
+          "sql": "ioerr-transient ioerr-persistent full",
+          "variable": "2",
+          "prep": [
+            {
+              "type": "faultsim_restore_reopen"
+            },
+            {
+              "type": "exec",
+              "sql": "PRAGMA cache_size = 2;\n    BEGIN;\n    UPDATE t1 SET a=randomblob(400);\n    UPDATE t1 SET b=randomblob(400);\n    UPDATE t1 SET a=randomblob(400);\n    UPDATE t1 SET b=randomblob(400);\n    UPDATE t1 SET a=randomblob(400);\n    UPDATE t1 SET b=randomblob(400);\n    UPDATE t1 SET a=randomblob(400);\n    UPDATE t1 SET b=randomblob(400);"
+            }
+          ],
+          "body": [
+            {
+              "type": "exec",
+              "sql": "COMMIT"
+            }
+          ],
+          "testScript": "\n  faultsim_test_result {0 {}}\n",
+          "testPatterns": [
+            "0 {}"
+          ]
         }
       ]
     }

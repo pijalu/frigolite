@@ -38,6 +38,8 @@ package pager
 // ("locking protocol").
 
 import (
+	"strconv"
+
 	"errors"
 	"time"
 )
@@ -206,6 +208,7 @@ func (w *walWriter) walSnapshotPostPinHeld(changed *bool, snapChanged bool) (sta
 // cnt>5 delay kicks in.
 func (w *walWriter) walReadRetryPace(cnt int, deadline time.Time) {
 	if w.busyTimeout > 0 && time.Now().Before(deadline) {
+		w.p.vfsCall("xSleep", w.path, strconv.Itoa(int(walBusySleep.Milliseconds())))
 		time.Sleep(walBusySleep)
 	} else if cnt >= walBusyEarlyRounds {
 		time.Sleep(walRetrySleep)

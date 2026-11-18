@@ -22,6 +22,8 @@ package pager
 // produces and vice versa.
 
 import (
+	"strconv"
+
 	"crypto/rand"
 	"encoding/binary"
 	"errors"
@@ -293,6 +295,7 @@ func (w *walWriter) walIndexReadHdr() (bool, error) {
 				time.Sleep(walRetrySleep)
 			}
 		case errors.Is(rc, errWalBusyRecovery) && w.busyTimeout > 0 && time.Now().Before(deadline):
+			w.p.vfsCall("xSleep", w.path, strconv.Itoa(int(walBusySleep.Milliseconds())))
 			time.Sleep(walBusySleep)
 		default:
 			return changed, rc
@@ -327,15 +330,30 @@ func (w *walWriter) walRecoverWithWriterLock() error {
 		return w.busyToRetryOrRecovery(err)
 	}
 	w.writeLock = true
-	err := w.wi.WriterSection(func() error {
-		return w.walIndexRecoverLocked()
-	})
-	w.walUnlockExclusive(walLockWrite, 1)
-	w.writeLock = false
-	if err != nil && errors.Is(err, errWalBusy) {
+	// C's recovery: the -wal reads (the xRead hook sites) run with the
+	// WRITER + RECOVER locks held and the wal-index mutex NOT held (the
+	// hash tables are built in private buffers) — a slow recovering reader
+	// (walsetlk_recover's parked fixture callback) stalls the recovery lock
+	// without blocking other connections' index probes. The apply (the hash
+	// populate + the header publish) takes the writer section.
+	if err := w.shmTryLockHeld(walLockCkpt, walLockRecover+1-walLockCkpt, true); err != nil {
+		w.walUnlockExclusive(walLockWrite, 1)
+		w.writeLock = false
 		return w.busyToRetryOrRecovery(err)
 	}
-	return err
+	parsed, rerr := w.walIndexRecoverRead()
+	if rerr == nil {
+		rerr = w.wi.WriterSection(func() error {
+			return w.walIndexRecoverApplyLocked(parsed)
+		})
+	}
+	w.shmUnlockHeld(walLockCkpt, walLockRecover+1-walLockCkpt, true)
+	w.walUnlockExclusive(walLockWrite, 1)
+	w.writeLock = false
+	if rerr != nil && errors.Is(rerr, errWalBusy) {
+		return w.busyToRetryOrRecovery(rerr)
+	}
+	return rerr
 }
 
 // busyToRetryOrRecovery converts a contended lock per walTryBeginRead: when
@@ -1173,6 +1191,12 @@ func (w *walWriter) readCheckpointFrames() ([]WalFrame, bool, error) {
 	}
 	if info.Size() < WalHdrSize {
 		return nil, false, nil
+	}
+	// The recovery's -wal read is a VFS xRead (C's sqlite3OsRead on the wal
+	// fd — walsetlk_recover's fixture parks its callback here, holding the
+	// recovery lock while the read is in flight).
+	if err := w.p.vfsCall("xRead", w.path); err != nil {
+		return nil, false, err
 	}
 	buf := make([]byte, info.Size())
 	if _, err := w.file.ReadAt(buf, 0); err != nil {
