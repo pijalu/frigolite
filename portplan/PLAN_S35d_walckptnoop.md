@@ -84,3 +84,28 @@ AFTER the s35-wal-small merge lands.
 
 walckptnoop {1.0,1.1,1.2,1.3,1.4,1.5,1.7} = 7 leaves (the 1268-baseline
 subset).
+
+## STATUS (2026-11-18, S35d delivered)
+
+- Items 1-4 DELIVERED at 15d293152 (+ the binary format c* field and the
+  converter's braced-body proc collection): WalCkptNoop(-1) + the NOOP
+  branch in checkpoint() (locks+passes skipped, header refreshed, report
+  {0 mxFrame nBackfill}), the pragma noop case, the btree.c in-txn
+  SQLITE_LOCKED veto, register_function's fixture-proc interpreter round
+  trip (S25 pattern, byte-array results bind BLOB), the converter's
+  scriptProcs recurses braced control-flow bodies, binary format c*
+  (tclBinary.c's 'c' case) in the interpreter.
+- walckptnoop: 7 -> 1. GREEN: 1.0 (the UDF round trip), 1.7 (the veto).
+  1.1-1.5 EXPOSE A NEW PRE-EXISTING DIVERGENCE: the NOOP report SHAPE is
+  exact ({0 mxFrame nBackfill}) but our bulk insert's WAL holds mxFrame
+  451 vs C's 298 for the identical workload (page_size=1024, t1 with a
+  128-char text column + an index, 1000 rows, one statement) — the btree
+  PAGE-DENSITY class (our leaves hold ~2/3 of C's rows per page at this
+  cell size). NOT an S35d regression: the NOOP report faithfully mirrors
+  the bigger log. CARD: the bulk-insert density unit (probe: the same
+  workload's mxFrame delta; isolate leaf vs interior vs index pages).
+  NOT regeneration drift: the JSON was hand-pinned (myrand) — the pinned
+  corpus file has drifted from the 3.51 tree (faultsim_save_close steps,
+  wal_checkpoint_v2); regeneration is its own unit.
+- Identity sweeps at HEAD: wal 0 fails, e_walckpt 0 fails (the veto broke
+  no fixture).

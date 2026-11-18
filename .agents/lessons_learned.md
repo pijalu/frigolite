@@ -1982,3 +1982,44 @@ everywhere; go vet + go build clean.
   ([expr {$idx>=0}] / the previous capture) that the converter attached to
   the capture step. Hand-pins restore the C sequence: capture (no expect) +
   runtime_expr (the computation) + runtime_var (the expect).
+
+## S35d record (2026-11-18) — the NOOP sentinel is -1 and the fixture-proc UDF round trip is the S25 pattern; a NEW btree page-density divergence surfaced
+
+- **SQLITE_CHECKPOINT_NOOP = -1** (sqlite.h.in:10060) — parses from
+  pragma.c:2391; NOOP skips the CKPT lock AND the passes (wal.c:4318/4370)
+  but still refreshes the wal-index header and reports
+  {0, hdr.mxFrame, nBackfill}. The in-txn veto lives in
+  sqlite3BtreeCheckpoint (inTransaction != TRANS_NONE → SQLITE_LOCKED,
+  btree.c — BEFORE the pager call, every mode incl. NOOP); vdbe.c's
+  OP_Checkpoint aborts non-OK/non-BUSY. The engine-global
+  e.tx.inTransaction check matches our transaction model (a BEGIN spans
+  every attached db) exactly for every fixture shape; wal+e_walckpt stayed
+  leaf-identical.
+- **register_function's fixture-proc round trip**: build a fixture
+  interpreter from step.CallbackProcs (the S25 register_busy_handler
+  pattern), sync the tracked runtime vars in/out around each call, invoke
+  the proc with formatHarnessValue'd args, and bind the result as BLOB
+  when it carries bytes outside printable ASCII (tclsqlite.c's
+  byte-array-vs-string object detection; the interpreter hands back only
+  the string form).
+- **The converter's scriptProcs missed procs called inside BRACED
+  control-flow bodies** (`for {..} {..} {lappend l [expr [myrand] % 256]}`
+  — the body is a braced word; only `[...]` words were recursed). Fixed by
+  recursing braced words too. **Regeneration hazard discovered**: the
+  pinned corpus (ori/sqlite/test, gitignored — lives only in the main
+  tree) has DRIFTED from the 3.51 working tree (walckptnoop.test gained
+  faultsim_save_close/wal_checkpoint_v2 steps) — per-unit regeneration
+  from ../sqlite/test rescope families; hand-pin the JSON instead
+  (setup_0's callbackProcs gained myrand, +10/-4 lines, generator format
+  preserved: json.dumps(indent=2) == Go MarshalIndent's output shape).
+- **binary format c*** landed in the interpreter (tclBinary.c's 'c' case:
+  letter + count-digits-or-star; TCL truncates to the low 8 bits). The
+  full binary format/scan class stays carded.
+- **NEW CARD — the btree page-density divergence**: the NOOP report shape
+  is C-exact but our bulk insert's WAL holds mxFrame 451 vs C's 298
+  (page_size=1024, t1(x INTEGER PRIMARY KEY, y TEXT) + i1 on y, 1000 rows
+  of 128-char hex text, one statement). ~1.5× more pages = our leaves
+  hold ~2/3 of C's rows per page at this cell size. The S33 probe parity
+  verified TINY tables; bulk-fill was never byte-compared. Own unit
+  (probe: isolate leaf vs interior vs index page counts; the splitter's
+  balance point is the suspect).
