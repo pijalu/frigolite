@@ -16,6 +16,7 @@ import (
 	"github.com/pijalu/frigolite/internal/util"
 
 	"github.com/pijalu/frigolite/internal/execdml"
+	"github.com/pijalu/frigolite/internal/lockreg"
 )
 
 // Compile-time probe: Engine satisfies the execpragma.EngineState capability
@@ -188,6 +189,16 @@ func (e *Engine) setJournalMode(ctx *DatabaseContext, schema, m string) *execpra
 		}
 		return &execpragma.Result{Error: err}
 	}
+	// The connection left WAL mode: the persistent WAL-mode file-SHARED hold
+	// (pager.c:2158's unlock-skip quirk) is gone with it — the post-exit
+	// lock state follows the rollback-journal rules. The EXCLUSIVE file lock
+	// taken for locking_mode=EXCLUSIVE WAL transactions SURVIVES the exit
+	// (pager.c:7663 sqlite3PagerCloseWal: "An EXCLUSIVE lock may still be
+	// held on the database file after a successful return" — e_wal 2.3.2's
+	// db2 stays blocked until 2.3.3's locking_mode=NORMAL).
+	if key := e.dbLockKey(ctx); key != "" && !strings.EqualFold(ctx.Pager.JournalMode(), "wal") {
+		lockreg.Global.SetWALFileShared(key, e.connID, false)
+	}
 	return journalModeResult(ctx.Pager.JournalMode())
 }
 
@@ -267,8 +278,39 @@ func (e *Engine) lockingModeSetAll(m string) {
 	// WAL parity (wal.c walLockShared/walLockExclusive): in
 	// locking_mode=EXCLUSIVE the shm lock calls become no-ops.
 	for _, dbCtx := range e.dbList {
-		if dbCtx != nil && dbCtx.Pager != nil && !dbCtx.Pager.WALHeapMemory() {
-			dbCtx.Pager.SetWALExclusiveRequested(m == "exclusive")
+		if dbCtx == nil || dbCtx.Pager == nil || dbCtx.Pager.WALHeapMemory() {
+			continue
+		}
+		// The heap conversion (bNoShm's observable result — e_wal 2.1.2's
+		// {0 1}) goes with C's pagerOpenWal pagerExclusiveLock (pager.c:7588):
+		// another connection's persistent holds (its WAL-mode file-SHARED, a
+		// transaction SHARED, or an EXCLUSIVE mark) block the acquisition, so
+		// the conversion is withheld and the shm choreography applies (C's
+		// pagerLockDb would fail the statement at pager.c:5932 instead).
+		// Only the default fine-grained style models file locks this way.
+		allow := e.lockStyle == LockStyleDefault
+		if m == "exclusive" {
+			if key := e.dbLockKey(dbCtx); key != "" {
+				if _, blocked := lockreg.Global.ExclusiveLockedByOther(key, e.connID); blocked {
+					allow = false
+				} else if lockreg.Global.WALFileSharedByOther(key, e.connID) ||
+					lockreg.Global.SharedTxByOther(key, e.connID) {
+					allow = false
+				}
+			}
+		}
+		if converted := dbCtx.Pager.SetWALExclusiveRequested(m == "exclusive", allow); converted {
+			// pager.c:7588-7590: the EXCLUSIVE lock taken before the WAL open
+			// is held for the connection's life (pager.c:2158 skips the unlock
+			// while exclusiveMode) — db2's later reads fail "database is
+			// locked" (e_wal 2.2.2/2.3.2).
+			if key := e.dbLockKey(dbCtx); key != "" {
+				lockreg.Global.SetExclusive(key, e.connID, true)
+				if e.walExclusiveFileHeld == nil {
+					e.walExclusiveFileHeld = make(map[string]bool)
+				}
+				e.walExclusiveFileHeld[key] = true
+			}
 		}
 	}
 	if m == "normal" && !strings.EqualFold(e.currentLockingMode("main"), "exclusive") {
@@ -295,7 +337,28 @@ func (e *Engine) lockingModeSetOne(schema, m string) {
 	}
 	e.setSchemaLockingMode(upper, m)
 	if ctx := e.GetDB(upper); ctx != nil && ctx.Pager != nil {
-		ctx.Pager.SetWALExclusiveRequested(m == "exclusive")
+		// The heap conversion gate mirrors lockingModeSetAll's (C's
+		// pagerOpenWal pagerExclusiveLock — the same persistent holds block).
+		allow := e.lockStyle == LockStyleDefault
+		if m == "exclusive" {
+			if key := e.dbLockKey(ctx); key != "" {
+				if _, blocked := lockreg.Global.ExclusiveLockedByOther(key, e.connID); blocked {
+					allow = false
+				} else if lockreg.Global.WALFileSharedByOther(key, e.connID) ||
+					lockreg.Global.SharedTxByOther(key, e.connID) {
+					allow = false
+				}
+			}
+		}
+		if converted := ctx.Pager.SetWALExclusiveRequested(m == "exclusive", allow); converted {
+			if key := e.dbLockKey(ctx); key != "" {
+				lockreg.Global.SetExclusive(key, e.connID, true)
+				if e.walExclusiveFileHeld == nil {
+					e.walExclusiveFileHeld = make(map[string]bool)
+				}
+				e.walExclusiveFileHeld[key] = true
+			}
+		}
 	}
 	if m == "normal" && upper == "MAIN" {
 		// Reverting MAIN to normal releases the never-unlocked

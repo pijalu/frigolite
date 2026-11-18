@@ -298,7 +298,14 @@ func newDBOverPager(pg *pager.Pager, path string) (*DB, error) {
 		db.engine.SetMainFilePath(path)
 	}
 	db.schema = schema.NewManager(pg)
-	if err := db.schema.Init(); err != nil {
+	// The open's own schema load is C's lazy sqlite3_open machinery, not a
+	// database access: its WAL transactions must not mark the pager's
+	// walDataTouched (the bNoShm conversion window — e_wal 2.1.1's
+	// locking_mode pragma precedes the first REAL statement).
+	pg.SuppressAccessMark(true)
+	err := db.schema.Init()
+	pg.SuppressAccessMark(false)
+	if err != nil {
 		db.Close()
 		return nil, fmt.Errorf("frigolite: init schema: %w", err)
 	}

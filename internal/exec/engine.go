@@ -126,6 +126,15 @@ type Engine struct {
 	// dotlockUnlock) without churning the global refcount.
 	dotfileHeld map[string]bool
 
+	// walExclusiveFileHeld tracks (per file path) the EXCLUSIVE file-lock
+	// mark THIS connection took for its own WAL-mode locking_mode=EXCLUSIVE
+	// write transactions (pager.c:5928-5938's pagerLockDb(EXCLUSIVE), held
+	// past the transaction per pager.c:2158's exclusiveMode unlock skip).
+	// clearPersistentShared drops exactly these keys — never a BEGIN
+	// EXCLUSIVE transaction's mark (BeginExclusive shares the registry's
+	// exclusive set).
+	walExclusiveFileHeld map[string]bool
+
 	// Authorization
 	authorizer auth.Authorizer // authorization callback (nil = allow all)
 

@@ -71,6 +71,22 @@ func (e *Engine) execDBFileChecks(stmt sql.Stmt) *Result {
 	pinWAL := !stmtSkipsWalReadPin(stmt)
 	// dbList over the map: same context set, no per-statement map iteration.
 	for _, ctx := range e.dbList {
+		// C's lockBtree WAL entry (btree.c:3337): a schema-needing statement
+		// on a WAL database whose attach was refused (a VFS without xShm
+		// methods — pager.c:7641's SQLITE_CANTOPEN) fails with "unable to
+		// open database file". The refusal re-runs at every statement's
+		// shared lock and clears once the EXCLUSIVE latch routes the attach
+		// to the heap index (pager.c:7596 — e_wal 1.2.1/1.3.1/3.4.1 refuse;
+		// 1.2.2/1.3.2 retry under the latch). Statements that open no b-tree
+		// transaction in C (transaction control, locking_mode,
+		// wal_checkpoint — the stmtSkipsWalReadPin list) never load the
+		// schema, so they succeed on the refused connection (1.2.2's pragma
+		// must run to SET the latch).
+		if pinWAL {
+			if err := ctx.Pager.WALAttachRefusal(); err != nil {
+				return &Result{Error: err}
+			}
+		}
 		dbChanged, err := checkDBFileCtx(ctx, e.settings.writableSchema, pinWAL)
 		if err != nil {
 			return &Result{Error: err}

@@ -304,6 +304,31 @@ func (e *Engine) walBeginStmtWrite(stmt sql.Stmt) error {
 	if p == nil {
 		return nil
 	}
+	// C's sqlite3PagerBegin (pager.c:5928-5938): a write transaction under
+	// locking_mode=EXCLUSIVE takes the EXCLUSIVE lock on the database FILE
+	// while the WAL's own shm mode is still NORMAL (the op=-1 dry run gates
+	// the take on it) and holds it past the transaction (pager.c:2158 skips
+	// the unlock while exclusiveMode). Another connection's persistent holds
+	// block the acquisition (e_wal 3.2.5: db's EXCLUSIVE INSERT fails
+	// "database is locked" against db2's WAL-mode file-SHARED, which survives
+	// db2's statements — the pager_end_transaction unlock-skip quirk).
+	if ctx != nil && e.lockStyle == LockStyleDefault &&
+		strings.EqualFold(e.schemaLockingMode(ctx.Name), "exclusive") {
+		if key := e.dbLockKey(ctx); key != "" {
+			if _, blocked := lockreg.Global.ExclusiveLockedByOther(key, e.connID); blocked {
+				return fmt.Errorf("database is locked")
+			}
+			if lockreg.Global.WALFileSharedByOther(key, e.connID) ||
+				lockreg.Global.SharedTxByOther(key, e.connID) {
+				return fmt.Errorf("database is locked")
+			}
+			lockreg.Global.SetExclusive(key, e.connID, true)
+			if e.walExclusiveFileHeld == nil {
+				e.walExclusiveFileHeld = make(map[string]bool)
+			}
+			e.walExclusiveFileHeld[key] = true
+		}
+	}
 	changed, err := p.WALBeginWrite()
 	if err != nil {
 		return err
@@ -649,6 +674,26 @@ func removeDotfileSentinel(path string) {
 // stmt touches a file locked by another connection, nil otherwise.
 func (e *Engine) CrossConnLockError(stmt sql.Stmt) error {
 	write, schemaName := lockAccessForStmt(stmt)
+	// The WAL-mode file-SHARED hold (pager.c:2158-2162's unlock-skip quirk):
+	// every statement a WAL connection runs leaves the connection holding
+	// SHARED on the main file — the pager_end_transaction unlock is skipped
+	// for WAL connections (the op=0 demote on an ALREADY-NORMAL wal returns
+	// rc=0, wal.c:4474), so the SHARED taken at the connection's first read
+	// transaction is held for its life in WAL mode. POSIX SHARED is
+	// compatible with SHARED, so the hold blocks only another connection's
+	// EXCLUSIVE-file-lock acquisition (e_wal 3.2.5) — it is recorded BEFORE
+	// the participation early-out (a WAL SELECT takes no lock of its own but
+	// establishes the hold) and consulted only by that acquisition.
+	if e.lockStyle == LockStyleDefault {
+		for _, ctx := range e.dbList {
+			if ctx == nil || ctx.Pager == nil || !ctx.Pager.WALMode() || ctx.IsMemory || ctx.Pager.IsMemory() {
+				continue
+			}
+			if k := e.dbLockKey(ctx); k != "" {
+				lockreg.Global.SetWALFileShared(k, e.connID, true)
+			}
+		}
+	}
 	if schemaName == "" && !write {
 		return nil // statement class participates in no file lock
 	}
@@ -779,6 +824,17 @@ func (e *Engine) crossConnWriteRefused(key string) error {
 func (e *Engine) clearPersistentShared() {
 	for _, k := range e.allLockKeys() {
 		lockreg.Global.SetPersistentShared(k, e.connID, false)
+		// The EXCLUSIVE file locks taken for this connection's own
+		// locking_mode=EXCLUSIVE WAL write transactions (pager.c:5928's
+		// pagerLockDb) release here — the first transaction ending after
+		// locking_mode=normal demotes the WAL (pager.c:2158-2162) and drops
+		// the file lock. Only the keys this connection took through the WAL
+		// path are dropped: a BEGIN EXCLUSIVE transaction's mark shares the
+		// registry's exclusive set and outlives the pragma.
+		if e.walExclusiveFileHeld[k] {
+			lockreg.Global.SetExclusive(k, e.connID, false)
+			delete(e.walExclusiveFileHeld, k)
+		}
 	}
 }
 

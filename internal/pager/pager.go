@@ -11,8 +11,6 @@
 package pager
 
 import (
-	"fmt"
-
 	"encoding/binary"
 	"io/fs"
 	"os"
@@ -135,6 +133,25 @@ type Pager struct {
 	// walWriter's heapMemory flag at WAL-open time (a WAL opened while
 	// exclusive runs a heap-memory wal-index, wal.c bNoShm).
 	walExclusiveLatched bool
+	// walDataTouched records that a statement-level WAL transaction has run
+	// — C's evidence that sqlite3PagerOpenWal executed (btree.c:3337
+	// lockBtree, at the first schema-needing statement's parse), after which
+	// locking-mode changes follow the shm choreography (pager.c:5928's
+	// exclusive-mode flip). Only a WAL attached before any statement could
+	// run (the version-2/2-header rule at open) can still convert to the
+	// heap-memory index at an EXCLUSIVE latch (our adaptation of bNoShm's
+	// timing: the attach ran before any locking_mode pragma could) — e_wal
+	// 2.1.2's {0 1} converts, 3.2.x's and wal2-6.6.1's mid-life latches do
+	// not (their NORMAL must work). Statement-level entries mark it: the
+	// per-statement gate's WAL refresh and WALBeginWrite. The connection
+	// open's own schema load and the harness reopen prime run with
+	// accessSuppress > 0 (SuppressAccessMark): they are C's lazy
+	// sqlite3_open machinery, not accesses.
+	walDataTouched bool
+	// accessSuppress counts SuppressAccessMark(true) holders — open-adjacent
+	// work (the schema load inside newDBOverPager, the harness reopen
+	// prime's sqlite_master SELECT) that must not mark walDataTouched.
+	accessSuppress int
 	// journalSizeLimit is the per-database cap (bytes) applied to a PERSIST
 	// journal file after a successful commit (PRAGMA journal_size_limit). A
 	// negative value means unlimited (the journal keeps its full content); 0
@@ -458,19 +475,10 @@ func (p *Pager) PageSize() uint32 { return p.pageSize }
 // log untouched. Caller holds p.mu.
 func (p *Pager) walCloseCheckpoint() {
 	w := p.wal
-	if os.Getenv("FRIGOLITE_WALDBG") != "" {
-		fmt.Fprintf(os.Stderr, "WALDBG closeCkpt enter wal=%v refs=%d\n", w != nil, map[bool]int{true: w.wi.RefCount(), false: -1}[w != nil && w.wi != nil])
-	}
 	if w == nil || w.wi == nil || w.wi.RefCount() != 1 {
-		if os.Getenv("FRIGOLITE_WALDBG") != "" {
-			fmt.Fprintf(os.Stderr, "WALDBG closeCkpt skip-gate\n")
-		}
 		return
 	}
 	busy, _, _, err := w.checkpoint(WalCkptPassive)
-	if os.Getenv("FRIGOLITE_WALDBG") != "" {
-		fmt.Fprintf(os.Stderr, "WALDBG closeCkpt ran busy=%d err=%v\n", busy, err)
-	}
 	if err != nil || busy != 0 {
 		return
 	}

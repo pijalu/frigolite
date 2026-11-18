@@ -4245,7 +4245,19 @@ func TestSQLiteSuite(t *testing.T) {
 								// SQLite initializes persisted schema before executing the first
 								// statement on a reopened connection. Prime Frigolite's lazy schema
 								// cache here so that statement sees stored virtual-table rows.
-								if refreshed := db.Query("SELECT name FROM sqlite_master LIMIT 1"); refreshed.Error != nil {
+								// The prime is open-adjacent machinery (C's sqlite3_open is
+								// lazy and runs no statement here): suppress its WAL-access
+								// marking so the bNoShm conversion window (walDataTouched)
+								// survives it — e_wal 2.1.1's locking_mode pragma must still
+								// see the pre-first-statement state.
+								for _, pg := range db.engine.AttachedPagers() {
+									pg.SuppressAccessMark(true)
+								}
+								refreshed := db.Query("SELECT name FROM sqlite_master LIMIT 1")
+								for _, pg := range db.engine.AttachedPagers() {
+									pg.SuppressAccessMark(false)
+								}
+								if refreshed.Error != nil {
 									// C's sqlite3_open is lazy: the file is open even
 									// when its content is invalid. A failed schema
 									// prime leaves the pager in the ERROR state — the

@@ -40,6 +40,7 @@ package pager
 
 import (
 	"errors"
+	"fmt"
 	"io"
 	"os"
 	"syscall"
@@ -399,8 +400,11 @@ func (p *Pager) WALWriterProbe() error {
 // (pPager->exclusiveMode): NO shm state changes at pragma time — the WAL
 // flips to exclusive shm mode at the first write transaction (pager.c:5937)
 // and back at the first transaction ending after locking_mode=normal
-// (pager.c:2159).
-func (p *Pager) SetWALExclusiveRequested(excl bool) {
+// (pager.c:2159). Returns whether the attached registry wal-index was
+// CONVERTED to the heap-memory form — the caller records the EXCLUSIVE
+// file-lock hold that goes with it (pager.c:7588 pagerOpenWal's
+// pagerExclusiveLock).
+func (p *Pager) SetWALExclusiveRequested(excl bool, allowHeapConvert bool) bool {
 	p.mu.Lock()
 	defer p.mu.Unlock()
 	// The request also outlives a WAL switch: pPager->exclusiveMode sits on
@@ -408,9 +412,94 @@ func (p *Pager) SetWALExclusiveRequested(excl bool) {
 	// wal-index (wal.c sqlite3WalOpen's bNoShm ← pager.c:7596) — openWal
 	// latches walExclusiveLatched into walWriter.heapMemory.
 	p.walExclusiveLatched = excl
+	converted := false
 	if p.wal != nil {
 		p.wal.exclusiveRequested = excl
+		if excl && allowHeapConvert {
+			converted = p.walConvertHeapEligibleLocked()
+		}
 	}
+	return converted
+}
+
+// SuppressAccessMark brackets open-adjacent work (the connection open's own
+// schema load, the harness reopen prime's sqlite_master SELECT) so its WAL
+// transactions do not mark walDataTouched: C's sqlite3_open is lazy and its
+// schema machinery is not an access — the first REAL statement is (the
+// walDataTouched field comment).
+func (p *Pager) SuppressAccessMark(on bool) {
+	p.mu.Lock()
+	defer p.mu.Unlock()
+	if on {
+		p.accessSuppress++
+	} else if p.accessSuppress > 0 {
+		p.accessSuppress--
+	}
+}
+
+// WALAttachRefusal surfaces C's refused WAL attach at the statement level:
+// a WAL-mode database whose attach was declined (a VFS without xShm methods
+// — pager.c:7641's SQLITE_CANTOPEN inside lockBtree) fails every
+// btree-touching statement with "unable to open database file" until the
+// EXCLUSIVE latch routes the attach to the heap index (pager.c:7596 —
+// e_wal 1.2.1/1.3.1/3.4.1 refuse, 1.2.2/1.3.2 retry under the latch). C
+// re-runs pagerOpenWal at every read transaction; this gate is the
+// statement's shared-lock point. A latched retry clears the refusal on
+// success; schema caches dropped by a failed statement rebuild on the
+// next access.
+func (p *Pager) WALAttachRefusal() error {
+	if !p.walOpenRefused {
+		return nil
+	}
+	p.mu.Lock()
+	defer p.mu.Unlock()
+	if !p.walExclusiveLatched {
+		return fmt.Errorf("unable to open database file")
+	}
+	p.walOpenRefused = false
+	if err := p.attachWALNow(); err != nil {
+		p.walOpenRefused = true
+		return fmt.Errorf("unable to open database file")
+	}
+	return nil
+}
+
+// walConvertHeapEligibleLocked converts an attached registry wal-index to the
+// heap-memory form — our adaptation of C's bNoShm timing: C opens a WAL
+// database whose -wal is absent at the first schema-needing statement's
+// parse (btree.c:3337 lockBtree), AFTER any locking_mode pragma in the same
+// execsql, so pagerOpenWal (pager.c:7588) runs with exclusiveMode already
+// set and the heap index replaces shared memory entirely (no -shm file,
+// e_wal 2.1.2's {0 1}). Our attach ran at open (the schema load is eager),
+// so the conversion happens at the latch instead: swap the index, drop the
+// -shm, and re-validate the new heap index against the -wal file (the
+// S35c.2 heap-revalidate semantics — the file is the source of truth).
+// Guarded on no other connection sharing the index (RefCount==1), no open
+// read snapshot or write transaction, and the heap-eligible window (the
+// first statement-level WAL transaction has not run — C's WAL open had not
+// happened, so later latches follow the shm choreography, 3.2.x). Caller
+// holds p.mu.
+func (p *Pager) walConvertHeapEligibleLocked() bool {
+	w := p.wal
+	if w == nil || w.heapMemory || p.walDataTouched || w.wi == nil || w.wi.RefCount() != 1 {
+		return false
+	}
+	if w.readLock >= 0 || w.writeLock {
+		return false
+	}
+	old := w.wi
+	w.wi = newHeapWALIndex()
+	w.heapMemory = true
+	old.release()
+	// The -shm file goes away with the shared index: no other connection
+	// holds a reference, so nothing re-materializes it (e_wal 2.1.2 {0 1}).
+	_ = os.Remove(p.path + "-shm")
+	// Rebuild the heap index from the -wal file (the fresh index is empty;
+	// walInitHeader's heap path recovers the committed state from the log).
+	if err := w.walInitHeader(); err != nil {
+		return false
+	}
+	return true
 }
 
 // WALHeapMemory reports C's sqlite3WalHeapMemory: the attached WAL was

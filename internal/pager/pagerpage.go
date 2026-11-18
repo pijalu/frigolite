@@ -314,6 +314,13 @@ func (p *Pager) loadPageFromDiskLocked(pg *Page, pageNum uint32) error {
 // be stale, so walIndexFind skips them (the minFrame rule). Caller holds
 // p.mu for writing.
 func (p *Pager) readPageWALLocked(pg *Page, pageNum uint32) error {
+	if pageNum > 1 && p.accessSuppress == 0 {
+		// A data page went through the WAL outside open-adjacent work:
+		// sqlite3PagerOpenWal's moment has passed (the walDataTouched field
+		// comment). A page-1-only read (the schema root) marks nothing here —
+		// the refresh entry above is the statement-level discriminator.
+		p.walDataTouched = true
+	}
 	if p.wal.readLock == 0 {
 		return p.readFilePageLocked(pg, pageNum)
 	}
@@ -447,6 +454,14 @@ func (p *Pager) InvalidateCache() {
 func (p *Pager) walIndexRefreshLocked() (bool, error) {
 	if p.wal == nil {
 		return false, nil
+	}
+	// A statement-level WAL transaction entry (the per-statement gate's
+	// read-mark pin): sqlite3PagerOpenWal's moment has passed (C's lockBtree
+	// ran at this statement's parse) — later locking-mode changes follow the
+	// shm choreography, never the heap conversion. Open-adjacent work (the
+	// open's own schema load, the harness reopen prime) runs suppressed.
+	if p.accessSuppress == 0 {
+		p.walDataTouched = true
 	}
 	changed, err := p.wal.walBeginReadTxn()
 	if err != nil {

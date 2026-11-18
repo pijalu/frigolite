@@ -158,6 +158,13 @@ func (p *Pager) WALBeginWrite() (bool, error) {
 	if p.wal == nil {
 		return false, nil
 	}
+	// A write through the WAL is sqlite3PagerOpenWal's moment passed (C's
+	// lockBtree ran at the write's parse): later locking-mode changes follow
+	// the shm choreography, never the heap conversion (walDataTouched).
+	// Open-adjacent work runs suppressed (SuppressAccessMark).
+	if p.accessSuppress == 0 {
+		p.walDataTouched = true
+	}
 	wasPinned := p.wal.readLock >= 0
 	// Refresh the pin first: this IS the statement's read-transaction open
 	// (walIndexReadHdr), so the snapshot check compares against fresh state.

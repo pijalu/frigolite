@@ -2023,3 +2023,60 @@ everywhere; go vet + go build clean.
   verified TINY tables; bulk-fill was never byte-compared. Own unit
   (probe: isolate leaf vs interior vs index page counts; the splitter's
   balance point is the suspect).
+
+## S35e record (2026-11-18) — the exclusive-latch choreography is a five-mechanism chain; the harness reopen prime is an access C's driver does not have
+
+- **C's full chain (pinned from source, PLAN_S35e_noshm.md §UPDATE)**:
+  (1) lockBtree (btree.c:3337) opens the WAL for a header-2/2 db at the
+  first SCHEMA-NEEDING statement's parse — a bare PRAGMA never calls
+  sqlite3ReadSchema, so `PRAGMA locking_mode=EXCLUSIVE; SELECT` in one
+  execsql opens the WAL with bNoShm=1 (the heap index, no -shm);
+  (2) sqlite3PagerOpenWal (pager.c:7641) is the CANTOPEN source
+  (!WalSupported = !exclusiveMode && iVersion<2);
+  (3) pagerOpenWal (pager.c:7588) takes the EXCLUSIVE main-file lock under
+  exclusiveMode and HOLDS it (pager.c:2158's unlock skip);
+  (4) sqlite3PagerBegin (pager.c:5928) takes it at the first write under a
+  mid-life EXCLUSIVE (the op=-1 dry run gates on the WAL's own mode);
+  (5) pager_end_transaction's unlock condition
+  (`!exclusiveMode && (!useWal || WalExclusiveMode(pWal,0))`) — the op=0
+  demote on an ALREADY-NORMAL wal returns rc=0 (wal.c:4474) so the unlock
+  is SKIPPED: **every NORMAL WAL connection holds a persistent file-SHARED
+  from its first txn on** (blocks only EXCLUSIVE acquisitions, never
+  writes/reads — POSIX SHARED is SHARED-compatible).
+- **Our adaptation**: the engine attaches at open (the schema load is
+  eager), so the conversion happens at the latch instead of at open:
+  `walConvertHeapEligibleLocked` (swap the registry index for a fresh heap
+  index, os.Remove the -shm, walInitHeader re-validates from the -wal
+  file) — gated on `!walDataTouched`. **`walDataTouched`** is set at the
+  first statement-level WAL entry (the per-statement gate's refresh or
+  WALBeginWrite) — NOT by page scope: a page-1-only REAL statement
+  (wal2-6.6.1's `SELECT * FROM sqlite_master`) must CLOSE the window (C
+  opened the WAL at that statement, SHM — the later NORMAL pragma must
+  work, else the exclusive file-lock mark wedges 6.6.4's db2), while the
+  harness reopen prime (`SELECT name FROM sqlite_master LIMIT 1`,
+  frigolite_harness_test.go:4248) must NOT (it is open-adjacent machinery
+  C's driver never runs — e_wal 2.1.1's pragma needs the pre-first-
+  statement state). The discriminator is **SuppressAccessMark**: the open's
+  own schema load (newDBOverPager) and the harness prime bracket their WAL
+  transactions with it; the marking sites check `accessSuppress == 0`.
+- **The per-statement refusal gate** (execDBFileChecks →
+  Pager.WALAttachRefusal) is what turns the open-time refused attach into
+  C's per-statement CANTOPEN ("unable to open database file") — the
+  ReadPage hook alone misses it because the schema caches stay warm (t1
+  resolved from cache, "no such table" instead). The gate MUST skip
+  `stmtSkipsWalReadPin` statements: `stmtTouchesDatabase` is
+  conservative-true for pragmas, and locking_mode MUST run on the refused
+  connection to SET the latch (1.2.2's pragma).
+- **Plain autocommit SELECTs take NO cross-connection marks** —
+  lockAccessForStmt returns schemaName="" for unqualified SELECTs and
+  CrossConnLockError early-returns them, so the EXCLUSIVE-file-lock block
+  for db2's reads (2.2.2/2.3.2) needed the dedicated registry marks:
+  `walFileShared` (the NORMAL-WAL persistent hold, consulted ONLY by the
+  EXCLUSIVE acquisition) + `SetExclusive` holds tracked in
+  `e.walExclusiveFileHeld` (clearPersistentShared drops exactly those —
+  a BEGIN EXCLUSIVE mark shares the registry set and must outlive the
+  pragma).
+- **/tmp baselines are EPHEMERAL across sessions** — the 1218-leaf
+  full_s35_merge_fails.txt and the S35e sweep logs were wiped between
+  sessions; the failing-leaf baselines belong in the repo
+  (portplan/baselines/) from now on.

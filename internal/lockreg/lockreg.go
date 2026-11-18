@@ -78,6 +78,19 @@ type Registry struct {
 	// EXCLUSIVE upgrade and now sits in PENDING: new SHARED acquisitions by
 	// other connections are denied until the holder releases (lock2-1.7).
 	pending map[string]int64
+	// walFileShared maps a file path to the set of connection IDs holding a
+	// persistent SHARED lock on the main file BECAUSE they run in WAL mode
+	// (pager.c:2158-2162's pager_end_transaction unlock condition:
+	// `!exclusiveMode && (!pagerUseWal || sqlite3WalExclusiveMode(pWal, 0))`
+	// — the op=0 demote on an ALREADY-NORMAL wal returns rc=0 (wal.c:4474),
+	// so the unlock is skipped and the SHARED lock taken at the connection's
+	// first read transaction is held for the connection's life in WAL mode).
+	// POSIX SHARED is compatible with SHARED, so the hold blocks only another
+	// connection's EXCLUSIVE-file-lock acquisition (e_wal 3.2.5: db's
+	// locking_mode=EXCLUSIVE INSERT fails against db2's hold) — it never
+	// blocks reads or ordinary WAL writes (the WRITER shm byte serializes
+	// those).
+	walFileShared map[string]map[int64]bool
 	// dotfileRefs counts dotfile-style connections currently holding a lock on
 	// a path; the dotfile sentinel directory (path+".lock") exists iff the
 	// count > 0. Mirrors SQLite's dotlock VFS: the sentinel is created on the
@@ -98,6 +111,7 @@ func New() *Registry {
 		persistentShared: make(map[string]map[int64]bool),
 		pending:          make(map[string]int64),
 		dotfileRefs:      make(map[string]int),
+		walFileShared:    make(map[string]map[int64]bool),
 	}
 }
 
@@ -304,6 +318,7 @@ func (r *Registry) ClearConn(connID int64) {
 	dropConnFromSets(r.readTx, connID)
 	dropConnFromSets(r.sharedTx, connID)
 	dropConnFromSets(r.persistentShared, connID)
+	dropConnFromSets(r.walFileShared, connID)
 	// Every mark class above was connection-attributed, so the walk removed
 	// exactly connMarks[connID] of them.
 	if n := r.connMarks[connID]; n > 0 {
@@ -363,6 +378,48 @@ func (r *Registry) SetSharedTx(path string, connID int64, on bool) {
 			delete(r.sharedTx, path)
 		}
 	}
+}
+
+// SetWALFileShared records (on=true) or clears (on=false) the persistent
+// WAL-mode file-SHARED hold on path for connID (pager.c:2158-2162's skipped
+// pager_end_transaction unlock; see the walFileShared field comment).
+// Consulted only by the EXCLUSIVE-file-lock acquisition.
+func (r *Registry) SetWALFileShared(path string, connID int64, on bool) {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	if on {
+		set := r.walFileShared[path]
+		if set == nil {
+			set = make(map[int64]bool)
+			r.walFileShared[path] = set
+		}
+		if !set[connID] {
+			set[connID] = true
+			r.markOn(connID)
+		}
+		return
+	}
+	if set := r.walFileShared[path]; set != nil && set[connID] {
+		delete(set, connID)
+		r.markOff(connID)
+		if len(set) == 0 {
+			delete(r.walFileShared, path)
+		}
+	}
+}
+
+// WALFileSharedByOther reports whether a connection other than self holds
+// the WAL-mode file-SHARED on path (the EXCLUSIVE-file-lock acquisition's
+// blocker — e_wal 3.2.5).
+func (r *Registry) WALFileSharedByOther(path string, self int64) bool {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	for conn := range r.walFileShared[path] {
+		if conn != self {
+			return true
+		}
+	}
+	return false
 }
 
 // SetPersistentShared records (on=true) a never-released SHARED lock on path

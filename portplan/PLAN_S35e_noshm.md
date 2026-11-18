@@ -84,3 +84,108 @@ TRIAGE_wal_residue_2026-11-16.md §B1. Branches off feature/perf @ f4dd43f05.
 
 e_wal {1.1.1, 1.2.1, 1.3.1, 2.1.1, 2.2.1, 2.2.2, 2.3.1, 2.3.2, 2.3.3,
 3.2.2, 3.2.5, 3.4.1} = 12 in the 1218 set (+1 flap = 13 observed).
+
+## UPDATE 2026-11-18 (post-trace): the C choreography pinned from source
+
+The reopen-CANTOPEN mechanism above was WRONG: a close's checkpoint+unlink is
+correct C behavior (wal.c sqlite3WalClose L2495-2545, pager.c:4180-4200);
+the reopen CANTOPEN comes from the version-2/2 MAIN HEADER requiring WAL.
+Full source chain pinned this session (sqlite 3.51 tree @ ../sqlite):
+
+1. **btree.c:3337 lockBtree**: `page1[19]==2 && !BTS_NO_WAL →
+   sqlite3PagerOpenWal` — the WAL entry for a header-2/2 db with no -wal
+   runs at the first SCHEMA-NEEDING statement's parse (parse.c cmd::=select
+   → sqlite3ReadSchema; a bare PRAGMA does NOT load the schema — pragma
+   productions never call it). So `PRAGMA locking_mode=EXCLUSIVE` in the
+   same execsql as the first SELECT lands BEFORE the WAL opens.
+2. **pager.c:7641 sqlite3PagerOpenWal**: `!sqlite3PagerWalSupported →
+   SQLITE_CANTOPEN` (WalSupported = exclusiveMode || iVersion≥2,
+   pager.c:7548) — the 1.2.1/1.3.1/3.4.1 refusal. pager.c:7647 sets
+   journalMode=WAL on success.
+3. **pager.c:7576-7604 pagerOpenWal**: `if( exclusiveMode )
+   pagerExclusiveLock(pPager)` — the EXCLUSIVE main-file lock taken BEFORE
+   sqlite3WalOpen (bNoShm heap index), HELD for the connection's life.
+4. **pager.c:5928-5938 sqlite3PagerBegin**: a WAL write txn under
+   exclusiveMode (WAL in NORMAL shm mode — the op=-1 dry run) takes
+   `pagerLockDb(EXCLUSIVE)` and flips WalExclusiveMode(1). [Already
+   ported: WALBeginWrite's exclusive flip — the FILE-lock take is new.]
+5. **pager.c:2158-2162 pager_end_transaction**:
+   `if( !exclusiveMode && (!useWal || WalExclusiveMode(pWal,0)) )
+   pagerUnlockDb(SHARED)`. The op=0-on-ALREADY-NORMAL-wal path
+   (wal.c:4471-4475) returns rc=0 → the unlock is SKIPPED → **a NORMAL
+   WAL connection holds SHARED on the main file from its first txn on**
+   (POSIX SHARED is compatible with SHARED — it blocks only another
+   connection's EXCLUSIVE-file-lock acquisition: 3.2.5's {1 database is
+   locked}).
+6. **pager.c:7329 sqlite3PagerLockingMode**: the set is a NO-OP while
+   sqlite3WalHeapMemory (2.2.1) — already ported (WALHeapMemory guard).
+7. **pager.c:7663-7700 sqlite3PagerCloseWal** (the journal_mode=DELETE
+   exit): pagerExclusiveLock + sqlite3WalClose — "An EXCLUSIVE lock may
+   still be held on the database file after a successful return" (2.3.2:
+   db2 still blocked after the DELETE exit; 2.3.3's locking_mode=NORMAL
+   releases it).
+
+### Our adaptation (open-time schema load divergence)
+
+Our engine loads the schema AT OPEN (frigolite.go:301) and attaches the
+WAL at open — C's "first access" is therefore open, EXCEPT the
+locking_mode pragma arrives after open. Bridge: `walHeapEligible` on the
+Pager — set by the 2/2-header-no-wal open attach (the C state "first WAL
+access not yet happened"), cleared at the first statement-level WAL
+read-txn entry (walIndexRefreshLocked — never called during open's
+schema load; page reads don't go through it).
+
+### Delivery items (pieces B + C)
+
+1. **lockreg**: `walFileShared` per-path holder set (the piece-5 quirk:
+   a WAL-mode connection's persistent file-SHARED) + SetWALFileShared /
+   WALFileSharedByOther / ClearConn drop. Consulted ONLY by the
+   EXCLUSIVE-file-lock take — never by reads or ordinary writes.
+2. **Pager**: `walHeapEligible` flag; the conversion in
+   SetWALExclusiveRequested(true) when eligible (RefCount==1, readLock<0,
+   !writeLock): swap wi→newHeapWALIndex, heapMemory=true, old.release(),
+   os.Remove(<db>-shm), re-run walInitHeader (the heap path re-validates
+   against the -wal file — S35c.2 semantics). Contended conversion keeps
+   the shm index (C's non-eligible choreography; unobserved in corpus).
+3. **exec**: the quirk mark set per autocommit statement on WAL-mode
+   pagers (before the ForeignMarks early-out); the EXCLUSIVE take
+   (SetExclusive) when the conversion ran and at WAL write statements
+   under exclusiveMode, gated on
+   WALFileSharedByOther||SharedTxByOther||ExclusiveLockedByOther →
+   "database is locked"; clearPersistentShared also clears the
+   exclusive mark; WAL exit keeps the exclusive mark (item 7) and
+   clears this connection's quirk mark.
+
+## STATUS (2026-11-18): DELIVERED — e_wal 10→0, the WAL universe leaf-identical
+
+Pieces (all landed on feature/perf, pre-merge):
+- **Piece A** (the per-statement CANTOPEN): Pager.WALAttachRefusal wired
+  into execDBFileChecks — gated on pinWAL (stmtSkipsWalReadPin statements
+  — locking_mode MUST run to set the latch). The ReadPage hook alone
+  missed the refusal when the schema caches stayed warm ("no such table"
+  instead of "unable to open database file").
+- **Piece B** (the heap conversion): walConvertHeapEligibleLocked at
+  SetWALExclusiveRequested(true) — swap the registry index for
+  newHeapWALIndex, os.Remove the -shm, walInitHeader re-validates from
+  the -wal file. Window: `!walDataTouched` — set at the first
+  statement-level WAL entry (the gate's refresh / WALBeginWrite), with
+  SuppressAccessMark bracketing the open's own schema load and the
+  harness reopen prime (C's lazy sqlite3_open is not an access;
+  wal2-6.6.1's real page-1 SELECT IS — the prime/page-scope distinction
+  was the second design iteration).
+- **Piece C** (the EXCLUSIVE file-lock hold): lockreg.walFileShared (the
+  NORMAL-WAL persistent file-SHARED — pager.c:2158's unlock-skip quirk;
+  consulted ONLY by the EXCLUSIVE acquisition) + e.walExclusiveFileHeld
+  (the take at the conversion and at WAL+exclusive write statements —
+  pager.c:5928; released by clearPersistentShared; survives the
+  journal_mode=DELETE exit per pager.c:7663). The locking_mode=NORMAL
+  no-op on a heap index (WALHeapMemory) already existed.
+- The sqlite_master LIMIT 1 harness prime is wrapped in
+  SuppressAccessMark (frigolite_harness_test.go).
+
+Verify: e_wal 10→0 (raw-scan); the 27-family identity diff vs a
+6b7513599 worktree run — EVERY family leaf-identical (e_walhook 10=10,
+wal2 25=25 after the suppression fix, walckptnoop 5=5, resetdb 7=7 —
+resetdb-300's worktree pass was a contention flake; it fails at both).
+Full gate: portplan/baselines/s35e_gate_fails.txt (the durable baseline —
+/tmp baselines proved ephemeral across sessions).
