@@ -295,3 +295,42 @@ shape, the structure, the chains, the memos, the defrag parity).
 (1190 leaves). The AV repro (frigolite_avprobe_test.go,
 frigolite_avdump_test.go, uncommitted) is the deterministic harness for
 the debugger pass.
+
+## 2026-11-19 (session 3, final): the self-check EXONERATES the redistribution
+
+The leaf spill was re-applied with a SELF-CHECK inside spillIndexLeafLeft:
+after the sort, compare adjacent entries' keys — a duplicate there IS the
+corruption, dumping every input (the left's cells tagged L, the divider D,
+the page's cells tagged R, the boundary). Result across the 2000-insert
+AV workload: **the check NEVER fired — every redistribution window held
+unique keys**, while the tree STILL carries the two duplicated entries
+(leaf 88: rowid 930 x2; leaf 42: rowid 1666 x2; the dump: 2001 entries,
+1999 unique).
+
+**Conclusion**: the duplicate does NOT originate in the spill's sorted
+window. The remaining suspects, in order:
+1. **The fall-through split's interaction with the post-spill page state**:
+   the spill (placed=false, moved=true) rewrites the page with its reduced
+   cell set; the caller re-reads the page and runs partitionSplitCells →
+   writeSplitPartitions. The split's partitions are built from the
+   re-read cells — the re-read's decode of the REWRITTEN page must be
+   byte-exact (the parse memo was refreshed; the ReadPage path re-parses).
+2. **The spill's parent re-key + the caller's divider application**: the
+   spill re-keys cell(k-1) directly; a subsequent leaf split in the same
+   window applies its divider chain through applyChildSplits, which
+   locates the anchor by child pointer — the re-keyed cell's payload is
+   the spill's boundary, and the chain's carrier is read from it: a
+   mismatch there re-inserts an entry that already exists.
+3. **The leaf spill running on the leaf whose LEFT sibling was ITSELF
+   spilled in the same statement's cascade** — the two rewrites racing
+   through the shared parent.
+
+The dlv-debug pass (break in writeLeafHalf when the page being written
+would carry two equal adjacent keys) is the decisive instrument; the AV
+repro is deterministic (frigolite_avprobe_test.go, 2000 inserts, LCG
+seed 7) and frigolite_avdump_test.go pins the duplicates to leaf pages
+88 and 42 immediately after the workload.
+
+**State**: the leaf spill re-reverted; the committed tree at cc222896a
+(1190 leaves + the scoping docs). The spill code lives in this document's
+history and the conversation; the AV harness is committed.
