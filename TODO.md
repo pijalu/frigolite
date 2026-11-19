@@ -8,19 +8,22 @@
 
 `close all gaps with sqlite — functional first, then performance.`
 
-## State (2026-11-18, feature/perf @ ae4ccd13ae)
+## State (2026-11-19, feature/perf @ b0c131023+walfault-12)
 
-Full-suite truth **1193 failing leaves** (verified gate
-/tmp/s35g_full_gate2.log; the durable per-leaf baselines live in the repo:
-portplan/baselines/s35{e,f,g}_gate_fails.txt — /tmp baselines proved
-ephemeral across sessions). The arc: **e_wal 10→0 (S35e, 146a3c00e)**,
+Full-suite truth **1192 failing leaves** (the s35g gate baseline
+portplan/baselines/s35g_gate_fails.txt minus walfault-12; the durable
+per-leaf baselines live in the repo — /tmp baselines proved ephemeral
+across sessions). The arc: **e_wal 10→0 (S35e, 146a3c00e)**,
 **e_walhook 10→0 (S35f, cae6073ce)**, **walfault2 2→0 + walsetlk_recover
 superseded by the native TestWalSetlkRecoverEngine (S35g slice 1,
-ae4ccd13ae)**; every family leaf-identical against worktree diffs run at
-the pre-change commits (the 27-family diff at 6b7513599 for S35e; the
-13-family WAL universe for S35f; the 15-family universe for S35g). The
-GONE-also list: resetdb-300 + where2-2.4 (the documented flakes); NEW=1:
-atof1-2.40 (the documented S32 random-dice).
+ae4ccd13ae)**, **walfault-12 GONE (S35g slice 2)** — the trial-runner
+fixture threading (register_testvfs/testvfs_config + the shm-seed step)
+plus the regen's runtime_expr/wal_checkpoint_rc trial cases; the identity
+diff vs the s35g baseline across the 15-family gate set (the
+FRIGOLITE_TEST=wal superset, 21 families + journal2 + subjournal):
+GONE=exactly walfault-12, NEW=0. The GONE-also list (documented flakes):
+resetdb-300 + where2-2.4; NEW=1: atof1-2.40 (the documented S32
+random-dice).
 
 The WAL small-slices arc (S35a-e) is COMPLETE and merged:
 
@@ -81,8 +84,21 @@ The WAL small-slices arc (S35a-e) is COMPLETE and merged:
   endianness bit: the magic's checksum-order flag is the value's low
   byte, buf[3]), PRAGMA busy_timeout implemented + wired to the WAL layer,
   the xSleep/xRead hook emissions. Remaining carded: walfault-11 (the
-  trial-cap), -12 (the fixture-registry threading into the trial runner),
-  -15 (the exclusive-INSERT lock interplay — passes in isolation).
+  trial-cap), -15 (the exclusive-INSERT lock interplay — passes in isolation).
+- **S35g slice 2** (walfault-12): the trial-runner fixture threading —
+  runFaultsimTest/runFaultsimStep carry the fixture registry +
+  defaultVFS; the trial-scope register_testvfs/testvfs_config cases (the
+  shm-seed step seeds the wal-index header via CorruptWalIndexWith on
+  every open connection matching the resolved FILE); the regen's new
+  trial emissions handled (runtime_expr — the prepared-handle binding +
+  the evalHarnessRuntimeExpr fallback; wal_checkpoint_rc/v2 —
+  test1.c:7609's t1ErrorName shape: the success pair is {0 {}} (the C
+  body's `if` false-result), non-OK → {1 {errmsg}} matching faultsim's
+  tolerated errlist); evalFaultsimTestScript threads the trial's
+  runtimeVars into the -test interp (walfault-10's `sqlite3_finalize
+  $::stmt`). Converter: decodeBackslashEscape octal escapes + the
+  ShmSeed capture/mapping chain (b0c131023). **walfault 3→2** (only the
+  carded -11 trial-cap + -15 JOIN remain).
 - **S35e** (146a3c00e): the no-shm WAL class — the C choreography pinned
   from source (PLAN_S35e_noshm.md §UPDATE): lockBtree's version-2/2 WAL
   entry at the first schema-needing statement's parse (btree.c:3337), the
@@ -150,24 +166,25 @@ The parallel-where + pager arc (S22-S34, S33):
   isTable=true and skipped one row per divider (fixed a5ea11125).
   **where-25.4 stays green.**
 
-Census now (verified at 146a3c00e): **walckptnoop 5** (the density card
-1.1-1.5 + 1.0/1.7-era residue re-count at the truthful filter), **walvfs
-6**, **wal2 25** (the xShmLock trace class), **wal3 4**, **wal6 1**,
-**walfault 3 + walfault2 2**, **e_wal 0** (S35e complete), **e_walhook
-10** (S35f), walsetlk_recover 2, wal-23.4, **where 1** (the 2.4 flake),
-**index9 0**, **bestindexF 17**, **indexexpr2 5**, distinctagg 5,
-trigger7 6, misc3 1, without_rowid3 16 + without_rowid7 4, tkt 14,
-rtree 126, the fts3* residue, expr residue. (The old census's grouped
-counts — e_wal 14, tkt 33, without_rowid 27 — mixed substring filters;
-the per-leaf truth is portplan/baselines/s35e_gate_fails.txt.)
+Census now (verified at the walfault-12 unit, 2026-11-19): **walckptnoop
+5** (the density card 1.1-1.5), **walvfs 6**, **wal2 25** (the xShmLock
+trace class), **wal3 4**, **wal6 1**, **walfault 2** (-11 trial-cap +
+-15 JOIN) + walfault2 0, **journal2 5** (re-verified fresh), **e_wal 0**
+(S35e complete), **e_walhook 0** (S35f), walsetlk_recover 2, wal-23.4,
+**where 1** (the 2.4 flake), **index9 0**, **bestindexF 17**,
+**indexexpr2 5**, distinctagg 5, trigger7 6, misc3 1, without_rowid3 16
++ without_rowid7 4, tkt 14, rtree 126, the fts3* residue, expr residue.
+(The old census's grouped counts — e_wal 14, tkt 33, without_rowid 27 —
+mixed substring filters; the per-leaf truth is
+portplan/baselines/s35g_gate_fails.txt.)
 
 ## Immediate next action
 
-1. **S35g remainder** — walfault-11 (the trial-cap), -12 (the
-   fixture-registry threading into runFaultsimStep: the prep's
-   register_testvfs/testvfs_config), -15 (the exclusive-INSERT lock
-   interplay with the trial state — the JOIN card); then the
-   sqlite3_interrupt/memdebug_fail surfaces if any family needs them.
+1. **S35g remainder** — walfault-11 (the trial-cap: its grid burns the
+   512-trial budget, ~737-789s/run), -15 (the exclusive-INSERT lock
+   interplay with the trial state — the JOIN card; passes in isolation);
+   then the sqlite3_interrupt/memdebug_fail surfaces if any family needs
+   them.
 2. **The btree page-density unit** (NEW card): bulk-insert WAL frame
    accounting (ours 451 vs C's 298 on the walckptnoop workload — probe:
    isolate leaf/interior/index counts; the splitter's balance point).

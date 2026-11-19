@@ -1,7 +1,6 @@
 package tcl
 
 import (
-	"os"
 	"fmt"
 	"strconv"
 	"strings"
@@ -454,9 +453,6 @@ func commandRegisterBoxGeom(i *Interp, _ []rawWord, args []string, _ map[string]
 func commandTestVFSConfig(i *Interp, args []string, cmd string) error {
 	if len(args) < 2 {
 		return nil
-	}
-	if os.Getenv("TCLCONV_DBG") != "" {
-		fmt.Fprintf(os.Stderr, "TCLCONV testvfs_config cmd=%s args=%q\n", cmd, args)
 	}
 	step := Stmt{Type: "testvfs_config", Database: cmd, SQL: args[0], Variable: args[1], TestName: i.curTest}
 	if args[0] == "shm" && len(args) >= 3 {

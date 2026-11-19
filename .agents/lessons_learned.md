@@ -2156,3 +2156,34 @@ everywhere; go vet + go build clean.
 - **Run `go test ./internal/...` in every unit's verify** — the harness
   gates alone let internal/pager's unit tests rot for weeks (the nil-
   header panic, the stale checkpoint premises).
+- **A step executor must cover the converter's FULL current vocabulary** —
+  regenerating ONE file with the current converter surfaces steps the old
+  JSON never carried (the b0c131023 walfault.json regen added runtime_expr/
+  catchResult/wal_checkpoint_rc emissions; walfault-10's trial then died on
+  "unhandled prep step runtime_expr" although its code was untouched). When
+  a regeneration lands, cross-check the file's trial-scope step types
+  against the runner's `case` set BEFORE the sweep (the python walk of
+  faultsim prep/body types vs the runFaultsimStep case list).
+- **The caught-pair shape of `set rc [cmd]; if {$rc != OK} {error [errmsg]}`**:
+  test1.c's sqlite3_wal_checkpoint ALWAYS returns TCL_OK carrying
+  t1ErrorName(rc) (test1.c:7609-7612) — the checkpoint never throws
+  itself; the C body's `if` throws with sqlite3_errmsg(db) on non-OK. So
+  the trial pair is {0 {}} on success (the `if`'s false-result is the
+  EMPTY string, not the code name) and {1 {disk I/O error}} on ioerr —
+  exactly faultsim's tolerated errlist shape. A wal_checkpoint_rc trial
+  step returning the code name as its result breaks faultsim_test_result
+  {0 {}}.
+- **The -test script reads the prep's TCL globals** ($::stmt —
+  walfault-10's `sqlite3_finalize $::stmt`): evalFaultsimTestScript must
+  thread the trial's runtimeVars into its fresh interp (the trial's own
+  testrc/testresult/testnfail set AFTER, winning collisions). The prep's
+  handle-binding expr (`stmt_1` naming a trial-prepared statement) binds
+  the HANDLE TOKEN, not a value — the finalize command ignores the name
+  and finalizes all trial-prepared statements.
+- **The shm-seed step** (`tvfs shm FILE VALUE`, test_vfs.c CMD_SHM): the
+  VALUE bytes seed the fixture's shm buffer — walfault-12's prep writes
+  40 NULs so the checkpoint's header read fails to parse and the ioerr
+  grid hits the recovery's -wal xReads. Harness equivalent:
+  CorruptWalIndexWith(seed) on every open connection whose path matches
+  the resolved FILE (the seed rides the step as `shmSeed`; the converter's
+  octal escapes make "\000" a real NUL byte).

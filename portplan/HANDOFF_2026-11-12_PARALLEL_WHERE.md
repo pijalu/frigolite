@@ -395,3 +395,55 @@ fails in family context: the JOIN card), then the btree page-density unit
 (walckptnoop's 451-vs-298 frames; resetdb-300's 13-vs-12 page_count —
 green once this session: possibly trial-sensitive), S42/S43, the carded
 converter classes, the perf phase.
+
+---
+
+## 2026-11-19: S35g slice 2 delivered — walfault-12 GONE (walfault 3→2)
+
+The four-step recipe completed, plus the two gaps the regenerated JSON
+exposed:
+
+- **The wiring** (per the recipe above): runFaultsimTest/runFaultsimStep
+  carry `fixtures map[string]*testvfsFixture, defaultVFS *string`; the
+  trial-scope `register_testvfs` (verbatim re-registration, isDefault →
+  *defaultVFS) and `testvfs_config` cases (sql=="shm" → CorruptWalIndexWith
+  on every open connection whose path matches the fixtureDBDir-resolved
+  FILE; else fx.configure + the default-script install). The main loop's
+  faultsim_test call passes `testvfsFixtures, &testvfsDefault`.
+- **The regen's hidden emissions** (the step the recipe missed): the
+  b0c131023 walfault.json regen carried the CURRENT converter's full
+  vocabulary — walfault-10's prep gained `runtime_expr stmt_1 → stmt`
+  (the OLD json predated the emission; the leaf died "unhandled prep
+  step runtime_expr" although untouched). Fixes: the trial-scope
+  `runtime_expr` case (a bare identifier naming a trial-prepared stmt
+  binds the HANDLE TOKEN; else evalHarnessRuntimeExpr; empty = the reset)
+  + `wal_checkpoint_rc`/`wal_checkpoint_v2` (test1.c:7609-7612: the
+  simple command returns TCL_OK carrying t1ErrorName — the C body's `if
+  {$rc != SQLITE_OK} {error [sqlite3_errmsg db]}` gives the pair {0 {}}
+  on success (the `if`'s false-result is EMPTY) and {1 {disk I/O error}}
+  on ioerr, matching faultsim's tolerated errlist) +
+  evalFaultsimTestScript threads runtimeVars into the -test interp
+  (walfault-10's `sqlite3_finalize $::stmt`), reserved testrc/
+  testresult/testnfail set after (they win collisions).
+- **The seed**: the committed regen had captured the STEP shape but an
+  EMPTY seed (the capture chain predates the octal escapes) —
+  regenerating with `-only walfault` after the escape fix produced the
+  true 40-NUL shmSeed. Lesson: a regen must be re-run whenever ANY link
+  in its capture chain changes, and the committed artifact re-diffed.
+- **Verify**: go vet .; the walfault family sweep (/tmp/wf12f2.log):
+  only walfault-11 + walfault-15 fail (both carded, baseline), walfault-12
+  PASSES; `go test ./internal/...` EXIT=0; the identity diff vs
+  portplan/baselines/s35g_gate_fails.txt — the FRIGOLITE_TEST=wal
+  superset (21 families — "wal" matches every wal* file, a STRONGER net
+  than the 13 separate runs) + journal2 + subjournal:
+  **GONE=exactly walfault-12, NEW=0** (45 baseline leaves in run
+  families → 44).
+- **Note**: FRIGOLITE_TEST is a SINGLE substring (strings.Contains on the
+  file base) — the "walfault-12" filter matches NO file; family truth
+  comes from the case paths. walfault2 rides the "walfault" filter and
+  stayed clean.
+
+**The carded-after state**: walfault-11 (the trial-cap ~737-789s/run),
+walfault-15 (the JOIN card), then the btree page-density unit
+(walckptnoop's 451-vs-298 frames — the 5 baseline leaves re-confirmed in
+this sweep), S42/S43, the carded converter classes, the perf phase.
