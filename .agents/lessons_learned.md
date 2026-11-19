@@ -2187,3 +2187,25 @@ everywhere; go vet + go build clean.
   CorruptWalIndexWith(seed) on every open connection whose path matches
   the resolved FILE (the seed rides the step as `shmSeed`; the converter's
   octal escapes make "\000" a real NUL byte).
+- **The fault-class lifecycle (-injectinstall/-injectuninstall)**: C's
+  do_faultsim_test runs the class's install before the trials and the
+  uninstall after — shmerr/fullerr/cantopen's uninstall runs `catch {db
+  close}; catch {db2 close}; shmfault delete` (malloc_common.tcl), the
+  ioerr classes define NO uninstall. The harness's runFaultsimTest must
+  close the main + named connections at the leaf end for the uninstall
+  classes ONLY (gated on the class name in step.SQL): walfault-11's last
+  trial leaves db2 open, its WAL-mode file-SHARED hold (lockreg
+  WALFileShared, pager.c:2158's unlock-skip) then blocks walfault-15's
+  locking_mode=exclusive write three leaves later ("the JOIN card" was
+  this cross-leaf lock residue). Zero-risk gating: non-uninstall files
+  (walfault2/pagerfault's ioerr grids) skip the branch by construction.
+- **Where the persistent WAL file-SHARED hold comes from**: C's
+  NORMAL-WAL connection takes the file SHARED at its PRE-WAL schema-load
+  read (the pager is still in rollback mode at sqlite3PagerSharedLock) and
+  never drops it — every txn end's unlock is skipped (pager.c:2158 +
+  wal.c:4471-4475's op=0-on-ALREADY-NORMAL returning 0). A connection
+  whose WAL open FAILED (e_wal's oldvfs, shmerr-blocked xShmMap) unlocks
+  normally and holds NOTHING — the hold needs a successful WAL entry.
+  The harness's statement-participation recording (locks.go:693) models
+  the hold for every WAL connection regardless; a leaked connection is
+  the difference (C closes db2 at the leaf end, ours didn't).

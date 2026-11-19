@@ -8121,6 +8121,18 @@ func runFaultsimTest(t *testing.T, step TestStep, dbp **DB, namedDBs map[string]
 	persist := strings.Contains(step.SQL, "persistent")
 	full := strings.Contains(step.SQL, "full")
 	_ = full
+	// The fault-class uninstall (malloc_common.tcl's -injectuninstall): the
+	// classes whose FAULTSIM entry defines it (shmerr/fullerr/cantopen —
+	// each proc runs `catch {db close}; catch {db2 close}; shmfault delete`)
+	// close the fixture-owned connections at the leaf's end, EVERY exit —
+	// the trial loop's last body may leave db2 open (walfault-11's
+	// `sqlite3 db2 test.db -vfs shmfault`), and its WAL-mode file-SHARED
+	// hold (pager.c:2158's unlock-skip) would block a later leaf's
+	// locking_mode=exclusive write (walfault-15's prep). The ioerr/full
+	// classes define no uninstall: nothing closes (C parity).
+	uninstall := strings.Contains(step.SQL, "shmerr") ||
+		strings.Contains(step.SQL, "fullerr") ||
+		strings.Contains(step.SQL, "cantopen")
 	patterns := append([]string{}, step.TestPatterns...)
 	if len(patterns) == 0 && step.TestScript == "" {
 		t.Errorf("faultsim %s: no test patterns", step.Variable)
@@ -8142,6 +8154,29 @@ func runFaultsimTest(t *testing.T, step TestStep, dbp **DB, namedDBs map[string]
 			_ = stmt.Finalize()
 			delete(prepared, name)
 			delete(stmtCode, name)
+		}
+		if uninstall {
+			// malloc_common.tcl's -injectuninstall tail: the main handle
+			// (its close_db machinery reopens on the next leaf's setup) and
+			// every named connection the trials opened, plus the class's
+			// fixture command (`shmfault delete` — the next leaf's
+			// `testvfs shmfault -default true` re-registers).
+			if *dbp != nil && !(*dbp).closedFlag {
+				_ = (*dbp).Close()
+			}
+			for name, conn := range namedDBs {
+				if conn != nil && !conn.closedFlag {
+					_ = conn.Close()
+				}
+				delete(namedDBs, name)
+			}
+			for fname, fx := range fixtures {
+				// The three classes' install procs all create `testvfs
+				// shmfault -default true`; their uninstall deletes it.
+				if fx != nil && fx.name == "shmfault" {
+					delete(fixtures, fname)
+				}
+			}
 		}
 	}()
 	for iFail := int64(1); iFail <= 512; iFail++ {

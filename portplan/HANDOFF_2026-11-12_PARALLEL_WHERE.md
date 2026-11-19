@@ -447,3 +447,47 @@ exposed:
 walfault-15 (the JOIN card), then the btree page-density unit
 (walckptnoop's 451-vs-298 frames — the 5 baseline leaves re-confirmed in
 this sweep), S42/S43, the carded converter classes, the perf phase.
+
+---
+
+## 2026-11-19 (later): S35g slice 3 delivered — walfault-15 GONE (walfault 2→1)
+
+The JOIN card was a CROSS-LEAF LOCK RESIDUE, not an exclusive-INSERT
+semantics gap:
+
+- **The chain**: walfault-11's trials open db2 per trial (`sqlite3 db2
+  test.db -vfs shmfault`); the leaf errors at the 512-trial cap with db2
+  STILL OPEN (the harness's leaf transition manages only *dbp). db2's
+  WAL-mode participation hold (lockreg WALFileShared, the S35e
+  pager.c:2158 unlock-skip model) persists; walfault-15's prep then sets
+  locking_mode=exclusive and BEGIN+INSERTs — the locks.go:319 gate sees
+  WALFileSharedByOther(test.db, db2) → "database is locked" in trial 1's
+  prep.
+- **The C contract**: do_faultsim_test runs the fault-class lifecycle —
+  the shmerr/fullerr/cantopen classes' -injectuninstall (malloc_common.tcl)
+  runs `catch {db close}; catch {db2 close}; shmfault delete` at the leaf
+  end; the ioerr classes define NO uninstall. C's db2 closes at -11's
+  end; ours didn't.
+- **The fix**: runFaultsimTest derives `uninstall` from the class names
+  in step.SQL (shmerr/fullerr/cantopen) and, in a defer covering every
+  exit, closes *dbp + every namedDBs entry + deletes the shmfault
+  fixture. Gated: the ioerr-class files (walfault2, pagerfault's grids)
+  skip the branch by construction.
+- **The diagnosis trail** (for future lock-hunt): the native repro could
+  NOT reproduce the family failure (the pure -14→-15 sequence passes) —
+  the poison needed the -11 leaf. The pager busy-escape instrumentation
+  (FRIGOLITE_BUSY_TRACE) exonerated ALL the WAL shm lock paths (0 hits in
+  a 737s family run), pointing at the exec/locks.go lockreg layer. The
+  C ground-truth chain: e_wal 3.2.5's persistent hold needs a successful
+  WAL entry (a shmerr-blocked open unlocks normally — the hold needs the
+  pre-WAL schema-load SHARED surviving the txn ends); the
+  sqlite3PagerLockingMode set is just a FLAG (pager.c:7329) — the file
+  EXCLUSIVE takes at the NEXT sqlite3PagerBegin (pager.c:5924-5933).
+- **Verify**: the walfault family sweep → only walfault-11 (the carded
+  trial-cap) fails; the pagerfault family (pagerfault-6.2 rides the
+  cantopen class) 0-fail; go test ./internal/... EXIT=0.
+
+**The carded-after state**: walfault-11 (the trial-cap ~737s/run — the
+next unit: why its nfail never clears across 512 trials), then the btree
+page-density unit (walckptnoop's 451-vs-298 frames), S42/S43, the carded
+converter classes, the perf phase.
