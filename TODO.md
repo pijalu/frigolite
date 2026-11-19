@@ -8,24 +8,30 @@
 
 `close all gaps with sqlite — functional first, then performance.`
 
-## State (2026-11-19, feature/perf @ 78f06f45f+walfault-15)
+## State (2026-11-19, feature/perf @ 842cf3d33+walfault-11)
 
-Full-suite truth **1191 failing leaves** (the s35g gate baseline
-portplan/baselines/s35g_gate_fails.txt minus walfault-12 and walfault-15;
-the durable per-leaf baselines live in the repo — /tmp baselines proved
-ephemeral across sessions). The arc: **e_wal 10→0 (S35e, 146a3c00e)**,
-**e_walhook 10→0 (S35f, cae6073ce)**, **walfault2 2→0 + walsetlk_recover
-superseded by the native TestWalSetlkRecoverEngine (S35g slice 1,
-ae4ccd13ae)**, **walfault-12 GONE (S35g slice 2)** — the trial-runner
-fixture threading (register_testvfs/testvfs_config + the shm-seed step)
-plus the regen's runtime_expr/wal_checkpoint_rc trial cases; the identity
-diff vs the s35g baseline across the 15-family gate set (the
-FRIGOLITE_TEST=wal superset, 21 families + journal2 + subjournal):
-GONE=exactly walfault-12, NEW=0. **walfault-15 GONE (S35g slice 3)** —
-the fault-class -injectuninstall parity (the leaf-end connection close
-for the shmerr/fullerr/cantopen classes; walfault 2→1, pagerfault
-0-fail). The GONE-also list (documented flakes): resetdb-300 +
-where2-2.4; NEW=1: atof1-2.40 (the documented S32 random-dice).
+Full-suite truth **1190 failing leaves** (the s35g gate baseline
+portplan/baselines/s35g_gate_fails.txt minus the three walfault leaves
+-11/-12/-15; the durable per-leaf baselines live in the repo — /tmp
+baselines proved ephemeral across sessions). The arc: **e_wal 10→0
+(S35e, 146a3c00e)**, **e_walhook 10→0 (S35f, cae6073ce)**, **walfault2
+2→0 + walsetlk_recover superseded by the native TestWalSetlkRecoverEngine
+(S35g slice 1, ae4ccd13ae)**, **walfault-12 GONE (S35g slice 2)** — the
+trial-runner fixture threading (register_testvfs/testvfs_config + the
+shm-seed step) plus the regen's runtime_expr/wal_checkpoint_rc trial
+cases; the identity diff vs the s35g baseline across the 15-family gate
+set (the FRIGOLITE_TEST=wal superset, 21 families + journal2 +
+subjournal): GONE=exactly walfault-12, NEW=0. **walfault-15 GONE (S35g
+slice 3)** — the fault-class -injectuninstall parity (the leaf-end
+connection close for the shmerr/fullerr/cantopen classes; pagerfault
+0-fail). **walfault-11 GONE (S35g slice 4)** — the shmerr class's
+SHM-method ioerr counter (the fixture-level install/arm/stop; the file-I/O
+injector had burned its budget on the checkpoint's backfill — the
+512-trial cap, 737s → 5s). **The walfault family is GONE (walfault 3→0;
+the whole family 0-fail verified fresh, pagerfault 0-fail,
+go test ./internal/... green).** The GONE-also list (documented flakes):
+resetdb-300 + where2-2.4; NEW=1: atof1-2.40 (the documented S32
+random-dice).
 
 The WAL small-slices arc (S35a-e) is COMPLETE and merged:
 
@@ -112,6 +118,17 @@ The WAL small-slices arc (S35a-e) is COMPLETE and merged:
   three leaves later. Verified: the walfault family → only the carded
   -11 fails; pagerfault (the cantopen user, pagerfault-6.2) 0-fail;
   go test ./internal/... green. **walfault 2→1.**
+- **S35g slice 4** (walfault-11): the shmerr class's real injector —
+  C's ioerr counter runs over the fixture's FILTERED SHM METHODS
+  (test_vfs's `tvfs ioerr nFail persist`: per-VFS, method-entry counting,
+  script or no script); the harness's pager file-I/O injector burned its
+  budget on the checkpoint's ~8000-frame backfill (nfail never cleared →
+  the 512-trial cap, ~737s). The testvfsFixture grew the ioerr counter
+  (ioerrStart/ioerrStop + the hook-entry check), the leaf-start
+  -injectinstall parity (register shmfault -default with the
+  {xShmOpen,xShmMap,xShmLock} filter preset), and the per-trial
+  arm/stop switch (prep-before-arm, C's do_one_faultsim_test order).
+  **walfault-11 5s (was 737s) — walfault 1→0: the family is GONE.**
 - **S35e** (146a3c00e): the no-shm WAL class — the C choreography pinned
   from source (PLAN_S35e_noshm.md §UPDATE): lockBtree's version-2/2 WAL
   entry at the first schema-needing statement's parse (btree.c:3337), the
@@ -179,11 +196,11 @@ The parallel-where + pager arc (S22-S34, S33):
   isTable=true and skipped one row per divider (fixed a5ea11125).
   **where-25.4 stays green.**
 
-Census now (verified at the walfault-15 unit, 2026-11-19): **walckptnoop
+Census now (verified at the walfault-11 unit, 2026-11-19): **walckptnoop
 5** (the density card 1.1-1.5), **walvfs 6**, **wal2 25** (the xShmLock
-trace class), **wal3 4**, **wal6 1**, **walfault 1** (-11 trial-cap only)
-+ walfault2 0, **journal2 5** (re-verified fresh), **e_wal 0**
-(S35e complete), **e_walhook 0** (S35f), walsetlk_recover 2, wal-23.4,
+trace class), **wal3 4**, **wal6 1**, **walfault 0 + walfault2 0** (the
+whole faultsim family green), **journal2 5** (re-verified fresh), **e_wal
+0** (S35e complete), **e_walhook 0** (S35f), walsetlk_recover 2, wal-23.4,
 **where 1** (the 2.4 flake), **index9 0**, **bestindexF 17**,
 **indexexpr2 5**, distinctagg 5, trigger7 6, misc3 1, without_rowid3 16
 + without_rowid7 4, tkt 14, rtree 126, the fts3* residue, expr residue.
@@ -193,12 +210,9 @@ portplan/baselines/s35g_gate_fails.txt.)
 
 ## Immediate next action
 
-1. **S35g remainder** — walfault-11 (the trial-cap: its grid burns the
-   512-trial budget, ~737-789s/run; the shmerr class — diagnose why its
-   nfail never clears: the body's I/O count vs the injector semantics,
-   and whether db2's open should ride the -default fixture hooks);
-   then the sqlite3_interrupt/memdebug_fail surfaces if any family needs
-   them.
+1. **S35g COMPLETE** (e_wal, e_walhook, walfault2, walfault all 0). The
+   sqlite3_interrupt/memdebug_fail surfaces stay carded until a family
+   needs them.
 2. **The btree page-density unit** (NEW card): bulk-insert WAL frame
    accounting (ours 451 vs C's 298 on the walckptnoop workload — probe:
    isolate leaf/interior/index counts; the splitter's balance point).

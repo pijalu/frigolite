@@ -491,3 +491,36 @@ semantics gap:
 next unit: why its nfail never clears across 512 trials), then the btree
 page-density unit (walckptnoop's 451-vs-298 frames), S42/S43, the carded
 converter classes, the perf phase.
+
+---
+
+## 2026-11-19 (later still): S35g slice 4 delivered — walfault-11 GONE; the walfault family is COMPLETE
+
+- **The trial-cap mechanism**: the shmerr class injects on the SHM
+  METHODS, not file I/O. C's test_vfs ioerr group counts the fixture's
+  FILTERED method calls at entry (per-VFS, script or no script), failing
+  the nFail-th (persist: every call from it on) with SQLITE_IOERR. The
+  harness ran the pager's file-I/O injector instead: -11's body
+  (db2's checkpoint over the ~8000-frame setup WAL) does ≥512 I/O ops per
+  trial — iFail 1..512 always landed inside the I/O stream, nfail never
+  cleared, the grid hit the 512-trial cap (737s).
+- **The fix**: the testvfsFixture gained the C-level counter
+  (ioerrArmed/Persist/Fail/Count/Fired + ioerrStart/ioerrStop) checked at
+  the hook's ENTRY (before the script dispatch — the shmerr fixture has
+  no script); the shmerr leaf-start registers `shmfault` -default with
+  the {xShmOpen,xShmMap,xShmLock} filter preset (C's
+  shmerr_injectinstall — the -5/-6 preps' `shmfault filter xShmMap` then
+  re-restricts via the normal testvfs_config path); the trial loop arms
+  the fixture counter for the shmerr class (prep-before-arm — C's
+  do_one_faultsim_test order: install once, then prep → injectstart →
+  body → injectstop → -test) and keeps pager.IOErrInjectStart for every
+  other class.
+- **Verify**: the walfault family 0-FAIL (walfault-11 5.07s, was 725s);
+  pagerfault 0-fail; go test ./internal/... EXIT=0. walfault 3→0 —
+  **the S35g arc is COMPLETE** (e_wal 0, e_walhook 0, walfault2 0,
+  walfault 0). Full-suite truth 1190.
+
+**Next**: the btree page-density unit (walckptnoop 1.1-1.5, 5 leaves —
+our bulk insert's WAL mxFrame 451 vs C's 298 on the walckptnoop workload;
+resetdb-300's 13-vs-12 page_count), then S42/S43, the carded converter
+classes, the perf phase.

@@ -7291,6 +7291,31 @@ type testvfsFixture struct {
 	// other value REPLACES the whole mask (`tvfs devchar sequential`).
 	devcharBits int
 	procs       []callbackProc
+
+	// The C-level ioerr counter (test_vfs.c's `tvfs ioerr nFail persist`
+	// group): armed per trial by the shmerr fault class (malloc_common.tcl's
+	// shmerr_injectstart), it counts the FILTERED method calls at entry —
+	// script or no script — failing the nFail-th (persist: every call from
+	// it on) with SQLITE_IOERR. The counter is per-VFS (shared by every
+	// connection routed through this fixture), like C's.
+	ioerrArmed   bool
+	ioerrPersist bool
+	ioerrFail    int64
+	ioerrCount   int64
+	ioerrFired   bool
+}
+
+// ioerrStart arms the fixture's ioerr counter (test_vfs.c's injectstart).
+func (fx *testvfsFixture) ioerrStart(persist bool, iFail int64) {
+	fx.ioerrArmed, fx.ioerrPersist, fx.ioerrFail = true, persist, iFail
+	fx.ioerrCount, fx.ioerrFired = 0, false
+}
+
+// ioerrStop disarms the counter and reports whether any call failed
+// (malloc_common.tcl's injectstop — the trial's nfail).
+func (fx *testvfsFixture) ioerrStop() bool {
+	fx.ioerrArmed = false
+	return fx.ioerrFired
 }
 
 // configure applies one testvfs_config step: script/filter/devchar.
@@ -7420,6 +7445,17 @@ func (fx *testvfsFixture) hook(runtimeVars map[string]string, db *DB, namedDBs m
 		interp, targets, handle = build(true)
 	}
 	return func(op, path string, details []string) error {
+		// The C-level ioerr counter (test_vfs.c's ioerr group) runs at
+		// method entry over the FILTERED methods — independent of any
+		// script (the shmerr class's fixture carries none): the nFail-th
+		// call fails, and with persist every call from it on.
+		if fx.ioerrArmed && (!fx.filterConfigured || fx.filters[op]) {
+			fx.ioerrCount++
+			if fx.ioerrCount >= fx.ioerrFail && (fx.ioerrPersist || fx.ioerrCount == fx.ioerrFail) {
+				fx.ioerrFired = true
+				return &pager.VFSHookError{Code: "SQLITE_IOERR"}
+			}
+		}
 		// C's mask semantics (test_vfs.c): the script fires ONLY for the
 		// methods the filter listed — `tvfs filter {}` resets the mask to
 		// zero and NOTHING fires. With no `tvfs filter` option the default
@@ -8133,6 +8169,24 @@ func runFaultsimTest(t *testing.T, step TestStep, dbp **DB, namedDBs map[string]
 	uninstall := strings.Contains(step.SQL, "shmerr") ||
 		strings.Contains(step.SQL, "fullerr") ||
 		strings.Contains(step.SQL, "cantopen")
+	// The shmerr class's -injectinstall (malloc_common.tcl): the fixture is
+	// created per leaf with the SHM-method filter preset — the trials'
+	// ioerr counter counts xShmOpen/xShmMap/xShmLock calls, NOT file I/O
+	// (the file-I/O injector would burn its budget on the checkpoint's
+	// backfill and never reach a clean trial — the 512-trial cap).
+	shmerr := strings.Contains(step.SQL, "shmerr")
+	if shmerr && fixtures != nil {
+		fixtures["shmfault"] = &testvfsFixture{
+			name:             "shmfault",
+			isDefault:        true,
+			filters:          map[string]bool{"xShmOpen": true, "xShmMap": true, "xShmLock": true},
+			filterConfigured: true,
+			devcharBits:      -1,
+		}
+		if defaultVFS != nil {
+			*defaultVFS = "shmfault"
+		}
+	}
 	patterns := append([]string{}, step.TestPatterns...)
 	if len(patterns) == 0 && step.TestScript == "" {
 		t.Errorf("faultsim %s: no test patterns", step.Variable)
@@ -8196,11 +8250,26 @@ func runFaultsimTest(t *testing.T, step TestStep, dbp **DB, namedDBs map[string]
 				return
 			}
 		}
-		pager.IOErrInjectStart(persist, iFail)
+		// The shmerr class arms the fixture's SHM-method counter
+		// (shmerr_injectstart: `shmfault ioerr $iFail $persist`); every
+		// other class arms the pager's file-I/O injector (ioerr_injectstart).
+		var shmerrFx *testvfsFixture
+		if shmerr {
+			shmerrFx = fixtures["shmfault"]
+		}
+		if shmerrFx != nil {
+			shmerrFx.ioerrStart(persist, iFail)
+		} else {
+			pager.IOErrInjectStart(persist, iFail)
+		}
 		rc, result := 0, ""
 		for _, bodyStep := range step.Body {
 			if r, res, handled := runFaultsimStep(t, dbp, namedDBs, prepared, stmtCode, bodyStep, runtimeVars, fixtureDBDir, "pagerfault", fixtures, defaultVFS); !handled {
-				pager.IOErrInjectStop()
+				if shmerrFx != nil {
+					shmerrFx.ioerrStop()
+				} else {
+					pager.IOErrInjectStop()
+				}
 				t.Errorf("faultsim %s trial %d: unhandled body step %s (%s)", step.Variable, iFail, bodyStep.Type, bodyStep.SQL)
 				return
 			} else if r != 0 {
@@ -8210,7 +8279,12 @@ func runFaultsimTest(t *testing.T, step TestStep, dbp **DB, namedDBs map[string]
 				rc, result = r, res
 			}
 		}
-		nfail := pager.IOErrInjectStop()
+		nfail := false
+		if shmerrFx != nil {
+			nfail = shmerrFx.ioerrStop()
+		} else {
+			nfail = pager.IOErrInjectStop()
+		}
 		// The -test script evaluates per trial (faultsim_test_proc): the
 		// body's rc/result/nfail bind as testrc/testresult/testnfail, the
 		// `db` command runs against the trial's connection, and the script's

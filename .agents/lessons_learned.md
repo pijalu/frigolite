@@ -2209,3 +2209,20 @@ everywhere; go vet + go build clean.
   The harness's statement-participation recording (locks.go:693) models
   the hold for every WAL connection regardless; a leaked connection is
   the difference (C closes db2 at the leaf end, ours didn't).
+- **The trial-cap mechanism (walfault-11's 512-trial burn)**: the shmerr
+  fault class injects on the SHM METHODS (test_vfs's ioerr counter over
+  the fixture's filter — xShmOpen/xShmMap/xShmLock), NOT file I/O. The
+  harness's pager file-I/O injector burned its budget on the checkpoint's
+  ~8000-frame backfill (iFail 1..512 ⊂ the I/O count) — nfail never
+  cleared. C's install (shmerr_injectinstall) creates the fixture per
+  leaf with the filter preset; injectstart arms `shmfault ioerr $iFail
+  $persist`; the counter is per-VFS (shared across its connections) and
+  runs at method entry, script or no script. The harness equivalent: the
+  testvfsFixture ioerr counter fields + the hook-entry check + the
+  leaf-start install + the per-trial arm/stop switch. -11 now ends at the
+  first shm-clean trial (5s vs 737s).
+- **C's do_one_faultsim_test order**: install (ONCE, before the loop) →
+  per trial: -prep → injectstart(iFail) → -body → injectstop → -test →
+  stop at the first nfail=0. The uninstall runs after the loop (every
+  exit in the harness's defer). -injectstart covers the BODY ONLY — the
+  prep runs uninjected (the harness's prep-before-arm order is C-exact).
