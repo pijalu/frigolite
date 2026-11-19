@@ -223,3 +223,75 @@ anchor-tracking bugs compounded. REVERTED with the rest.
 3. The gates per slice: the FULL suite (the only complete net — the
    walckptnoop workload alone misses the corruption shapes), then the
    15-family identity diff.
+
+## 2026-11-19 (session 2): the corruption mode PINNED — the promoted-entry visibility
+
+The leaf spill was re-applied with the fixes (the divider's full-payload
+reassembly, the chain preparation for the landing divider entry, the
+right-set chain re-parenting, the parse-memo refreshes, the defrag
+parity) and the auto_vacuum repro (frigolite_avprobe_test.go:
+2000-row index, LCG keys) pinned the residual corruption EXACTLY:
+
+- integrity_check: "wrong # of entries in index i1" + TWO deterministic
+  rows (23, 1508) "missing from index i1" — every run, the same rows.
+- The leaf cells 1919 + the interior cells 83 = 2002 entries for 2000 rows:
+  TWO KEYS APPEAR TWICE (a leaf copy + the interior divider).
+- The scans SURFACE the promoted entries: `WHERE b >= b23 ORDER BY b`
+  returns (b23, 23) FIRST; the tree walk finds no cycles, no duplicated
+  child pointers, all pages type-correct.
+- **The EQUALITY probes miss them**: `WHERE b = b23` → 0 rows;
+  integrity_check's per-row presence seek (SeekIndexKey with the FULL
+  key) → not found. The prefix/full seek asymmetry (the prefix seek 0
+  rows, the full seek 1 row) localizes the bug to the SEEK's routing or
+  comparison at the interior divider whose payload equals the probe's
+  PREFIX (the shorter-probe comparison).
+
+The 81 other promoted entries verify fine — the two failures are
+boundary/position-specific (the probe's keys sort 13cf < 13d7 — row
+1508's key is LEFT of row 23's). The seek-machinery interaction (the
+comparator's short-probe semantics at the interior binary search, or the
+descent's equality route) needs a debugger pass (dlv-debug; break in
+SeekIndexKey's descent for the failing key) — the NEXT session's first
+action. The spill code itself (the redistribution, the chains, the
+ptrmaps, the memos) verified sound by the repro's tree walk.
+
+**State**: the leaf spill re-reverted; the committed tree stays at
+4e9200799 (1190 leaves). The AV probe (frigolite_avprobe_test.go,
+uncommitted) is the deterministic repro for the seek work.
+
+## 2026-11-19 (session 3): the corruption PINNED TO CONCRETE ENTRIES
+
+The leaf spill was re-applied with every fix from session 2 PLUS the chain
+preparation for the landing divider entry (prepareCell + the re-encode)
+and the right-set chain re-parenting. The AV repro's entry dump
+(frigolite_avdump_test.go — walks every i1 page, decodes every record,
+leaf AND interior) pinned the corruption to CONCRETE entries:
+
+- The tree: 2002 entries for 2000 rows — TWO KEYS APPEAR TWICE, each as a
+  leaf cell AND an interior divider:
+  - rowid=930 (b=000013b9b8bd...) duplicated on LEAF PAGE 88
+  - rowid=1666 (b=000013ee5cdd...) duplicated on LEAF PAGE 42
+- The tree structure is otherwise sound: no cycles, no duplicated child
+  pointers, all pages type-correct; the scans surface every entry in
+  order; the density shape is the bulk-split [31|1] (120 one-cell leaves,
+  20 thirty-one-cell leaves — C's bBulk parity).
+- The integrity_check's "row N missing" ordinals are the SCAN ORDINALS
+  shifted by the duplicates (pragma_integrity_index.go's 1-based scan
+  ordinal, NOT the rowid).
+
+**The bug's location**: the spill's LEFT-PAGE WRITE emits two same-key
+cells (writeLeafHalf over leftEntries where leftEntries contains the
+duplicate) — i.e. the sorted `all` array itself holds the same key twice
+at redistribution time for these two inserts, while the entry dump of the
+array's inputs (the left's cells, the divider, the page's cells + new)
+shows disjoint sets. The next session's FIRST action: the dlv-debug pass
+(SKILL: dlv-debug) on spillIndexLeafLeft's `all` construction for the
+insert whose key is b=000013b9b8bd — break after the sort, dump
+all[i].key for i around the boundary, and find which input contributes
+the second copy. Everything else in the spill verified sound (the density
+shape, the structure, the chains, the memos, the defrag parity).
+
+**State**: the leaf spill re-reverted; the committed tree at 4e9200799
+(1190 leaves). The AV repro (frigolite_avprobe_test.go,
+frigolite_avdump_test.go, uncommitted) is the deterministic harness for
+the debugger pass.
