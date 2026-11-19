@@ -334,3 +334,36 @@ seed 7) and frigolite_avdump_test.go pins the duplicates to leaf pages
 **State**: the leaf spill re-reverted; the committed tree at cc222896a
 (1190 leaves + the scoping docs). The spill code lives in this document's
 history and the conversation; the AV harness is committed.
+
+## HANDOVER 2026-11-20: the WRITELEAFDUP capture — the duplicate is in the RE-READ, not the window
+
+**State**: the leaf spill is IN THE WORKTREE (uncommitted on top of
+cc222896a/721f36641) with TWO diagnosis instruments:
+1. SPILLDUP (spillIndexLeafLeft): after the sort, compares adjacent
+   window keys — **never fired across the whole workload**.
+2. WRITELEAFDUP (writeLeafHalf): compares adjacent keys of every write
+   set — **FIRED**: splitLeafMulti's FIRST-partition writeLeafHalf,
+   page 42, idx 2, len 32, with the FULL key dump:
+   [0]=row 30's entry, [1]==[2]=row 1666's entry (b=000013ee5cdd...) x2,
+   [3..31]=rows 1670+ — the duplicate is (b1666, 1666) twice.
+
+**The conclusion**: the spill's redistribution windows are clean; the
+duplicate enters through the FALL-THROUGH SPLIT's cell set — the re-read
+(readCellsForSplit over the post-spill page) or the page's pre-state.
+The panic's stack: insertLeafPage → splitFullLeaf → splitLeafMulti →
+writeLeafHalf (btree_leaf_split.go:222) — the spill returned
+placed=false, so NOTHING was written by the spill for this insert; the
+page's cells carried the duplicate already, or the re-read doubled it.
+
+**The next concrete step (this session continues here)**: add the same
+adjacent-key check to splitLeafMulti's `cells` right after the sort (the
+re-read's cell set) — if it fires there, dump the page's CellCount and
+the decoded cells: the duplicate is either in the page's pre-state (an
+earlier spill's left-page write) or in the re-read decode. If it does
+NOT fire there, the duplicate appears in the partitions → the
+adjustment's rotation.
+
+**Verify commands**: `go test -run TestAVSpillProbe -v -count=1` (the
+deterministic repro; the panic captures the writer's stack),
+`go test -run TestAVWalk2 -v -count=1` (the entry dump: leaf 88:
+rowid 930 x2; leaf 42: rowid 1666 x2).
