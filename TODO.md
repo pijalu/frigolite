@@ -213,6 +213,16 @@ portplan/baselines/s35g_gate_fails.txt.)
 1. **S35g COMPLETE** (e_wal, e_walhook, walfault2, walfault all 0). The
    sqlite3_interrupt/memdebug_fail surfaces stay carded until a family
    needs them.
+1b. **The btree page-density unit is SCOPED, not closed** — read
+   portplan/PLAN_density_walckptnoop.md FIRST (the C-vs-ours shape
+   measurements, the two implementation attempts with their measured
+   outcomes and the reverted tree, and the restart's port list: the FULL
+   leaf-window shape with the overflow-chain/ptrmap bookkeeping, the
+   interior balance replacing the split+apply separation, the FULL-suite
+   gate per slice). The probe harness (frigolite_densprobe_test.go,
+   uncommitted) measures the shape per change; the C oracle file lives at
+   /tmp/densprobe/testdir/test.db (rebuild per the shim recipe if /tmp
+   cleared).
 2. **The btree page-density unit** (NEW card): bulk-insert WAL frame
    accounting (ours 451 vs C's 298 on the walckptnoop workload — probe:
    isolate leaf/interior/index counts; the splitter's balance point).
