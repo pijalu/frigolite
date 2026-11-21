@@ -443,3 +443,95 @@ baseline, memjournal 0). ONE flagged NEW: resetdb/resetdb-300.
 `go test -run TestDensityProbe -v -count=1`,
 `FRIGOLITE_TEST=resetdb go test -run '^TestSQLiteSuite$' -count=1`
 (7 fails, -300 among them with `… 8192 14` at HEAD too).
+
+## SLICE 2 PLAN: the interior window spill (the anchored case) — C's balance_nonroot at the interior level
+
+**The problem with the current split+apply separation**: when a child's
+divider chain cannot land on its anchor interior page
+(childSplitsHaveRoom → errInteriorFull), retryChildSplitApply
+(btree_insert.go:393) TAIL-SPLITS the anchor (splitInteriorPage — the
+greedy tail split: the left page keeps everything that fit, only the
+LAST cell moves to the fresh sibling) and hands the new divider up.
+Each firing creates a ~1-cell interior page — our densprobe interiors
+are 31 vs C's 22, the tail-split husks are the delta. C instead
+redistributes: balance_nonroot (src/btree.c:8206) gathers the page +
+up to two siblings + the parent's boundary dividers into one cell
+array, re-partitions ALL of it evenly across the window's pages, and
+only creates a new page when the window itself overflows.
+
+**Scope — the anchored case only** (findChildCellIndex idx >= 0): the
+densprobe workload is a random-key INDEX tree — the anchor is almost
+never the rightmost pointer, and the TABLE trees already match C
+byte-for-byte (the 2026-11-19 diagnosis), so the rightmost/append
+window (applyChildSplitsRightmost) stays on the existing tail-split
+path. The spill fires from retryChildSplitApply's top:
+
+    spillInteriorDividersLeft(pg /*anchor*/, parentPgno, childPageNum,
+                              childSplits) → (placed bool, err)
+    if !placed → fall through to the existing splitInteriorPage loop.
+
+**The window shape** (mirror of spillIndexLeafLeft, one level up):
+- Gather: left sibling's interior entries + the parent's boundary
+  divider (the cell between the two pages, read in leaf-form… no — in
+  INTERIOR form: (leftChild, key/payload)) + the anchor's entries +
+  the pending divider entries (childSplits[i] as
+  (leftChild=pageNum, key/medianPayload)). Sort by key; the pending
+  dividers must sort adjacent to their anchor children (they do: a
+  divider sorts immediately above its leftChild's subtree bound).
+- Partition: the greedy pack over interior-entry sizes
+  (sz = 4-byte child + key varint/payload + 2-byte ptr) + C's
+  right-to-left adjustment (balanceIndexDividerPartitions' shape, with
+  bulk = the anchor's parent is the ROOT — C's bBulk=(iPage==1)).
+- The boundary entry between the halves moves UP: the left page's
+  rightmost pointer takes its leftChild; the parent's boundary cell is
+  re-keyed with its key/payload (table: the rowid bound via
+  encodeDividerCell; index: the record payload, chain prepared for the
+  PARENT page — prepareCell parity).
+- The rest of the entries split across the two pages; children that
+  move pages are re-parented (reparentSplitRightChildren parity);
+  index dividers moving pages re-encode their overflow chains for the
+  target page; the boundary's old chain is freed
+  (freeOverflowChain parity).
+- Placed=true requires: ALL pending dividers landed post-redistribution
+  AND the right set fits one page (the rightBytes bail, leaf-spill
+  parity) — else return placed=false with NOTHING changed and let the
+  tail-split fallback run.
+
+**The ordering invariant (the leaf spill's hard-won lesson, verbatim)**:
+the parent re-key's encode + room check runs BEFORE any page write. A
+post-write bail would leave the two interior pages redistributed but
+the boundary un-rekeyed — the same duplicate/overlap corruption class.
+
+**Atomicity**: the spill's prechecks (the boundary encode size, the
+parent room, both pages' fit) all run before the first
+PrepareWrite/byte write; every bail path before that point leaves the
+tree untouched. The apply inside applyChildSplits stays untouched —
+the spill REPLACES the retry loop's first attempt, not the apply.
+
+**Files**: internal/btree/btree_insert.go (the hook in
+retryChildSplitApply), internal/btree/btree_interior_page.go (the new
+spillInteriorDividersLeft + the gather/partition helpers beside
+splitInteriorPage), possibly a small shared partition helper extracted
+from spillIndexLeafLeft's boundary computation.
+
+**Ordered steps**:
+1. Add the gather helper (left sibling location via the parent — the
+   cell BEFORE the anchor cell index; rightmost/first-child edges →
+   placed=false).
+2. Add the partition + boundary re-key + the two-page write with the
+   re-parenting and chain bookkeeping.
+3. Wire the hook in retryChildSplitApply (before the re-parse loop).
+4. Probe gate: TestDensityProbe (expect the i1 interiors to drop from
+   31 toward C's 22, page_count 312 → ~300), TestAVSpillProbe +
+   TestAVDump + TestAVWalk2 (integrity/entry parity), then the 15-family
+   sweep (the same python raw-scan diff), then the FULL-suite gate.
+5. Commit per the slice with the handover.
+
+**Risks**: the boundary re-key's carrier form (table rowid bound vs
+index payload) must match the parent page type; the interior entries'
+overflow chains (big index keys) moving between pages; the left
+sibling may itself be mid-cascade (freshly created by an earlier
+applyChildSplitChain leg — order[] bookkeeping in
+childOrderAmongSplits); secure_delete zeroing parity is NOT applicable
+here (no cell drop without replacement — the boundary is re-keyed, not
+dropped), matching the leaf spill's resolution.
