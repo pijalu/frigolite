@@ -367,3 +367,79 @@ adjustment's rotation.
 deterministic repro; the panic captures the writer's stack),
 `go test -run TestAVWalk2 -v -count=1` (the entry dump: leaf 88:
 rowid 930 x2; leaf 42: rowid 1666 x2).
+
+## HANDOVER 2026-11-21: THE BUG FIXED — the parent re-key's room check hoisted before any page write; the leaf-spill slice verified on all 15 failing families
+
+**The root cause of the WRITELEAFDUP corruption** (handover above): the
+spill's parent re-key ran its encode+room check AFTER the left/page
+writes. When the parent could not take the wider divider, the bail left
+the pages redistributed but the divider un-rekeyed — the old divider's
+key overlapped a page's range, and the re-read produced the duplicate
+(leaf 88: rowid 930 x2; leaf 42: rowid 1666 x2).
+
+**The fix** (spillIndexLeafLeft, btree_leaf_split.go): the whole
+re-key block hoisted ABOVE the first page write —
+freeOverflowChain(boundary) → encodeDividerCell(leftPgno, …) → the
+parent-content room check (`int(parent.CellContent)-len(rekeyed) <
+rekeyPtrEnd` → bail with NOTHING changed) → only then the
+divider chain-prep (prepareCell for the landing divider entry), the
+leftPg write (writeLeafHalf + ParsePageInto + RefreshParsedBTree +
+reparentSplitOverflowChains), the right-set re-parent, the pg write,
+and finally the parent re-key with abandonDividerCell +
+defragmentInterior + memo refresh. The re-key's ordering invariant is
+now structural: no page write happens before the parent is proven to
+fit the wider divider.
+
+**The diagnosis instruments were removed** (SPILLDUP self-check,
+WRITELEAFDUP panic, SPILLDIV trace, min2, the SPLITDUP re-read check);
+`go build ./...` and `go vet ./internal/btree/` clean.
+
+**Probes after the fix (clean build)**:
+- TestAVSpillProbe: `IC: ok` — integrity_check clean on the AV FULL db.
+- TestAVDump: 2000 entries dumped, 0 duplicated, 84 leaves.
+- TestAVWalk2: dbstat leaf cells 1917, interior 83, leaves 84; no MISSING.
+- TestDensityProbe: ours page_count 312, i1 leaves 134, fill avg 87.6%
+  max 95% (C: 299/129/91.6%); ckpt noop {0 312 0}.
+
+**Families sweep — all 15 failing families, current build**: batch 1
+(e_vacuum 5, temptable2 2, io 11 — all baseline; atomic2 0, crashM 0);
+batch 2/3 redo (subjournal 0, memjournal2 0, pagerfault 0, analyze9 0,
+alterdropcol 0, changes 3 baseline, expridx1 10 baseline, journal2 5
+baseline, memjournal 0). ONE flagged NEW: resetdb/resetdb-300.
+
+**resetdb-300 is NOT the slice's regression** — the attribution:
+- It fails at HEAD (no slice) 3/3 deterministic with the IDENTICAL got
+  line `[wal 210 26000 ok wal 8192 14]` (C wants `… 12`): page_count 14.
+- The s35g baseline lacks it because the baseline was captured on the
+  PRE-slice-1 engine (the file was committed WITH slice 1
+  ae4ccd13a, whose engine delta is the walrecover restructure +171 /
+  wal.go +36 / the xSleep/xRead plumbing — `git log ae4ccd13a..HEAD --
+  internal/` shows no other engine change; resetdb.json unchanged).
+- /tmp/dens_gate.log (Nov 19, attempt-1 spill on the post-slice-4
+  engine) shows -300 already failing with page_count 13; today's HEAD
+  14; today's slice 14 (byte-identical got line) — the slice is
+  page_count-neutral for this case; the divergence predates the
+  density unit (most plausibly slice 1's recovery db-size tracking).
+  The pre-slice-1 A/B could not compile (SetWalHook signature changed
+  in slice 1; the root package's hooks files require it).
+- DISPOSITION: allowlist resetdb-300 in the FULL-gate identity diff as
+  a known pre-existing divergence with this attribution; the WAL
+  db-size tracking divergence itself stays on the residue backlog (it
+  is a real 14-vs-12 page_count divergence to fix in a WAL unit, not a
+  btree-density matter).
+
+**Next steps (this session continues here)**:
+1. FULL-suite gate in the background
+   (`FRIGOLITE_TEST= go test -run '^TestSQLiteSuite$' -count=1
+   -timeout 150m`), raw-scan the fails, diff vs
+   portplan/baselines/s35g_gate_fails.txt + the resetdb-300
+   allowlist — expect walckptnoop 1.1–1.5 improved or gone and zero
+   other NEW.
+2. Commit the leaf-spill slice (code + TODO/handoff/lessons).
+3. Then the interior balance replacing the split+apply separation
+   (the plan's next section).
+
+**Verify commands**: `go test -run TestAVSpillProbe -v -count=1`,
+`go test -run TestDensityProbe -v -count=1`,
+`FRIGOLITE_TEST=resetdb go test -run '^TestSQLiteSuite$' -count=1`
+(7 fails, -300 among them with `… 8192 14` at HEAD too).

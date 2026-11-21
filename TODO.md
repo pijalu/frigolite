@@ -8,7 +8,7 @@
 
 `close all gaps with sqlite — functional first, then performance.`
 
-## State (2026-11-19, feature/perf @ 842cf3d33+walfault-11)
+## State (2026-11-21, feature/perf @ b737d6ff1+the density leaf-spill slice in the worktree)
 
 Full-suite truth **1190 failing leaves** (the s35g gate baseline
 portplan/baselines/s35g_gate_fails.txt minus the three walfault leaves
@@ -213,19 +213,24 @@ portplan/baselines/s35g_gate_fails.txt.)
 1. **S35g COMPLETE** (e_wal, e_walhook, walfault2, walfault all 0). The
    sqlite3_interrupt/memdebug_fail surfaces stay carded until a family
    needs them.
-1b. **The btree page-density unit is SCOPED, not closed** — read
+1b. **The btree page-density unit: the LEAF-SPILL SLICE is IMPLEMENTED
+   and verified, pending the FULL gate + commit** — read
    portplan/PLAN_density_walckptnoop.md FIRST (the C-vs-ours shape
-   measurements, the two implementation attempts with their measured
-   outcomes and the reverted tree, and the restart's port list: the FULL
-   leaf-window shape with the overflow-chain/ptrmap bookkeeping, the
-   interior balance replacing the split+apply separation, the FULL-suite
-   gate per slice). The probe harness (frigolite_densprobe_test.go,
-   uncommitted) measures the shape per change; the C oracle file lives at
-   /tmp/densprobe/testdir/test.db (rebuild per the shim recipe if /tmp
-   cleared).
-2. **The btree page-density unit** (NEW card): bulk-insert WAL frame
-   accounting (ours 451 vs C's 298 on the walckptnoop workload — probe:
-   isolate leaf/interior/index counts; the splitter's balance point).
+   measurements, the attempts, the pinned WRITELEAFDUP corruption and
+   the 2026-11-21 handover: the fix = the parent re-key's encode+room
+   check hoisted BEFORE any page write in spillIndexLeafLeft). Probes
+   green on the clean build: AV integrity ok, 2000 entries 0 dup, 84
+   leaves; density 134 i1-leaves/87.6% fill/312 frames (C:
+   129/91.6%/298 — down from 145/79.7%/345). All 15 failing families
+   swept: zero NEW except resetdb-300 — a documented load flap (see
+   Baselines; got flips 12/13/14 across builds; the WAL db-size
+   tracking divergence stays on the residue backlog). The diagnosis
+   instruments are REMOVED (build+vet clean). NEXT: the FULL-suite
+   gate (background, bounded polls), the identity diff vs
+   s35g_gate_fails.txt (+ the resetdb-300 expected flap), then commit.
+2. **The btree page-density unit, slice 2**: the interior balance
+   replacing the split+apply separation (the plan's next section);
+   then the overflow-chain/ptrmap bookkeeping parity pass.
 3. **S42/S43** (TRIAGE_index_callback): the S41 residual surfaces
    (trigger7-2.x sub-program rows, misc3-6.11, distinctagg 5), the
    tcl-module completion (~34, bestindexF remainder).

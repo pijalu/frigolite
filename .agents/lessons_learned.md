@@ -2226,3 +2226,19 @@ everywhere; go vet + go build clean.
   stop at the first nfail=0. The uninstall runs after the loop (every
   exit in the harness's defer). -injectstart covers the BODY ONLY — the
   prep runs uninjected (the harness's prep-before-arm order is C-exact).
+- **The re-key ordering invariant (the density-unit WRITELEAFDUP root
+  cause)**: a multi-page rewrite whose PARENT update may bail (the
+  wider-divider room check) must prove the parent fits BEFORE any page
+  write. A post-write bail leaves the child pages redistributed but the
+  divider un-rekeyed — the old divider's key then overlaps a page's
+  range and the next re-read yields duplicate entries (leaf 88 rowid
+  930 x2, leaf 42 rowid 1666 x2 on the AV workload). The fix shape:
+  freeOverflowChain → encodeDividerCell → the room check → bail-with-
+  nothing-changed → only then the page writes.
+- **A committed baseline can predate its slice's engine changes**: the
+  s35g baseline was committed WITH slice 1 but captured on the
+  pre-slice-1 engine, so its fail set misses divergences slice 1
+  introduced (resetdb-300's page_count 14-vs-12). Diff verdicts must
+  check baseline provenance (`git log -- <baseline>`) against engine
+  deltas before calling a NEW a regression; the resetdb NEWs at gates
+  are the documented load flap (see TODO Baselines) and are expected.
