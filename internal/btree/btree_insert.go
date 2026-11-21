@@ -284,7 +284,8 @@ func (t *BTree) splitFullLeaf(pg *pager.Page, page *storage.BTreePage, parentPgn
 
 	// Split the leaf, distributing existing cells plus the new cell across
 	// as many pages as needed (the new cell is already written by the split).
-	results, err := t.splitLeafMulti(pg, page, parentPgno, newCell, cellData)
+	bulk := t.insDepth <= 2
+	results, err := t.splitLeafMulti(pg, page, parentPgno, newCell, cellData, bulk)
 	if err != nil {
 		return nil, err
 	}

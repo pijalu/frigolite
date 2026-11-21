@@ -153,7 +153,7 @@ func releaseSplitStaging(st *splitStaging) {
 // rebalances across multiple pages when no two-way split can hold the cells).
 // Returns the new pages in order, each with the median key separating it from
 // the previous page (the first cell's key of that page).
-func (t *BTree) splitLeafMulti(pg *pager.Page, page *storage.BTreePage, parentPgno uint32, newCell *storage.Cell, newCellData []byte) ([]leafSplitResult, error) {
+func (t *BTree) splitLeafMulti(pg *pager.Page, page *storage.BTreePage, parentPgno uint32, newCell *storage.Cell, newCellData []byte, bulk bool) ([]leafSplitResult, error) {
 	coff := contentOffset(pg.PageNum)
 	// Split children hang off the splitting page's parent (btree.c
 	// balance_nonroot ptrmapPut PTRMAP_BTREE pParent->pgno, src/btree.c:8023);
@@ -171,6 +171,15 @@ func (t *BTree) splitLeafMulti(pg *pager.Page, page *storage.BTreePage, parentPg
 
 	st := acquireSplitStaging()
 	defer releaseSplitStaging(st)
+
+	placed, err := t.spillIndexLeafPrelude(pg, page, parentPgno, newCell, newCellData, bulk)
+	if err != nil {
+		return nil, err
+	}
+	if placed {
+		return nil, nil
+	}
+
 	cells, err := t.readCellsForSplit(st, pg, page, coff, cellType, newCell, newCellData)
 	if err != nil {
 		return nil, err
@@ -182,7 +191,7 @@ func (t *BTree) splitLeafMulti(pg *pager.Page, page *storage.BTreePage, parentPg
 		return nil, err
 	}
 	if !t.isTable {
-		partitions = balanceIndexDividerPartitions(partitions)
+		partitions = balanceIndexDividerPartitions(partitions, coff, int(t.usableSize), bulk)
 	}
 
 	// Clear original leaf content (except page type)
@@ -240,31 +249,74 @@ func partitionSplitCells(st *splitStaging, cells []splitEntry, coff, usableSize 
 	return partitions, nil
 }
 
-// balanceIndexDividerPartitions keeps every INDEX split page non-empty.
-// partitionSplitCells packs each page's longest prefix, which routinely leaves
-// the LAST page holding a single cell; writeSplitPartitions then moves that cell
-// up into the parent as the boundary divider (balance_nonroot's rule, source of
-// the 1-cell page) and a one-cell partition would be written EMPTY. sqlite's
-// distribution reserves the divider while packing, so a non-first page always
-// keeps at least one cell; do the same here by handing the last cell of the
-// previous partition to a one-cell last partition (its new first cell is the
-// boundary divider). A page whose only cell already fills it cannot be fixed
-// that way — the same degenerate case sqlite's own accounting cannot split.
-func balanceIndexDividerPartitions(parts [][]splitEntry) [][]splitEntry {
-	n := len(parts)
-	if n < 2 || len(parts[n-1]) >= 2 || len(parts[n-2]) < 2 {
+// balanceIndexDividerPartitions runs C's right-to-left adjustment over the
+// index partitions: for each pair of neighbors (right to left), entries
+// slide from the left partition into the right while the right stays no
+// fuller than the left's slack — the excess spills into the left siblings'
+// free space, which is where sqlite's index density comes from. bulk
+// (bBulk, the page directly under the root) skips the size condition — the
+// move runs regardless while the right page is EMPTY (C's szRight!=0 guard
+// keeps the break from firing on an empty right page in both modes).
+func balanceIndexDividerPartitions(parts [][]splitEntry, coff, usableSize int, bulk bool) [][]splitEntry {
+	k := len(parts)
+	if k < 2 {
 		return parts
 	}
-	left := parts[n-2]
-	moved := left[len(left)-1]
-	fixed := make([][]splitEntry, n)
-	copy(fixed, parts)
-	fixed[n-2] = left[:len(left)-1]
-	last := make([]splitEntry, 0, len(parts[n-1])+1)
-	last = append(last, moved)
-	last = append(last, parts[n-1]...)
-	fixed[n-1] = last
-	return fixed
+	for i := k - 1; i >= 1; i-- {
+		szRight := indexPartitionFullUsed(parts, i)
+		szLeft := indexPartitionFullUsed(parts, i-1)
+		reserve := 0
+		if i != k-1 {
+			reserve = 2
+		}
+		for len(parts[i-1]) > 0 {
+			szR := len(parts[i-1][len(parts[i-1])-1].cellData)
+			szD := len(parts[i][0].cellData)
+			if szRight != 0 && (bulk || szRight+szD+2 > szLeft-szR-reserve) {
+				break
+			}
+			rotateIndexDividerRight(parts, i)
+			szRight += szD + 2
+			szLeft -= szR + 2
+		}
+	}
+	return parts
+}
+
+// indexPartitionFullUsed computes a partition's FULL page footprint:
+// content + 2 bytes per cell pointer + the 8-byte header, where partition
+// pi > 0's first entry is the boundary divider that moves up into the
+// parent and occupies no page space.
+func indexPartitionFullUsed(parts [][]splitEntry, pi int) int {
+	if len(parts[pi]) == 0 {
+		return 0
+	}
+	n, bytes := 0, 0
+	for j := 0; j < len(parts[pi]); j++ {
+		if pi > 0 && j == 0 {
+			continue
+		}
+		n++
+		bytes += len(parts[pi][j].cellData)
+	}
+	if n == 0 {
+		return 0
+	}
+	return bytes + 2*n + 8
+}
+
+// rotateIndexDividerRight moves partition i-1's last entry onto partition
+// i's front (below its current boundary divider): the moved entry becomes
+// the new boundary and the old divider stays with the right page as its
+// first regular cell. parts[i-1] shrinks by one.
+func rotateIndexDividerRight(parts [][]splitEntry, i int) {
+	moved := parts[i-1][len(parts[i-1])-1]
+	oldDiv := parts[i][0]
+	parts[i-1] = parts[i-1][:len(parts[i-1])-1]
+	next := make([]splitEntry, 0, len(parts[i])+1)
+	next = append(next, moved, oldDiv)
+	next = append(next, parts[i][1:]...)
+	parts[i] = next
 }
 
 // writeSplitPartitions pre-allocates len(partitions)-1 new leaf pages of the
@@ -413,7 +465,8 @@ type leafSplitResult struct {
 // allocations per SPLIT and 2 per CELL. The bytes are byte-identical to
 // storage.EncodeCell (AppendEncodedCell delegates to the same wire writer).
 // Cell payloads remain views into pg.Data exactly as storage.DecodeCell
-// returned them.
+// returned them. newCell may be nil (the balance spill's left-sibling read
+// has no incoming cell); a non-nil newCell is appended last.
 func (t *BTree) readCellsForSplit(st *splitStaging, pg *pager.Page, page *storage.BTreePage, coff int, cellType storage.CellType, newCell *storage.Cell, newCellData []byte) ([]splitEntry, error) {
 	cells := st.cells[:0]
 	arena := st.arena[:0]
@@ -456,7 +509,9 @@ func (t *BTree) readCellsForSplit(st *splitStaging, pg *pager.Page, page *storag
 			i--
 		}
 	}
-	cells = append(cells, splitEntry{newCell, newCellData, newCell.Payload})
+	if newCell != nil {
+		cells = append(cells, splitEntry{newCell, newCellData, newCell.Payload})
+	}
 	st.cells, st.arena, st.bytes = cells, arena, bytes
 	return cells, nil
 }

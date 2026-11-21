@@ -213,21 +213,20 @@ portplan/baselines/s35g_gate_fails.txt.)
 1. **S35g COMPLETE** (e_wal, e_walhook, walfault2, walfault all 0). The
    sqlite3_interrupt/memdebug_fail surfaces stay carded until a family
    needs them.
-1b. **The btree page-density unit: the LEAF-SPILL SLICE is IMPLEMENTED
-   and verified, pending the FULL gate + commit** — read
-   portplan/PLAN_density_walckptnoop.md FIRST (the C-vs-ours shape
-   measurements, the attempts, the pinned WRITELEAFDUP corruption and
-   the 2026-11-21 handover: the fix = the parent re-key's encode+room
-   check hoisted BEFORE any page write in spillIndexLeafLeft). Probes
-   green on the clean build: AV integrity ok, 2000 entries 0 dup, 84
-   leaves; density 134 i1-leaves/87.6% fill/312 frames (C:
-   129/91.6%/298 — down from 145/79.7%/345). All 15 failing families
-   swept: zero NEW except resetdb-300 — a documented load flap (see
-   Baselines; got flips 12/13/14 across builds; the WAL db-size
-   tracking divergence stays on the residue backlog). The diagnosis
-   instruments are REMOVED (build+vet clean). NEXT: the FULL-suite
-   gate (background, bounded polls), the identity diff vs
-   s35g_gate_fails.txt (+ the resetdb-300 expected flap), then commit.
+1b. **The btree page-density unit: the LEAF-SPILL SLICE is GATED
+   identity-clean (FULL suite REAL NEW=0, /tmp/dens_gate3.log) and
+   committed** — read portplan/PLAN_density_walckptnoop.md FIRST (the
+   2026-11-21 handovers: the root cause = the parent re-key's room
+   check ran after the page writes; the fix = the dividerCellLen-
+   predicted precheck hoisted BEFORE any write, spill unit in
+   btree_leaf_spill.go). Density: ours 134 i1-leaves/87.6%/312 frames
+   (C: 129/91.6%/298; pre-slice 145/79.7%/345); walckptnoop mxFrame
+   451→348 vs C 298. The two gate NEWs are verified flakes (resetdb-300
+   flap; temptable2-4.1.1 — the engine's randomblob is UNSEEDED, index
+   shapes flip per run; see lessons). NEXT: slice 2, the interior
+   window spill (the SLICE 2 PLAN section in the plan doc) — the
+   interior tail-split husks (31 vs C's 22) hold the remaining ~50-
+   frame delta.
 2. **The btree page-density unit, slice 2**: the interior balance
    replacing the split+apply separation (the plan's next section);
    then the overflow-chain/ptrmap bookkeeping parity pass.

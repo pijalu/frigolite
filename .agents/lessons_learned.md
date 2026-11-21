@@ -2242,3 +2242,16 @@ everywhere; go vet + go build clean.
   check baseline provenance (`git log -- <baseline>`) against engine
   deltas before calling a NEW a regression; the resetdb NEWs at gates
   are the documented load flap (see TODO Baselines) and are expected.
+- **The room-check precheck must PREDICT, not encode** (the spill's
+  second bug class, found in the refactor review): a bail path that
+  frees a chain or allocates one before the room check corrupts (the
+  freed chain strands a still-live divider) or leaks ("Page N: never
+  used"). dividerCellLen predicts the encoded divider size byte-exactly
+  (4+varint(plen)+local+4-spilled for index interiors) — check room
+  with the PREDICTION, then encode+free on the commit path only.
+- **The engine's randomblob is unseeded**: index keys built from
+  randomblob values sort differently per run, so index-tree shapes
+  (and page_count) flip between runs — temptable2-4.1.1's tiny-cache
+  temp index flips 9/10 pages. A NEW-flagged case with randomblob/
+  random() in the SQL must be re-run several times before attributing
+  anything to a build change.
