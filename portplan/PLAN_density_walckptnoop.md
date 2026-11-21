@@ -535,3 +535,53 @@ applyChildSplitChain leg — order[] bookkeeping in
 childOrderAmongSplits); secure_delete zeroing parity is NOT applicable
 here (no cell drop without replacement — the boundary is re-keyed, not
 dropped), matching the leaf spill's resolution.
+
+## HANDOVER 2026-11-21 (2): the leaf-spill slice GATED identity-clean — the refactor, the dividerCellLen precheck, and the flake attributions
+
+**The gate**: FULL suite on the frozen slice shape (/tmp/dens_gate3.log,
+1194.9s): 1191 fails vs the s35g baseline's 1193. GONE = walfault-11/
+-12/-15 (the baseline predates the S35g slices) + atof1-2.40 (the
+documented S32 random-dice, a benign draw). NEW = 2, both verified
+non-regressions: resetdb-300 (the documented load flap + the stale
+pre-slice-1 baseline, handover 1) and temptable2-4.1.1 (NEW flake
+class: **the engine's randomblob is unseeded**, so the 10 keys' sort
+order varies per run and the tiny-cache temp index's shape flips
+page_count 9/10 — verified 0/1/1 across three identical runs on the
+FROZEN shape; same class as where2-2.4's random() flake and the
+temptable2-9.x small-cache dithers — watchlist). **REAL NEW = 0.**
+
+**walckptnoop 1.1-1.5 stay failing but IMPROVED**: mxFrame 451 → **348**
+vs C's 298 (the density probe's sibling workload: 312 vs 299 pages /
+134 vs 129 i1-leaves / 87.6% vs 91.6% fill). The remaining ~50-frame
+delta is the interior tail-split husks (ours 31 interiors vs C's 22) —
+slice 2 (the interior window spill, the plan above) is the closer.
+
+**The pre-commit-grade refactor** (the strict quality gate would have
+rejected the pre-refactor shape: spillIndexLeafLeft gocognit 70 /
+gocyclo 59):
+- The spill unit moved to **internal/btree/btree_leaf_spill.go** (the
+  window type + the driver + the phase helpers: gather → pick-boundary
+  → precheck → commit; writeSpillLeafHalf dedupes the two page writes;
+  indexPartitionFullUsed/rotateIndexDividerRight extract
+  balanceIndexDividerPartitions' pieces).
+- **precheckSpillRekey now predicts the re-key's size with
+  dividerCellLen** instead of encoding first: the original order
+  (freeOverflowChain → encode → room check) stranded the still-live
+  divider's freed chain AND leaked the fresh chain when the room check
+  bailed — both only become safe once the room check has passed. The
+  dividerCellLen prediction is byte-exact (applyChildSplitsRightmost's
+  established parity).
+- readCellsForSplit's withNew param dropped (newCell==nil expresses the
+  no-incoming-cell case; the spill's left-sibling read passes nil).
+- Probes re-verified byte-identical after the refactor (IC ok; 2000/0
+  dup/84 leaves; 134 leaves/87.6%/312 frames).
+
+**State**: the slice is COMMIT-ready — code (btree_leaf_split.go,
+btree_leaf_spill.go NEW, btree_insert.go) gated identity-clean on the
+FULL suite. Next session: the interior window spill per the SLICE 2
+PLAN section above.
+
+**Verify commands**: `go test -run TestAVSpillProbe|TestAVDump|
+TestAVWalk2|TestDensityProbe -v -count=1`; the identity diff:
+python raw-scan of /tmp/dens_gate3.log vs
+portplan/baselines/s35g_gate_fails.txt (the two flake allowances).
