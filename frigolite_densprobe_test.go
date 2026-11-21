@@ -72,6 +72,13 @@ func reportShape(t *testing.T, tag, path string, open func(string) *DB) {
 		return out
 	}
 	t.Logf("%s page_count:%s", tag, q("PRAGMA page_count"))
+	t.Logf("%s entries:%s IC:%s", tag,
+		q("SELECT count(*) FROM t1"),
+		q("PRAGMA integrity_check"))
+	t.Logf("%s i1 scan-tail:%s", tag, q(
+		"SELECT count(*) FROM (SELECT y FROM t1 ORDER BY y)"))
+	t.Logf("%s i1 pages:%s", tag, q(
+		"SELECT pageno||':'||pagetype||':'||ncell||':'||path||' ' FROM dbstat WHERE name='i1' ORDER BY pageno"))
 	t.Logf("%s t1 leaves:%s interiors:%s", tag,
 		q("SELECT count(*) FROM dbstat WHERE name='t1' AND pagetype='leaf'"),
 		q("SELECT count(*) FROM dbstat WHERE name='t1' AND pagetype='internal'"))

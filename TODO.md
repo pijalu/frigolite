@@ -8,7 +8,7 @@
 
 `close all gaps with sqlite — functional first, then performance.`
 
-## State (2026-11-21, feature/perf @ b737d6ff1+the density leaf-spill slice in the worktree)
+## State (2026-11-22, feature/perf @ 1d2399a57 + the interior spill slice in the worktree)
 
 Full-suite truth **1190 failing leaves** (the s35g gate baseline
 portplan/baselines/s35g_gate_fails.txt minus the three walfault leaves
@@ -227,9 +227,13 @@ portplan/baselines/s35g_gate_fails.txt.)
    window spill (the SLICE 2 PLAN section in the plan doc) — the
    interior tail-split husks (31 vs C's 22) hold the remaining ~50-
    frame delta.
-2. **The btree page-density unit, slice 2**: the interior balance
-   replacing the split+apply separation (the plan's next section);
-   then the overflow-chain/ptrmap bookkeeping parity pass.
+2. **The btree page-density unit, slice 2 GATED (committed with this
+   TODO)**: the interior window spill (the anchored case) — interiors
+   31→25 (C 22), page_count 312→308, walckptnoop 348→337; the two
+   probe-gate corruption fixes recorded in the plan doc's 2026-11-22
+   handover. NEXT: slice 3, the 3-old-sibling window ([left, page,
+   right] — C's NB=3 + two new pages) for BOTH spills; then the
+   overflow-chain/ptrmap bookkeeping parity pass.
 3. **S42/S43** (TRIAGE_index_callback): the S41 residual surfaces
    (trigger7-2.x sub-program rows, misc3-6.11, distinctagg 5), the
    tcl-module completion (~34, bestindexF remainder).

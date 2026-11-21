@@ -391,6 +391,13 @@ func (t *BTree) applyChildSplitChain(pg *pager.Page, parentPgno, childPageNum ui
 // page), so the dividers returned to the parent are in reverse accumulation
 // order and are handed up left-to-right.
 func (t *BTree) retryChildSplitApply(pg *pager.Page, parentPgno, childPageNum uint32, childSplits []leafSplitResult) ([]leafSplitResult, error) {
+	placed, serr := t.spillInteriorPrelude(pg, parentPgno, childPageNum, childSplits)
+	if serr != nil {
+		return nil, serr
+	}
+	if placed {
+		return nil, nil
+	}
 	var outs []leafSplitResult
 	for tries := 0; tries < 4096; tries++ {
 		// Re-parse the left page: the previous iteration's split rewrote

@@ -2255,3 +2255,24 @@ everywhere; go vet + go build clean.
   temp index flips 9/10 pages. A NEW-flagged case with randomblob/
   random() in the SQL must be re-run several times before attributing
   anything to a build change.
+- **collectInteriorEntries' ptrBase is MINUS 8**: storage.CellPointer adds
+  8 to the offset it is given (splitInteriorPage passes coff+ptroff-8 so
+  the reads land on coff+ptroff+i*2). Passing the raw pointer-array base
+  reads 8 bytes past the array — every decoded cell is junk, the tree
+  then walks into foreign pages (dbstat showed a t1 interior page as
+  i1's) and integrity_check reports "database disk image is malformed".
+- **A redistribution that re-keys the parent's boundary divider must keep
+  the OLD divider's key in the cell array** (btree.c:8451-8482: C drops
+  the dividers into the array and re-places them; :8464-8469: the old
+  divider's left pointer is REPLACED by the left page's rightmost child
+  — the entry then represents the subtree between the left page's last
+  cell and the divider key and sorts naturally between the siblings).
+  Dropping the divider silently DELETES an entry ("row N missing from
+  index") — the tail-split path preserves it via the carrier cell, a
+  window-redistribution path must preserve it via the array entry.
+- **integrity_check inside the shape probe is non-negotiable**: the
+  densprobe ran for two slices without an IC line and the first interior
+  spill shipped a corrupted tree (the ordered scan still returned 1000
+  rows — a broken divider is invisible to the data path until a seek
+  crosses it). Any probe that measures page shape must assert
+  PRAGMA integrity_check = ok in the same run.
