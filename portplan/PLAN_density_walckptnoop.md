@@ -585,3 +585,62 @@ PLAN section above.
 TestAVWalk2|TestDensityProbe -v -count=1`; the identity diff:
 python raw-scan of /tmp/dens_gate3.log vs
 portplan/baselines/s35g_gate_fails.txt (the two flake allowances).
+
+## HANDOVER 2026-11-22: SLICE 2 GATED — the interior window spill (the anchored case) lands
+
+**The implementation** (internal/btree/btree_interior_spill.go NEW): when
+an anchor interior page cannot take a child split's divider, the divider
+is offered to the anchor's LEFT sibling through the parent's boundary
+cell — balance_nonroot's redistribution one level up. INDEX trees only
+(the table trees already match C's interior shape byte-for-byte); the
+rightmost-anchored divider folds in too (C's end-insert: the anchor
+child becomes a regular cell carrying the split's median and the split's
+page takes the rightmost pointer). The window partitions into 2 or 3
+page runs (the greedy pack + the right-to-left adjustment with bulk =
+the anchor directly under the root — C's bBulk=(iPage==1)); the 3-run
+window allocates ONE middle page and inserts one new divider cell into
+the parent (both parent-side effects room-checked with dividerCellLen
+predictions BEFORE any write). Windows needing more than 3 pages and
+no-left-sibling/root anchors fall through to the tail-split.
+
+**Two corruption bugs found and fixed during the probe gate** (both
+caught by the densprobe's new integrity_check line):
+1. **The ptrBase off-by-8**: collectInteriorEntries takes the pointer
+   array base MINUS 8 (storage.CellPointer adds 8 internally —
+   splitInteriorPage's `ptrBase := coff + ptroff - 8` documents it);
+   passing coff+ptroff read 8 bytes past the array and the whole window
+   decoded junk — the commit then wrote garbage dividers (dbstat showed
+   a t1 interior page as i1's: the tree walk crossed into foreign
+   pages; "database disk image is malformed").
+2. **The old boundary divider's entry vanished**: C drops the parent's
+   dividers into the cell array and re-places them
+   (src/btree.c:8451-8482), with the divider's left pointer REPLACED by
+   the left page's rightmost child (src/btree.c:8464-8469) — the entry
+   represents the subtree between the left page's last cell and the
+   divider key. Without it, the re-keyed boundary DELETED the old
+   divider's entry from the tree ("row N missing from index" — the
+   tail-split path preserves it via the carrier cell, the spill must
+   preserve it via the array entry).
+
+**Measured** (the densprobe workload, page_size=1024): interiors 31 →
+**25** (C: 22), page_count 312 → **308** (C: 299), IC ok, 1000 entries,
+the ordered scan clean; walckptnoop mxFrame 348 → **337** (C: 298; the
+card stays open). The AV probes unchanged (IC ok, 2000 entries 0 dup,
+84 leaves — the AV workload's interior spills all bail: no-left-sibling
+or root anchors).
+
+**The gates**: the 15-family sweep — zero NEW except the resetdb-300
+flap; the FULL suite (/tmp/dens_gate4.log): GONE = the S35g slices +
+atof1-2.40, NEW = resetdb-300 (flap) + temptable2-4.1.1 (the unseeded
+randomblob draw) + where2-2.4 (the DOCUMENTED random() flake — 0/3 on
+re-runs) — **REAL NEW = 0**.
+
+**Remaining to C parity (the next slice)**: C's balance window takes up
+to THREE old siblings ([left, page, right] — NB=3) plus two new pages;
+our window is [left, anchor] + one new. Extending the gather to the
+right sibling (and the leaf spill likewise) is the remaining density
+delta (~9 pages on the densprobe, ~39 frames on walckptnoop).
+
+**Verify commands**: `go test -run 'TestDensityProbe|TestAVSpillProbe|
+TestAVDump|TestAVWalk2' -v -count=1` (IC ok everywhere; ours
+308/136/25 vs C 299/129/22).
