@@ -644,3 +644,56 @@ delta (~9 pages on the densprobe, ~39 frames on walckptnoop).
 **Verify commands**: `go test -run 'TestDensityProbe|TestAVSpillProbe|
 TestAVDump|TestAVWalk2' -v -count=1` (IC ok everywhere; ours
 308/136/25 vs C 299/129/22).
+
+## SLICE 3 PLAN: the 3-old-sibling window ([left,] anchor, right…) — C's full NB=3 balance window
+
+**C's window shape** (src/btree.c:8272-8310): up to THREE consecutive old
+pages starting at the anchor's left sibling when it exists (nxDiv =
+iParentIdx-1), else at the anchor itself; nOld = 3 (2 when bBulk — the
+anchor directly under the root). The dividers BETWEEN the window's pages
+(nOld-1 of them) are DROPPED from the parent and join the cell array
+(each with its left pointer replaced by the left page's rightmost child,
+:8464-8469; for leaf windows in leafData=0 trees the divider joins as
+the key-only leaf-form entry, :8461-8463). The partition produces up to
+NB+2=5 runs: the first nOld runs REWRITE the old pages in order, the
+rest allocate new pages. The parent then takes nNew-1 new divider cells
+(the cuts), replacing the nOld-1 dropped ones — the cell-count delta =
+nNew-nOld (the parent may overflow → the loop balances it, our cascade
+hands it up).
+
+**Our slice-2 shape** ([left, anchor] + up to one new page) is C's
+bBulk case. Slice 3 generalizes BOTH spills (the interior spill in
+btree_interior_spill.go, the leaf spill in btree_leaf_spill.go):
+- The gather: the window = up to 3 consecutive children starting at the
+  anchor's left sibling (or the anchor when none); the dropped dividers
+  = the cells between the window's pages, each folded into the array
+  with the rightmost-child replacement (the interior) or in leaf form
+  (the index leaf spill — the existing divEntry form, one per boundary).
+- The partition: the greedy pack + the rotation over up to 5 runs; the
+  guards: every run ≥1 regular cell (≥2 for pi>0 with the consumed
+  divider), the last run's fit; bulk keeps the 2-old window (no right
+  sibling gathered).
+- The parent-side: drop nOld-1 divider cells, insert nNew-1 new divider
+  cells (each pointing at its run's left page; the run pages = the old
+  pages in order then the new ones). Room check with dividerCellLen
+  predictions before any write; the ptr-slot surgery = drop 2 (or
+  nOld-1) slots, insert nNew-1 at the first dropped slot; the defrag
+  reclaims the dropped bytes.
+- The commit: rewrite the old pages in run order (PrepareWrite + clear +
+  writeInteriorCells/writeLeafHalf + reparent + WritePage each), then
+  the parent re-key/insert block.
+
+**Ordered steps**: 1) the interior spill's 3-old window (the gather, the
+run-to-page mapping, the parent drop/insert); 2) the leaf spill's
+3-old window (the two leaf-form boundary entries, the same parent
+machinery); 3) the probe gate (TestDensityProbe: expect interiors → 22,
+page_count → ~300, walckptnoop mxFrame → ~300); 4) the 15-family sweep;
+5) the FULL gate; 6) commit with the handover.
+
+**Risks**: the parent's cell-count delta changes its geometry (the
+count can SHRINK for nNew=2 3-run... no — nNew ≥ nOld always here since
+the content only grows; delta ≥ 0 ✓). The right sibling may be the
+parent's RIGHTMOST pointer (k == CellCount-1 → cell k+1 doesn't exist —
+R = the rightmost, no cell k+1 to preserve). The leaf spill's boundary
+entries in leaf form must re-encode their chains for the landing page
+(the existing divEntry prepareCell path).
