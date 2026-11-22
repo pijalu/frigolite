@@ -2360,3 +2360,23 @@ everywhere; go vet + go build clean.
   converter's struct and the fixture's JSON are two layers — the capture
   sets the field, main.go's conversion serializes it; missing the second
   silently drops the flag.
+- **WHERE_DISTINCTBY: the DISTINCT's own select-list columns are the
+  vtab's ordering candidates** (select.c:8616's non-aggregate WhereBegin
+  passes pDistinct): the DISTINCT scans without a statement ORDER BY
+  offer their select-list columns (the vacuous match → the distinct
+  flag = 2); with a statement ORDER BY → 3 (the ordering + the dedup
+  both signaled). The DISTINCT's temp node is suppressed when the vtab's
+  ORDER BY (the DISTINCT's own columns) is consumed — where.c's
+  orderByConsumed parity for the DISTINCT scans.
+- **The GROUP BY over a consumed ORDER BY groups through the EPHEMERAL
+  INDEX, not the sorter** (C's streaming aggregate): the stream renders
+  OpenEphemeral + IdxInsert (the group-key inserts) and NO SorterSort —
+  bestindexF's 2.11 helper errors on SorterSort, so the sorter family
+  would fail the case even with correct rows.
+- **The converter's proc-body expansion groups the machinery sets under
+  the PREVIOUS case's TestName** (the body's sets precede the do_test
+  calls, so i.curTest = the stale name): the per-case machinery lands in
+  the wrong fixture group, leaving later .0 reads bound to the previous
+  section's machinery. The converter-side fix = emit the machinery sets
+  with the CALLER's pending TestName; carded for bestindexF's 2.8/2.9/
+  2.10 .0 leaves.
