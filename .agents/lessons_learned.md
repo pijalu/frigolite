@@ -2343,3 +2343,20 @@ everywhere; go vet + go build clean.
   C builds SQL by string interpolation, so "PrimaryKey,flagA,columnA" in
   a CREATE's column-list context must land verbatim — the quoting would
   make it one identifier.
+- **WHERE_GROUPBY: the GROUP BY's terms are the vtab's ordering
+  candidates** (select.c:8615's WhereBegin passes pGroupBy): the
+  aggregate vtab scans offer the GROUP BY terms to xBestIndex, the hint
+  = 1 (the consumption only requires the groups contiguous), and the
+  consumed scan feeds a STREAMING aggregate — the group phase preserves
+  the scan order (the first-seen key order) instead of re-sorting. The
+  hint's precedence: the GROUP BY beats the plain DISTINCT's 2 (both →
+  the GROUP BY wins, where.c:1521).
+- **TCL's db eval without a body script yields a FLAT list** of every
+  row's columns — `set vm [db eval $sql]` needs the converter's
+  ResultFlat emission (the marker-carrying SQL must pass isQueryStmt)
+  surfaced through main.go's Stmt→TestStep conversion; the rows-of-lists
+  form (ResultAll) breaks every lsearch-based assertion over the vm.
+- **A new Stmt field must surface in main.go's Stmt→TestStep copy**: the
+  converter's struct and the fixture's JSON are two layers — the capture
+  sets the field, main.go's conversion serializes it; missing the second
+  silently drops the flag.

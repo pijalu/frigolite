@@ -8,7 +8,7 @@
 
 `close all gaps with sqlite — functional first, then performance.`
 
-## State (2026-11-22, feature/perf @ bb7d91c49 — S43 slices 1-2 landed: the vtab callback stack + the selective fixture regen)
+## State (2026-11-22, feature/perf @ 48348b5d0 — S43 slices 1-3 landed: the vtab callback stack, the selective regen, the WHERE_GROUPBY consumption; the FULL gate 1179, REAL NEW=0)
 
 Full-suite truth **1190 failing leaves** (the s35g gate baseline
 portplan/baselines/s35g_gate_fails.txt minus the three walfault leaves
@@ -238,16 +238,16 @@ portplan/baselines/s35g_gate_fails.txt.)
    2026-11-22 (2) handover). The remaining delta stays CARDED with the
    resumable lever; the unit's core (the spills, the husk elimination)
    is banked.
-3. **S42/S43** (TRIAGE_index_callback): index9 = 0 (the explain_rows
-   work landed). S43 slice 1 DELIVERED (bestindex6 2→0 — the left-join
-   null-match exclusion, where.c:1453's TERM_VNULL parity; the oracle
-   settled the section-10 hypotheses). The bestindex residue = 27
-   (bestindexE 8, bestindexF 17, bestindex1 2). NEXT: bestindex1-4.1's
-   skip-map entry (1 line), the vtab IN-constraint loop
-   (bestindex1-3.4/3.5), the xBestIndex-global push/pull (bestindexF
-   2.x.1 ×10 + bestindexE ×4), distinct/orderby (bestindexF 2.x.2 ×10),
-   bestindexE 3.x's named reads; then the S41 residuals (trigger7-2.x
-   sub-program rows, misc3-6.11, distinctagg 5).
+3. **S42/S43** (TRIAGE_index_callback): index9 = 0; S43 slices 1-3
+   DELIVERED (the left-join null-match exclusion; the selective regen +
+   the seeding machinery; the WHERE_GROUPBY consumption — the 2.11 trio
+   green). The bestindex residue = 19 leaves (E: 2.1.2/2.2.2 + 3.x ×4;
+   F: 11 — the 2.2.x/2.3.x/2.4.x .1/.2-order leaves + 1.4.1; 1: 3.4/3.5
+   the join-flow trace carded). NEXT: the F residue's .1/.2 leaves (the
+   idxStr ordering forms), the E 2.1.2/2.2.2 accumulation leaves (the
+   corpus regen card for their reset steps), the E 3.x named reads; then
+   the S41 residuals (trigger7-2.x sub-program rows, misc3-6.11,
+   distinctagg 5).
 4. **Carded converter classes**: expridx1 fossil 10, indexexpr2/3 11,
    e_expr regen drift/callbackVars, A2/A9 engine slices, the fts3*
    residue ~53.
