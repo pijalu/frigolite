@@ -463,3 +463,22 @@ skip-map entry, 1 line), the vtab IN-constraint loop
 push/pull (bestindexF 2.x.1 ×10 + bestindexE ×4 — the S25
 NotifyScriptVarTargets pattern), distinct/orderby consumption
 (bestindexF 2.x.2 ×10 + 1.4.1), bestindexE 3.x's named reads.
+
+---
+
+## 12. S43 slice 3 (the IN-loop) DEFERRED (2026-11-22): the trace shows a join-flow outer-iteration collapse
+
+bestindex1-3.4/3.5's live trace (a temporary TCLFILTER print, reverted):
+the a-side's module filter runs ONCE (`SELECT rowid, * FROM t1`, argv [],
+4 rows — the statement WHERE's FlagA eq is NOT in its idxStr: the join's
+left operand gets no statement-WHERE pushdown), the b-side's seek runs
+TWICE with argv `[1]` BOTH times (`WHERE PrimaryKey = %0%`, 1 row each)
+— the b-side's argv is stuck at the FIRST a-row's PrimaryKey and the
+outer iteration collapses (got 1 joined row, want 4). The IN constraint
+itself is NOT consumed by the module (the proc only consumes eq), so the
+residual IN is correct — the failure is the JOIN's outer-loop iteration
+feeding stale outer values to the inner vtab's seek (the
+vtabRowidEquiOuters/seek path's outer maps), not the IN handling.
+Slice order update: the IN-loop leaves stay deferred behind the join-flow
+trace; the independent cuts proceed (the globals push/pull, distinct/
+orderby).
