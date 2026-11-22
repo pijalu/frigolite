@@ -28,6 +28,13 @@ type VtabScanOptions struct {
 	TableName     string
 	OuterRow      RowMap
 	JoinPlanAware *bool // materializer reports whether instance implements PlanBestIndexer
+	// GroupByOrderConsumed, when non-nil, is filled by the vtab scan when
+	// its ORDER BY was consumed (the WHERE_GROUPBY parity: the offered
+	// terms are the GROUP BY's) — the aggregate scan delivers the rows in
+	// group order, so the group phase preserves the scan order instead of
+	// re-sorting the keys (select.c's streaming aggregate over a consumed
+	// ORDER BY).
+	GroupByOrderConsumed *bool
 	// LeftJoinInner marks the scan as the INNER side of a LEFT JOIN: the
 	// WHERE's IS/IS-NULL terms anchored on the scan's own table are the
 	// LEFT JOIN's null-row match tests and must NOT be offered to
@@ -577,6 +584,12 @@ type SelectEngine struct {
 	// must not execute SQL); a nested EQP request during the plan call
 	// degrades to the plain SCAN fallback instead of recursing.
 	explainVtabBusy bool
+	// vtabGroupByOrderConsumed: the statement's vtab scan consumed its
+	// ORDER BY (= the GROUP BY's terms, the WHERE_GROUPBY parity), so the
+	// aggregate group phase preserves the scan order (the streaming
+	// aggregate over a consumed ORDER BY) instead of re-sorting the keys.
+	// Set-and-read within one statement's execution.
+	vtabGroupByOrderConsumed bool
 	// subqSeq is a monotonic counter for synthetic derived-table names (_subqN).
 	subqSeq int
 }

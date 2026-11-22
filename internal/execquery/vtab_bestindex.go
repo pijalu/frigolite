@@ -455,6 +455,34 @@ func vtabPlainOrderBy(opts *VtabScanOptions, cols vtabColumnIndex, tableName str
 // does the same, because virtual tables cannot honor it. Returns nil when
 // the terms do not qualify.
 func vtabOrderByTerms(opts *VtabScanOptions, tableName string, columnNames []string) []vtab.IndexOrderBy {
+	// WHERE_GROUPBY parity (select.c:8615's WhereBegin passes pGroupBy as
+	// the ordering list): the GROUP BY's terms are the ordering candidates
+	// offered to xBestIndex for aggregate scans — the consumption only
+	// requires each group to arrive contiguously, not a full sort (where.c
+	// marks it with WHERE_GROUPBY and wherePathSatisfiesOrderBy skips the
+	// ASC/DESC checks for it).
+	if len(opts.OrderBy) == 0 && len(opts.GroupBy) > 0 {
+		cols := newVtabColumnIndex(columnNames)
+		var out []vtab.IndexOrderBy
+		for _, term := range opts.GroupBy {
+			if isVtabConstExpr(term) {
+				continue
+			}
+			colExpr, collateName, ok := vtabOrderColumn(term)
+			if !ok {
+				return nil
+			}
+			col, ok := cols.resolve(colExpr, tableName)
+			if !ok {
+				return nil
+			}
+			if collateName != "" && col >= 0 && !strings.EqualFold(collateName, "BINARY") {
+				return nil
+			}
+			out = append(out, vtab.IndexOrderBy{Column: col})
+		}
+		return out
+	}
 	if len(opts.OrderBy) == 0 {
 		return nil
 	}
@@ -488,11 +516,15 @@ func vtabOrderByTerms(opts *VtabScanOptions, tableName string, columnNames []str
 // scan. (SQLite's 2+WHERE_SORTBYGROUP state and the rowidUsed guard are not
 // modeled.)
 func vtabDistinctHint(opts *VtabScanOptions) int {
-	switch {
-	case opts.Distinct:
-		return 2
-	case len(opts.GroupBy) > 0:
+	// where.c:1519-1521's eDistinct rule: a GROUP BY's terms offered as the
+	// ordering candidates → 1 (the consumption only requires the groups
+	// contiguous); the plain DISTINCT's own ordering → 2; both → the
+	// GROUP BY wins (the DISTINCT's dedup rides on the grouping).
+	if len(opts.GroupBy) > 0 {
 		return 1
+	}
+	if opts.Distinct {
+		return 2
 	}
 	return 0
 }

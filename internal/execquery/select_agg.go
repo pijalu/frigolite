@@ -749,7 +749,16 @@ func (e *SelectEngine) evalAggregatesGroupBy(s *sql.SelectStmt, rows []Row, colD
 		return &Result{Error: gbErr}
 	}
 	groups, keyVals, keyOrder := e.partitionByGroupKey(groupBy, rows)
-	e.sortGroupKeys(keyOrder, keyVals)
+	if e.vtabGroupByOrderConsumed {
+		// The vtab scan consumed its ORDER BY (= the GROUP BY's terms, the
+		// WHERE_GROUPBY parity): the rows arrive in group order, so the
+		// group phase preserves the scan order — select.c's streaming
+		// aggregate over a consumed ORDER BY (select.c:8720's
+		// GroupByOrder cancellation of the sorter).
+		e.vtabGroupByOrderConsumed = false
+	} else {
+		e.sortGroupKeys(keyOrder, keyVals)
+	}
 	// The min/max bare-column source is a property of the statement, not the
 	// group: resolve it once instead of walking the columns per group.
 	mm := e.lastMinMaxAggregateFor(s)

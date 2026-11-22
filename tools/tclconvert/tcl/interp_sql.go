@@ -1531,6 +1531,12 @@ func skipBlockComment(sql string, i int) int {
 
 func isQueryStmt(stmt string) bool {
 	stmt = strings.TrimSpace(stmt)
+	// A runtime-value marker carries a captured query's rows by
+	// construction (bestindexF's `db eval "EXPLAIN $sql"` where $sql is a
+	// runtime reference): the marker IS the query's value.
+	if _, ok := runtimeValueID(stmt); ok {
+		return true
+	}
 	upper := strings.ToUpper(stmt[:min(len(stmt), 10)])
 	return strings.HasPrefix(upper, "SELECT") ||
 		strings.HasPrefix(upper, "PRAGMA") ||

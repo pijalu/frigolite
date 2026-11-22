@@ -34,6 +34,7 @@ type TestStep struct {
 	SQL               string            `json:"sql,omitempty"`
 	Variable          string            `json:"variable,omitempty"`
 	ResultAll         bool              `json:"resultAll,omitempty"`
+	ResultFlat        bool              `json:"resultFlat,omitempty"`
 	ResultRows        bool              `json:"resultRows,omitempty"`
 	StmtStatus        bool              `json:"stmtStatus,omitempty"`
 	StatusStyle       string            `json:"statusStyle,omitempty"` // "bare" renders the counters as "N M" (where8's execsql_status)
@@ -546,6 +547,7 @@ func stepFromStmt(s tcl.Stmt) TestStep {
 		SQL:               tcl.StripRuntimeValues(strings.TrimSpace(s.SQL)),
 		Variable:          tcl.StripRuntimeValues(s.Variable),
 		ResultAll:         s.ResultAll,
+		ResultFlat:        s.ResultFlat,
 		ResultRows:        s.ResultRows,
 		StmtStatus:        s.StmtStatus,
 		StatusStyle:       s.StatusStyle,

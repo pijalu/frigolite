@@ -1588,7 +1588,7 @@ var unsupportedTestFiles = map[string]string{
 	"walsetlk":          "testvfs -fullshm + xSleep counting untranspilable - superseded by frigolite_wallocks_test.go (P7.WAL-G7 slice 2)",
 	"walsetlk2":         "sqlite3_setlk_timeout C-API untranspilable - superseded by TestWalLockBusyTimeout (P7.WAL-G7 slice 2)",
 	"walsetlk3":         "sqlite3_setlk_timeout deadline C-API untranspilable - superseded by TestWalLockBusyTimeout (P7.WAL-G7 slice 2)",
-	"walsetlk_recover": "testfixture_nb subprocess (the background recovery against a delayed VFS read) untranspilable - superseded by TestWalSetlkRecoverEngine (the native concurrent-recovery port: the BUSY_RECOVERY timeout, the xSleep budget, the post-recovery rows)",
+	"walsetlk_recover":  "testfixture_nb subprocess (the background recovery against a delayed VFS read) untranspilable - superseded by TestWalSetlkRecoverEngine (the native concurrent-recovery port: the BUSY_RECOVERY timeout, the xSleep budget, the post-recovery rows)",
 	"walsetlk_snapshot": "testfixture_nb subprocess + blocking snapshot_open (slice-4 API) untranspilable - see portplan/NA_EVIDENCE.md P7.WAL-G7 slice 2",
 	"walshared":         "shared-cache table locks: separate subsystem, slice-5 disposition (P7.WAL-G7)",
 	"walslow":           "fixture setup re-run artifacts + long-running churn; covered by TestWalRestartConcurrent (slice 3 triage 2026-09-13)",

@@ -166,25 +166,6 @@
           },
           "callbackProcs": [
             {
-              "Name": "do_bestindex_test",
-              "Args": [
-                "tn",
-                "sql",
-                "lCons"
-              ],
-              "Body": "\n  set ::xBestIndex [list]\n  do_execsql_test $tn.1 $sql\n  uplevel [list do_test $tn.2 [list set ::xBestIndex] [list {*}$lCons]]\n",
-              "Defaults": null
-            },
-            {
-              "Name": "create_vtab",
-              "Args": [
-                "tname",
-                "clist"
-              ],
-              "Body": "\n  set cmd [list vtab_command $tname $clist]\n  execsql \"\n    CREATE VIRTUAL TABLE $tname USING tcl('$cmd')\n  \"\n",
-              "Defaults": null
-            },
-            {
               "Name": "pretty_constraint",
               "Args": [
                 "lCol",
@@ -202,6 +183,25 @@
                 "args"
               ],
               "Body": "\n  switch -- $method {\n    xConnect {\n      return \"CREATE TABLE $zName ([join $lCol ,]) \"\n    }\n\n    xBestIndex {\n      set hdl [lindex $args 0]\n      set conslist [$hdl constraints]\n\n      set ret [list]\n      foreach cons $conslist {\n        set pretty [pretty_constraint $lCol $cons]\n        if {$pretty != \"\"} { lappend ret $pretty }\n      }\n\n      lappend ::xBestIndex \"$zName: [join $ret { AND }]\"\n\n      return \"cost 1000 rows 1000 idxnum 555\"\n    }\n  }\n\n  return {}\n",
+              "Defaults": null
+            },
+            {
+              "Name": "do_bestindex_test",
+              "Args": [
+                "tn",
+                "sql",
+                "lCons"
+              ],
+              "Body": "\n  set ::xBestIndex [list]\n  do_execsql_test $tn.1 $sql\n  uplevel [list do_test $tn.2 [list set ::xBestIndex] [list {*}$lCons]]\n",
+              "Defaults": null
+            },
+            {
+              "Name": "create_vtab",
+              "Args": [
+                "tname",
+                "clist"
+              ],
+              "Body": "\n  set cmd [list vtab_command $tname $clist]\n  execsql \"\n    CREATE VIRTUAL TABLE $tname USING tcl('$cmd')\n  \"\n",
               "Defaults": null
             },
             {
@@ -434,15 +434,6 @@
           },
           "callbackProcs": [
             {
-              "Name": "pretty_constraint",
-              "Args": [
-                "lCol",
-                "cons"
-              ],
-              "Body": "\n  array set C $cons\n\n  set ret \"\"\n  if {$C(usable)} {\n    set OP(eq) =\n    set ret \"[lindex $lCol $C(column)]$OP($C(op))?\"\n  }\n\n  return $ret\n",
-              "Defaults": null
-            },
-            {
               "Name": "vtab_command",
               "Args": [
                 "zName",
@@ -479,6 +470,15 @@
                 "args"
               ],
               "Body": "\n  switch -- $method {\n    xConnect {\n      db eval { SELECT * FROM sqlite_schema }\n      return \"CREATE TABLE t1 (a, b)\"\n    }\n\n    xBestIndex {\n      return \"idxnum 555\"\n    }\n\n    xFilter {\n      return [list sql {SELECT 123, 'A', 'B'}]\n    }\n\n    xUpdate {\n      return 123\n    }\n\n  }\n\n  return {}\n",
+              "Defaults": null
+            },
+            {
+              "Name": "pretty_constraint",
+              "Args": [
+                "lCol",
+                "cons"
+              ],
+              "Body": "\n  array set C $cons\n\n  set ret \"\"\n  if {$C(usable)} {\n    set OP(eq) =\n    set ret \"[lindex $lCol $C(column)]$OP($C(op))?\"\n  }\n\n  return $ret\n",
               "Defaults": null
             }
           ],

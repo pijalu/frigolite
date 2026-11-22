@@ -223,7 +223,7 @@
           "type": "query_assign",
           "sql": "EXPLAIN \n  SELECT a, b FROM t1",
           "variable": "vm",
-          "resultAll": true
+          "resultFlat": true
         },
         {
           "type": "runtime_expr",
@@ -284,7 +284,7 @@
           "type": "query_assign",
           "sql": "EXPLAIN \n  SELECT DISTINCT a FROM t1",
           "variable": "vm",
-          "resultAll": true
+          "resultFlat": true
         },
         {
           "type": "runtime_expr",
@@ -345,7 +345,7 @@
           "type": "query_assign",
           "sql": "EXPLAIN \n  SELECT DISTINCT a FROM t1 ORDER BY a",
           "variable": "vm",
-          "resultAll": true
+          "resultFlat": true
         },
         {
           "type": "runtime_expr",
@@ -406,7 +406,7 @@
           "type": "query_assign",
           "sql": "EXPLAIN \n  SELECT DISTINCT a FROM t1 ORDER BY a DESC",
           "variable": "vm",
-          "resultAll": true
+          "resultFlat": true
         },
         {
           "type": "runtime_expr",
@@ -467,7 +467,7 @@
           "type": "query_assign",
           "sql": "EXPLAIN \n  SELECT a FROM t1 ORDER BY a",
           "variable": "vm",
-          "resultAll": true
+          "resultFlat": true
         },
         {
           "type": "runtime_expr",
@@ -528,7 +528,7 @@
           "type": "query_assign",
           "sql": "EXPLAIN \n  SELECT a FROM t1 ORDER BY a DESC",
           "variable": "vm",
-          "resultAll": true
+          "resultFlat": true
         },
         {
           "type": "runtime_expr",
@@ -589,7 +589,7 @@
           "type": "query_assign",
           "sql": "EXPLAIN \n  SELECT a, count(*) FROM t1 GROUP BY a ORDER BY a",
           "variable": "vm",
-          "resultAll": true
+          "resultFlat": true
         },
         {
           "type": "runtime_expr",
@@ -650,7 +650,7 @@
           "type": "query_assign",
           "sql": "EXPLAIN \n  SELECT a, count(*) FROM t1 GROUP BY a ORDER BY a DESC",
           "variable": "vm",
-          "resultAll": true
+          "resultFlat": true
         },
         {
           "type": "runtime_expr",
@@ -711,7 +711,7 @@
           "type": "query_assign",
           "sql": "EXPLAIN \n  SELECT a, count(*) FROM t1 GROUP BY a",
           "variable": "vm",
-          "resultAll": true
+          "resultFlat": true
         },
         {
           "type": "runtime_expr",
@@ -772,7 +772,7 @@
           "type": "query_assign",
           "sql": "EXPLAIN \n  SELECT DISTINCT a, count(*) FROM t1 GROUP BY a",
           "variable": "vm",
-          "resultAll": true
+          "resultFlat": true
         },
         {
           "type": "runtime_expr",

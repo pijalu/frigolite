@@ -3,6 +3,7 @@ package tcl
 
 import (
 	"fmt"
+	"os"
 	"path/filepath"
 	"regexp"
 	"strconv"
@@ -545,12 +546,20 @@ func commandSet(i *Interp, rawWords []rawWord, args []string, localVars map[stri
 			inner := strings.TrimSpace(text[1:])
 			if strings.HasPrefix(inner, "db eval") || strings.HasPrefix(inner, "db one") || strings.HasPrefix(inner, "db onecolumn") {
 				last := &i.stmts[len(i.stmts)-1]
+				if os.Getenv("TCLCONV_DBEVAL_DBG") != "" {
+					println("DBEVALCAP var:", strings.TrimPrefix(args[0], "::"), "last:", last.Type, "tn:", last.TestName, "cur:", i.curTest, "isQ:", isQueryStmt(firstStatement(last.SQL)))
+				}
 				if last.TestName == i.curTest && (last.Type == "exec" || last.Type == "query") && isQueryStmt(firstStatement(last.SQL)) {
 					last.Type = "query_assign"
 					last.Variable = strings.TrimPrefix(args[0], "::")
-					// `db eval` yields the full result set (a list of rows);
-					// `db one`/`db onecolumn` yield a single value.
-					last.ResultAll = strings.HasPrefix(inner, "db eval")
+					// `db eval` (without a body script) yields a FLAT list
+					// of every row's columns; `db one`/`db onecolumn` yield
+					// a single value.
+					if strings.HasPrefix(inner, "db eval") {
+						last.ResultFlat = true
+					} else {
+						last.ResultAll = true
+					}
 					i.dynamicVars[last.Variable] = true
 					i.runtimeVars[last.Variable] = last.runtimeID
 					assignedFromQuery = true

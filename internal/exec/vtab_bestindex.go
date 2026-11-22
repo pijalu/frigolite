@@ -97,6 +97,9 @@ func (e *Engine) readVtabWithBestIndexPlan(vt vtab.VirtualTable, pbi vtab.PlanBe
 	if merr != nil {
 		return nil, nil, merr
 	}
+	if opts.GroupByOrderConsumed != nil {
+		*opts.GroupByOrderConsumed = ii.OrderByConsumed
+	}
 	argv := e.buildVtabFilterArgv(ii, conjuncts, &opts, slots, n)
 	combos := vtabStreamCombos(argv, e.vtabInSlots(ii, conjuncts, slots, &opts))
 	vtabResidualAfterOmit(&opts, ii, conjuncts)

@@ -393,10 +393,15 @@ func (e *SelectEngine) execCreatedVTabForm(s *sql.SelectStmt) (*Result, bool) {
 	opts := e.vtabScanOptions(s)
 	createdResidual := opts.Where
 	opts.Residual = &createdResidual
+	gbConsumed := false
+	opts.GroupByOrderConsumed = &gbConsumed
 	if len(s.Joins) != 0 {
 		return nil, false
 	}
 	defs, rows, rowids, err, ok := e.ctx.MaterializeCreatedVTab(s.From.Name, opts)
+	if ok && gbConsumed {
+		e.vtabGroupByOrderConsumed = true
+	}
 	if !ok {
 		return nil, false
 	}

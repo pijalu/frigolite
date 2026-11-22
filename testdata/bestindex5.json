@@ -25,21 +25,21 @@
           },
           "callbackProcs": [
             {
-              "Name": "vtab_cmd",
-              "Args": [
-                "method",
-                "args"
-              ],
-              "Body": "\n\n  set binops(ne)    !=\n  set binops(eq)    =\n  set binops(isnot) \"IS NOT\"\n  set binops(is)    \"IS\"\n\n  set unops(isnotnull) \"IS NOT NULL\"\n  set unops(isnull)    \"IS NULL\"\n\n  set cols(0) a\n  set cols(1) b\n  set cols(2) c\n\n  switch -- $method {\n    xConnect {\n      return \"CREATE TABLE t1(a, b, c)\"\n    }\n\n    xBestIndex {\n      set hdl [lindex $args 0]\n      set clist [$hdl constraints]\n      set orderby [$hdl orderby]\n      set mask [$hdl mask]\n\n      set cost 1000000.0\n      set ret [list]\n      set str [list]\n\n      set v 0\n      for {set i 0} {$i \u003c [llength $clist]} {incr i} {\n        array unset C\n        array set C [lindex $clist $i]\n        if {$C(usable)} {\n          if {[info exists binops($C(op))]} {\n            lappend ret omit $i\n            lappend str \"$cols($C(column)) $binops($C(op)) %$v%\"\n            incr v\n            set cost [expr $cost / 2]\n          }\n          if {[info exists unops($C(op))]} {\n            lappend ret omit $i\n            lappend str \"$cols($C(column)) $unops($C(op))\"\n            incr v\n            set cost [expr $cost / 2]\n          }\n        }\n      }\n\n      lappend ret idxstr [join $str \" AND \"]\n      lappend ret cost $cost\n      return $ret\n    }\n\n    xFilter {\n      set q [lindex $args 1]\n      set a [lindex $args 2]\n      for {set v 0} {$v \u003c [llength $a]} {incr v} {\n        set val [lindex $a $v]\n        set q [string map [list %$v% '$val'] $q]\n      }\n      if {$q==\"\"} { set q 1 }\n      lappend ::xFilterQueries \"WHERE $q\"\n      return [list sql \"SELECT rowid, * FROM t1x WHERE $q\"]\n    }\n  }\n  return \"\"\n",
-              "Defaults": null
-            },
-            {
               "Name": "vtab_simple",
               "Args": [
                 "method",
                 "args"
               ],
               "Body": "\n  switch -- $method {\n    xConnect {\n      return \"CREATE TABLE t2(x)\"\n    }\n    xBestIndex {\n      return [list cost 999999.0]\n    }\n    xFilter {\n      return [list sql \"SELECT rowid, * FROM t2x\"]\n    }\n  }\n  return \"\"\n",
+              "Defaults": null
+            },
+            {
+              "Name": "vtab_cmd",
+              "Args": [
+                "method",
+                "args"
+              ],
+              "Body": "\n\n  set binops(ne)    !=\n  set binops(eq)    =\n  set binops(isnot) \"IS NOT\"\n  set binops(is)    \"IS\"\n\n  set unops(isnotnull) \"IS NOT NULL\"\n  set unops(isnull)    \"IS NULL\"\n\n  set cols(0) a\n  set cols(1) b\n  set cols(2) c\n\n  switch -- $method {\n    xConnect {\n      return \"CREATE TABLE t1(a, b, c)\"\n    }\n\n    xBestIndex {\n      set hdl [lindex $args 0]\n      set clist [$hdl constraints]\n      set orderby [$hdl orderby]\n      set mask [$hdl mask]\n\n      set cost 1000000.0\n      set ret [list]\n      set str [list]\n\n      set v 0\n      for {set i 0} {$i \u003c [llength $clist]} {incr i} {\n        array unset C\n        array set C [lindex $clist $i]\n        if {$C(usable)} {\n          if {[info exists binops($C(op))]} {\n            lappend ret omit $i\n            lappend str \"$cols($C(column)) $binops($C(op)) %$v%\"\n            incr v\n            set cost [expr $cost / 2]\n          }\n          if {[info exists unops($C(op))]} {\n            lappend ret omit $i\n            lappend str \"$cols($C(column)) $unops($C(op))\"\n            incr v\n            set cost [expr $cost / 2]\n          }\n        }\n      }\n\n      lappend ret idxstr [join $str \" AND \"]\n      lappend ret cost $cost\n      return $ret\n    }\n\n    xFilter {\n      set q [lindex $args 1]\n      set a [lindex $args 2]\n      for {set v 0} {$v \u003c [llength $a]} {incr v} {\n        set val [lindex $a $v]\n        set q [string map [list %$v% '$val'] $q]\n      }\n      if {$q==\"\"} { set q 1 }\n      lappend ::xFilterQueries \"WHERE $q\"\n      return [list sql \"SELECT rowid, * FROM t1x WHERE $q\"]\n    }\n  }\n  return \"\"\n",
               "Defaults": null
             },
             {

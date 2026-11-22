@@ -131,6 +131,10 @@ type Stmt struct {
 	// commands that post-process that value (a sort) find the statement
 	// through it. It is an internal representation and is not serialized.
 	runtimeID int
+	// ResultFlat marks the db-eval-without-script capture: TCL's db eval
+	// yields a FLAT list of every row's columns (bestindexF's
+	// `set vm [db eval "EXPLAIN $sql"]`), not the rows-of-lists form.
+	ResultFlat bool
 }
 
 // Interp is the TCL interpreter state.
