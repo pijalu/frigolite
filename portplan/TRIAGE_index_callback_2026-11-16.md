@@ -573,3 +573,37 @@ engine slice.
 
 **The bestindex residue**: 24 leaves (E: 2.1.2/2.2.2 + 3.x ×4; F: 14
 incl. the 2.11 trio; 1: 3.4/3.5).
+
+---
+
+## 15. S43 slice 3 DELIVERED (2026-11-22): the WHERE_GROUPBY consumption — the 2.11 trio green
+
+**The C contract decoded** (bestindexF's 2.11 module + where.c): for
+`SELECT DISTINCT a, count(*) FROM t1 GROUP BY a` on a vtab, the planner
+offers the GROUP BY's terms as the ordering candidates (select.c:8615's
+WhereBegin passes pGroupBy with WHERE_GROUPBY), the module consumes
+(orderby 1, the idxStr = {"" ORDER BY ((a+2)%5)}), and the aggregate
+runs STREAMING over the consumed order — no sorter, the rows delivered
+in the scan order (select.c:8720's GroupByOrder cancellation).
+
+**Three engine changes**:
+1. **The WHERE_GROUPBY parity** (vtabOrderByTerms): the GROUP BY's terms
+   are the ordering candidates offered to xBestIndex for aggregate scans
+   (where.c:1519-1521's eDistinct = 1 when the GROUP BY's terms are the
+   offered ordering). vtabDistinctHint's precedence fixed: the GROUP BY
+   → 1, beating the plain DISTINCT's 2 (both → the GROUP BY wins per
+   where.c:1521's branch).
+2. **The consumed-order signal** (VtabScanOptions.GroupByOrderConsumed +
+   the engine's vtabGroupByOrderConsumed): readVtabWithBestIndexPlan
+   fills the pointer when ii.OrderByConsumed; the single-vtab
+   materialization site propagates it to the statement's execution.
+3. **The streaming aggregate** (select_agg.go's group phase): the group
+   phase PRESERVES the scan order (partitionByGroupKey's first-seen
+   keyOrder) instead of re-sorting the keys when the ORDER BY was
+   consumed — select.c:8720's GroupByOrder cancellation parity.
+
+**The gates**: the 2.11 trio GREEN (2.11.0's IdxInsert via the slice-2
+flat-vm fix; 2.11.1's idxStr via the hint precedence; 2.11.2's delivery
+via the streaming aggregate); bestindexF 17 → **11**; bestindexE 6,
+bestindex1 2, bestindex6 0, where/where2/select/the generator families =
+the baseline. The FULL gate = this section's commit gate.
