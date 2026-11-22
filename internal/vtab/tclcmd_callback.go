@@ -10,7 +10,60 @@ import (
 func moduleCommandWords(argument string) []string {
 	argument = strings.TrimSpace(argument)
 	argument = strings.Trim(argument, `"'`)
-	return tclWords(argument)
+	// TCL word segmentation with BRACED SPANS PRESERVED AS SINGLE WORDS
+	// ({a b c} → one word "a b c"): the CREATE's module args are TCL
+	// words (C's xCreate receives the argument list as individual
+	// words), and the module's list arguments (bestindexE's
+	// lCol = {a b c}) must arrive as ONE proc parameter or the callback
+	// params misbind ($method becomes a list element).
+	var words []string
+	var cur strings.Builder
+	depth := 0
+	inWord := false
+	flush := func() {
+		if inWord {
+			words = append(words, cur.String())
+			cur.Reset()
+			inWord = false
+		}
+	}
+	for i := 0; i < len(argument); i++ {
+		c := argument[i]
+		switch {
+		case depth > 0:
+			if c == '{' {
+				depth++
+			} else if c == '}' {
+				depth--
+			}
+			if depth > 0 {
+				cur.WriteByte(c)
+			} else {
+				flush()
+			}
+		case c == '{':
+			depth++
+			inWord = true
+		case c == '"' || c == '\'':
+			q := c
+			inWord = true
+			cur.WriteByte(c)
+			for i+1 < len(argument) {
+				i++
+				cur.WriteByte(argument[i])
+				if argument[i] == q {
+					break
+				}
+			}
+		case c == ' ' || c == '\t' || c == '\n' || c == '\r':
+			flush()
+		default:
+			inWord = true
+			cur.WriteByte(c)
+		}
+	}
+	flush()
+	return words
 }
 
 func (v *tclCmdVTab) BestIndexPlan(info *IndexInfo) error {

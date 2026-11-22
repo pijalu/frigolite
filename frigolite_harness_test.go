@@ -4423,7 +4423,7 @@ func TestSQLiteSuite(t *testing.T) {
 							continue
 						}
 						if step.Type == "register_tcl_module" {
-							runtime := newHarnessTclCallbackRuntime(step, execDB)
+							runtime := newHarnessTclCallbackRuntime(step, execDB, runtimeVars)
 							execDB.RegisterVtabModule("tcl", vtab.NewTclCommandModuleWithRuntime(runtime))
 							continue
 						}

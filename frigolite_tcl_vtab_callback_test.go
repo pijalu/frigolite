@@ -2,6 +2,7 @@ package frigolite
 
 import (
 	"fmt"
+	"os"
 	"strconv"
 	"strings"
 	"testing"
@@ -14,14 +15,29 @@ type harnessTclCallbackRuntime struct {
 	interp *tcl.Interp
 	db     *DB
 	procs  map[string]callbackProc
+	// runtimeVars is the harness's per-test runtime variable set: the
+	// callbacks' global writes (bestindexE's ::xBestIndex, bestindexF's
+	// ::vtab_orderby/::vtab_distinct) round-trip through it — pushed in
+	// before each callback invocation and pulled back out after (the S25
+	// NotifyScriptVarTargets pattern; rtgeomBoxFixture.syncVars's
+	// precedent).
+	runtimeVars map[string]string
+	targets     []string
 }
 
-func newHarnessTclCallbackRuntime(step TestStep, db *DB) *harnessTclCallbackRuntime {
-	runtime := &harnessTclCallbackRuntime{interp: tcl.NewInterp(), db: db, procs: make(map[string]callbackProc)}
+func newHarnessTclCallbackRuntime(step TestStep, db *DB, runtimeVars map[string]string) *harnessTclCallbackRuntime {
+	runtime := &harnessTclCallbackRuntime{interp: tcl.NewInterp(), db: db, procs: make(map[string]callbackProc), runtimeVars: runtimeVars, targets: []string{}}
 	procs := make([]tcl.Proc, 0, len(step.CallbackProcs))
+	seen := make(map[string]bool)
 	for _, proc := range step.CallbackProcs {
 		runtime.procs[proc.Name] = proc
 		procs = append(procs, tcl.Proc{Name: proc.Name, Args: proc.Args, Body: proc.Body})
+		for _, name := range tcl.NotifyScriptVarTargets(proc.Body) {
+			if !seen[name] {
+				seen[name] = true
+				runtime.targets = append(runtime.targets, name)
+			}
+		}
 	}
 	runtime.interp.LoadProcedures(procs)
 	runtime.interp.RegisterCallbackCommand("db", func(args []string) (string, error) {
@@ -84,9 +100,23 @@ func (r *harnessTclCallbackRuntime) invoke(proc string, moduleArgs []string, arg
 	if _, ok := r.procs[proc]; !ok {
 		return "", fmt.Errorf("invalid command name %q", proc)
 	}
+	// Push the tracked globals' present runtime values in, run the
+	// callback, pull the written values back out (the S25 round trip —
+	// rtgeomBoxFixture.syncVars's precedent).
+	for _, name := range r.targets {
+		if value, ok := r.runtimeVars[name]; ok {
+			r.interp.SetVariable(name, value)
+		}
+	}
 	callArgs := append([]string(nil), moduleArgs...)
 	callArgs = append(callArgs, args...)
-	return r.interp.InvokeProcedure(proc, callArgs...)
+	result, err := r.interp.InvokeProcedure(proc, callArgs...)
+	for _, name := range r.targets {
+		if value, ok := r.interp.Variable(name); ok {
+			r.runtimeVars[name] = value
+		}
+	}
+	return result, err
 }
 
 func (r *harnessTclCallbackRuntime) Query(sql string) ([][]interface{}, []int64, error) {
@@ -191,7 +221,8 @@ func TestTclCallbackVirtualTableJoinRows(t *testing.T) {
 	}
 	defer db.Close()
 	step := TestStep{CallbackProcs: []callbackProc{{Name: "callback", Args: []string{"method", "args"}, Body: `switch -- $method {xConnect {return "CREATE TABLE t1(PrimaryKey,flagA,columnA)"} xBestIndex {return [list idxstr {SELECT rowid,* FROM t1}]} xFilter {return [list sql [lindex $args 1]]}}; return {}`}}}
-	runtime := newHarnessTclCallbackRuntime(step, db)
+	runtimeVars := make(map[string]string)
+	runtime := newHarnessTclCallbackRuntime(step, db, runtimeVars)
 	db.RegisterVtabModule("tcl", vtab.NewTclCommandModuleWithRuntime(runtime))
 	if result := db.Exec("CREATE TABLE t1(i INTEGER PRIMARY KEY, flagA, columnA); INSERT INTO t1 VALUES(1,0,'A'); INSERT INTO t1 VALUES(2,0,'B'); CREATE VIRTUAL TABLE va USING tcl(callback); CREATE VIRTUAL TABLE vb USING tcl(callback);"); result.Error != nil {
 		t.Fatal(result.Error)
@@ -233,7 +264,7 @@ func TestHarnessTclCallbackRuntimeDBOne(t *testing.T) {
 		t.Fatal(result.Error)
 	}
 	step := TestStep{CallbackProcs: []callbackProc{{Name: "vtab_command", Args: []string{"src", "method", "args"}, Body: `switch -- $method {xConnect {return [db one {SELECT sql FROM sqlite_master WHERE name=$src}]}}`}}}
-	runtime := newHarnessTclCallbackRuntime(step, db)
+	runtime := newHarnessTclCallbackRuntime(step, db, make(map[string]string))
 	got, err := runtime.Connect("vtab_command", []string{"t1"})
 	if err != nil || got != "CREATE TABLE t1(id int, value text)" {
 		t.Fatalf("xConnect schema = %q, %v", got, err)
@@ -242,7 +273,7 @@ func TestHarnessTclCallbackRuntimeDBOne(t *testing.T) {
 
 func TestHarnessTclCallbackRuntimeXConnect(t *testing.T) {
 	step := TestStep{CallbackProcs: []callbackProc{{Name: "callback", Args: []string{"method", "args"}, Body: `switch -- $method {xConnect {return "CREATE TABLE t1(a,b,c)"}}; return {}`}}}
-	runtime := newHarnessTclCallbackRuntime(step, nil)
+	runtime := newHarnessTclCallbackRuntime(step, nil, make(map[string]string))
 	got, err := runtime.Connect("callback", nil)
 	if err != nil || got != "CREATE TABLE t1(a,b,c)" {
 		t.Fatalf("xConnect = %q, %v", got, err)

@@ -28,6 +28,15 @@ type VtabScanOptions struct {
 	TableName     string
 	OuterRow      RowMap
 	JoinPlanAware *bool // materializer reports whether instance implements PlanBestIndexer
+	// LeftJoinInner marks the scan as the INNER side of a LEFT JOIN: the
+	// WHERE's IS/IS-NULL terms anchored on the scan's own table are the
+	// LEFT JOIN's null-row match tests and must NOT be offered to
+	// xBestIndex (where.c:1453's TERM_VNULL skip — the term stays in the
+	// residual WHERE so the row matching is unchanged; measured against
+	// the oracle on bestindex6-1.2/1.3: C's clist holds only the ON
+	// constraint, so the proc's %iCons% placeholder indexes line up with
+	// the compact xFilter argv).
+	LeftJoinInner bool
 	MaxRows       int64 // -1 = unlimited
 	// Residual, when non-nil, is filled in by the materializer with the
 	// WHERE clause that remains after constraints the virtual table consumed
@@ -396,11 +405,11 @@ type SelectEngine struct {
 	// name memo's entry cap. The resolved slot list is read-only after build
 	// and shared across statements — the per-statement output row copies the
 	// values out.
-	bareRefPlanFP     uint64
-	bareRefPlanMemo   map[bareRefPlanKey][]int
-	cteScopes         [][]sql.CTEDef           // CTE scopes from enclosing statements (innermost last)
-	resolvingCTEs     map[*sql.SelectStmt]bool // CTE bodies currently being resolved (circular reference detection); keyed by the CTE body AST so a same-named inner WITH shadow is a different CTE
-	currentScanTable  string                   // table name being scanned (for qualified column resolution)
+	bareRefPlanFP    uint64
+	bareRefPlanMemo  map[bareRefPlanKey][]int
+	cteScopes        [][]sql.CTEDef           // CTE scopes from enclosing statements (innermost last)
+	resolvingCTEs    map[*sql.SelectStmt]bool // CTE bodies currently being resolved (circular reference detection); keyed by the CTE body AST so a same-named inner WITH shadow is a different CTE
+	currentScanTable string                   // table name being scanned (for qualified column resolution)
 	// forceScanRowMaps makes selectNeedsRowMapsCached answer true: the join
 	// base-seek reuses the single-table seek executors on a statement copy
 	// whose Joins slice is stripped (their shape gates), but the join
@@ -433,12 +442,12 @@ type SelectEngine struct {
 	// set it (the correlated-bound check keeps its conservative fallback).
 	stmtOperandTokens []string
 	stmtOperandCols   map[string]bool
-	resolvingViews    map[string]bool          // tracks views currently being resolved (circular reference detection)
-	viewRefCounts     map[string]int           // FROM-term references per view within one statement (select.c Table.nTabRef, 0xffff cap)
-	viewRefDepth      int                      // >0 while a top-level SELECT using view reference counting is executing
-	schemaPin         *DatabaseContext         // view-body name resolution pin
-	expandingTempView bool                     // expanding a TEMP-schema view body
-	expandingView     bool                     // expanding any view body
+	resolvingViews    map[string]bool  // tracks views currently being resolved (circular reference detection)
+	viewRefCounts     map[string]int   // FROM-term references per view within one statement (select.c Table.nTabRef, 0xffff cap)
+	viewRefDepth      int              // >0 while a top-level SELECT using view reference counting is executing
+	schemaPin         *DatabaseContext // view-body name resolution pin
+	expandingTempView bool             // expanding a TEMP-schema view body
+	expandingView     bool             // expanding any view body
 	// derivedScope is set while executing the body of a parenthesized JOIN
 	// group / derived table (parse.y "LP seltablist RP" → SF_NestedFrom).
 	// Those subqueries are non-lateral: expressions inside — including TVF

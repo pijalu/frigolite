@@ -522,3 +522,5 @@ project-wide fixture/converter alignment task, CARDED separately from
 S43. The blanket regen was reverted; the bestindex families keep the
 stale fixtures until that card runs (bestindexE's 1.2.2/2.1.2/2.2.2
 accumulation leaves need the regen's runtime_var_reset steps).
+
+**The slice's FULL gate** (/tmp/s43_gate2.log, 1122.9s): the wins = bestindex6-1.2/1.3, bestindexE-1.1.2 (+ temptable2-4.1.1/where2-2.4's benign draws); the 67 NEWs = ALL avtrans — **the draw-dependent flake class**: the fixture's case names carry `$::sig` (the DB checksum) and EVERY sig matched the previous gates exactly (the DB state deterministic), but the t3 workload's `INSERT ... SELECT randstr(10,400)` / `random()%10` are UNSEEDED — this gate's draw hit a "database disk image is malformed" in setup_17 that cascades through the 9.x cases; isolated runs pass 6/6. Same class as the resetdb load flap (TODO watchlist); the malformation itself = a real AV-machinery residue bug to chase in its own unit, not a btree-density or vtab matter. The slice's identity = the three GONEs with zero non-avtrans NEWs.

@@ -49,6 +49,23 @@ func BuildVtabIndexInfoWithInstance(opts *VtabScanOptions, tableName string, col
 
 	cols := newVtabColumnIndex(columnNames)
 	whereConjuncts := vtabWhereConjuncts(opts.Where)
+	if opts.LeftJoinInner {
+		// The LEFT JOIN's null-row match tests on the scan's own table are
+		// not offered to xBestIndex (where.c:1453's TERM_VNULL skip): the
+		// term stays in the residual WHERE so the row matching is
+		// unchanged, and the offered list keeps C's shape (the oracle on
+		// bestindex6-1.2/1.3: the clist holds only the ON constraint, so
+		// the proc's %iCons% placeholder indexes line up with the compact
+		// xFilter argv).
+		filtered := whereConjuncts[:0]
+		for _, conjunct := range whereConjuncts {
+			if vtabLeftJoinNullMatch(conjunct, tableName, cols) {
+				continue
+			}
+			filtered = append(filtered, conjunct)
+		}
+		whereConjuncts = filtered
+	}
 	joinConjuncts := vtabWhereConjuncts(opts.JoinOn)
 	conjuncts := append(append([]sql.Expr(nil), whereConjuncts...), joinConjuncts...)
 	b := newVtabPlanBuilder(ii, len(conjuncts), opts.OuterRow)

@@ -574,6 +574,9 @@ func (e *SelectEngine) materializeVirtualTableJoin(s *sql.SelectStmt, join sql.J
 		opts.TableName = tableName
 		opts.OuterRow = outer
 		opts.Residual = &residual
+		if strings.EqualFold(join.JoinType, "LEFT") {
+			opts.LeftJoinInner = true
+		}
 		if join.On != nil {
 			opts.JoinPlanAware = &callPlanAware
 		}

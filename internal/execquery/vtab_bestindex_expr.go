@@ -185,6 +185,32 @@ func vtabWhereConjuncts(where sql.Expr) []sql.Expr {
 	return []sql.Expr{where}
 }
 
+// vtabLeftJoinNullMatch reports whether conjunct is the LEFT JOIN's
+// null-row match test anchored on the scan's own table: <own column>
+// IS NULL, or <own column> IS <expr> whose right side is a NULL literal or
+// an unbound parameter (the oracle's bestindex6-1.2/1.3 shapes — C's
+// clist omits both).
+func vtabLeftJoinNullMatch(conjunct sql.Expr, tableName string, cols vtabColumnIndex) bool {
+	switch t := skipVtabCollate(conjunct).(type) {
+	case *sql.IsNull:
+		_, ok := cols.resolve(t.Operand, tableName)
+		return ok
+	case *sql.BinaryOp:
+		if !strings.EqualFold(t.Operator, "IS") {
+			return false
+		}
+		if _, ok := cols.resolve(t.Left, tableName); !ok {
+			return false
+		}
+		switch skipVtabCollate(t.Right).(type) {
+		case *sql.NullLit, *sql.ParameterExpr:
+			return true
+		}
+		return false
+	}
+	return false
+}
+
 // vtabUsable reports whether a constraint's value side can be evaluated
 // before the scan starts: none of its expressions contains a column
 // reference at all (constant, parameter, or uncorrelated subquery —

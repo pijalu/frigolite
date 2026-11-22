@@ -713,13 +713,24 @@ func (i *Interp) substituteNamedVar(s string, pos int, localVars map[string]stri
 	return next, val, ok
 }
 
-// readVarName scans a TCL variable name at s[pos] (letters/digits/_/: and an
-// optional (array) element suffix), returning the name and the position after
-// it.
+// readVarName scans a TCL variable name at s[pos] (letters/digits/_ and the
+// :: namespace separators, plus an optional (array) element suffix),
+// returning the name and the position after it. A SINGLE colon terminates
+// the name (TCL's $-expansion: "$zName: [join ...]" reads zName, not
+// "zName:" — the bare ':' is not a name character, only '::' is).
 func (i *Interp) readVarName(s string, pos int, localVars map[string]string) (string, int) {
 	start := pos
-	for pos < len(s) && (unicode.IsLetter(rune(s[pos])) || unicode.IsDigit(rune(s[pos])) || s[pos] == '_' || s[pos] == ':') {
-		pos++
+	for pos < len(s) {
+		ch := s[pos]
+		if unicode.IsLetter(rune(ch)) || unicode.IsDigit(rune(ch)) || ch == '_' {
+			pos++
+			continue
+		}
+		if ch == ':' && pos+1 < len(s) && s[pos+1] == ':' {
+			pos += 2
+			continue
+		}
+		break
 	}
 	varName := s[start:pos]
 	// Handle array element: $var(arr). Array indexes may contain nested
