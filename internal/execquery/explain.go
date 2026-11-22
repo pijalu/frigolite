@@ -426,7 +426,11 @@ func (e *SelectEngine) planSortNodes(tables []queryTable, s *sql.SelectStmt, loo
 	if len(s.GroupBy) > 0 && !e.sortCoveredByIndex(tables, s, groupByCols(s)) {
 		nodes = append(nodes, planNode{detail: "USE TEMP B-TREE FOR GROUP BY"})
 	}
-	if s.Distinct && !e.sortCoveredByIndex(tables, s, distinctCols(s)) {
+	if s.Distinct && len(s.GroupBy) == 0 && !loop.vtabOrderConsumed && !e.sortCoveredByIndex(tables, s, distinctCols(s)) {
+		// The vtab's consumed ORDER BY (= the WHERE_DISTINCTBY offering:
+		// the DISTINCT's own columns) satisfies the DISTINCT's dedup — the
+		// temp node is suppressed (where.c's orderByConsumed parity for
+		// the DISTINCT scans, bestindexF's 2.3.0: the want's IdxInsert = 0).
 		nodes = append(nodes, planNode{detail: "USE TEMP B-TREE FOR DISTINCT"})
 	}
 	return nodes

@@ -444,6 +444,7 @@ func (e *SelectEngine) vtabScanOptions(s *sql.SelectStmt) VtabScanOptions {
 		GroupBy:        s.GroupBy,
 		Having:         s.Having,
 		Distinct:       s.Distinct,
+		DistinctCols:   vtabDistinctColumns(s),
 		HasAggregate:   e.hasAggregate(s),
 		Limit:          s.Limit,
 		Offset:         s.Offset,

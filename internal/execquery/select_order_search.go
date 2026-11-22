@@ -43,6 +43,11 @@ type scanLoop struct {
 	conditions    string // constraint text (loopIndex) or the full SEARCH node (loopIPK)
 	bestEst       float64
 	nRow          float64
+	// vtabOrderConsumed marks the vtab scan whose ORDER BY the module
+	// consumed (orderByConsumed): the rows arrive in the consumed order, so
+	// the ORDER BY/DISTINCT temp nodes the consumption satisfies are
+	// suppressed (where.c orderByConsumed parity).
+	vtabOrderConsumed bool
 }
 
 // scanLoopForQuery computes the single-table scan loop: the skip-scan, INTEGER

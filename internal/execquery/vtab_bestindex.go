@@ -454,6 +454,21 @@ func vtabPlainOrderBy(opts *VtabScanOptions, cols vtabColumnIndex, tableName str
 // (KEYINFO_ORDER_BIGNULL: NULLS LAST under ASC, NULLS FIRST under DESC)
 // does the same, because virtual tables cannot honor it. Returns nil when
 // the terms do not qualify.
+// vtabDistinctColumns returns the DISTINCT's select-list expressions (the
+// WHERE_DISTINCTBY parity's ordering candidates).
+func vtabDistinctColumns(s *sql.SelectStmt) []sql.Expr {
+	if !s.Distinct {
+		return nil
+	}
+	out := make([]sql.Expr, 0, len(s.Columns))
+	for _, c := range s.Columns {
+		if c.Expr != nil {
+			out = append(out, c.Expr)
+		}
+	}
+	return out
+}
+
 func vtabOrderByTerms(opts *VtabScanOptions, tableName string, columnNames []string) []vtab.IndexOrderBy {
 	// WHERE_GROUPBY parity (select.c:8615's WhereBegin passes pGroupBy as
 	// the ordering list): the GROUP BY's terms are the ordering candidates
@@ -461,6 +476,33 @@ func vtabOrderByTerms(opts *VtabScanOptions, tableName string, columnNames []str
 	// requires each group to arrive contiguously, not a full sort (where.c
 	// marks it with WHERE_GROUPBY and wherePathSatisfiesOrderBy skips the
 	// ASC/DESC checks for it).
+	// WHERE_DISTINCTBY parity (select.c:8616's WhereBegin passes pDistinct
+	// as the ordering list): the DISTINCT's own select-list columns are the
+	// ordering candidates for the DISTINCT scans without a statement ORDER
+	// BY (bestindexF's 2.3/2.4/2.5: the module's idxStr carries the ORDER BY
+	// the module applies in xFilter).
+	if len(opts.OrderBy) == 0 && opts.Distinct && len(opts.GroupBy) == 0 && len(opts.DistinctCols) > 0 {
+		cols := newVtabColumnIndex(columnNames)
+		var out []vtab.IndexOrderBy
+		for _, term := range opts.DistinctCols {
+			if isVtabConstExpr(term) {
+				continue
+			}
+			colExpr, collateName, ok := vtabOrderColumn(term)
+			if !ok {
+				return nil
+			}
+			col, ok := cols.resolve(colExpr, tableName)
+			if !ok {
+				return nil
+			}
+			if collateName != "" && col >= 0 && !strings.EqualFold(collateName, "BINARY") {
+				return nil
+			}
+			out = append(out, vtab.IndexOrderBy{Column: col})
+		}
+		return out
+	}
 	if len(opts.OrderBy) == 0 && len(opts.GroupBy) > 0 {
 		cols := newVtabColumnIndex(columnNames)
 		var out []vtab.IndexOrderBy
@@ -516,14 +558,24 @@ func vtabOrderByTerms(opts *VtabScanOptions, tableName string, columnNames []str
 // scan. (SQLite's 2+WHERE_SORTBYGROUP state and the rowidUsed guard are not
 // modeled.)
 func vtabDistinctHint(opts *VtabScanOptions) int {
-	// where.c:1519-1521's eDistinct rule: a GROUP BY's terms offered as the
-	// ordering candidates → 1 (the consumption only requires the groups
-	// contiguous); the plain DISTINCT's own ordering → 2; both → the
-	// GROUP BY wins (the DISTINCT's dedup rides on the grouping).
+	// The empirical sqlite3_vtab_distinct mapping (bestindexF's baked wants:
+	// the 2.3/2.4/2.5/2.8 cases):
+	// - the GROUP BY's terms offered as the ordering candidates (the
+	//   WHERE_GROUPBY parity) → 1 (the consumption only requires the groups
+	//   contiguous);
+	// - the DISTINCT without a statement ORDER BY → 2 (the WHERE_DISTINCTBY
+	//   parity: the DISTINCT's own select-list columns are the offered
+	//   ordering, the vacuous match for the empty ordering);
+	// - the DISTINCT with a statement ORDER BY → 3 (the ordering + the
+	//   DISTINCT's dedup both signaled);
+	// - otherwise 0.
 	if len(opts.GroupBy) > 0 {
 		return 1
 	}
 	if opts.Distinct {
+		if len(opts.OrderBy) > 0 {
+			return 3
+		}
 		return 2
 	}
 	return 0

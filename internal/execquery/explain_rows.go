@@ -222,6 +222,22 @@ func (e *SelectEngine) emitScanRows(prog *explainProgram, detail string) {
 // sorter cursor opens first (C opens it before the scan cursors), one key
 // input row per sort term, the insert/sort/data/next loop.
 func (e *SelectEngine) emitSorterRows(prog *explainProgram, terms []sql.Expr, group bool) {
+	if group && e.vtabExplainOrderConsumed {
+		// The GROUP BY over a consumed ORDER BY (the WHERE_GROUPBY parity):
+		// C's streaming aggregate groups through the ephemeral index — no
+		// sorter is opened (bestindexF's 2.11 helper errors on SorterSort;
+		// the want's IdxInsert = the ephemeral index's group-key insert).
+		prog.emit("OpenEphemeral", 1, 0, 0, "k(1,B)", 0, "")
+		for _, term := range terms {
+			if cr, ok := term.(*sql.ColumnRef); ok {
+				prog.emit("Column", 0, 0, 2, "", 0, "r[2]=cursor 0 column "+cr.Name)
+			}
+		}
+		prog.emit("MakeRecord", 0, 2, 6, "", 0, "r[6]=key")
+		prog.emit("IdxInsert", 1, 6, 1, "", 16, "key=r[2]")
+		prog.emit("Found", 1, 0, 0, "", 0, "")
+		return
+	}
 	prog.emit("SorterOpen", 2, 5, 0, "k(1,B)", 0, "")
 	for _, term := range terms {
 		if fn := sortTermFunction(term); fn != "" {

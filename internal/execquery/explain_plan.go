@@ -24,7 +24,7 @@ func (e *SelectEngine) planSingleTable(t queryTable, s *sql.SelectStmt) (string,
 	// "VIRTUAL TABLE INDEX" rendering) before any b-tree index logic; a vtab
 	// has no indexes of its own.
 	if plan := e.vtabExplainPlan(t, s); plan != "" {
-		return plan, scanLoop{kind: loopVtab}
+		return plan, scanLoop{kind: loopVtab, vtabOrderConsumed: e.vtabExplainOrderConsumed}
 	}
 	loop := e.scanLoopForQuery(t, s, true)
 	switch loop.kind {
@@ -81,6 +81,7 @@ func (e *SelectEngine) vtabExplainPlan(t queryTable, s *sql.SelectStmt) string {
 	e.explainVtabBusy = true
 	err := vtabBestIndexPlan(ii, vt)
 	e.explainVtabBusy = false
+	e.vtabExplainOrderConsumed = ii.OrderByConsumed
 	if err != nil {
 		return fmt.Sprintf("SCAN %s", t.display)
 	}

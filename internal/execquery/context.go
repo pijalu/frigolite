@@ -28,6 +28,11 @@ type VtabScanOptions struct {
 	TableName     string
 	OuterRow      RowMap
 	JoinPlanAware *bool // materializer reports whether instance implements PlanBestIndexer
+	// DistinctCols holds the DISTINCT's select-list expressions (where.c's
+	// pDistinct): the WHERE_DISTINCTBY parity offers them as the ordering
+	// candidates to xBestIndex for the DISTINCT scans without a statement
+	// ORDER BY (select.c:8616's WhereBegin passes pDistinct).
+	DistinctCols []sql.Expr
 	// GroupByOrderConsumed, when non-nil, is filled by the vtab scan when
 	// its ORDER BY was consumed (the WHERE_GROUPBY parity: the offered
 	// terms are the GROUP BY's) — the aggregate scan delivers the rows in
@@ -584,6 +589,9 @@ type SelectEngine struct {
 	// must not execute SQL); a nested EQP request during the plan call
 	// degrades to the plain SCAN fallback instead of recursing.
 	explainVtabBusy bool
+	// vtabExplainOrderConsumed: the last explain-path xBestIndex's
+	// OrderByConsumed (the vtab node's loop flag reads it right after).
+	vtabExplainOrderConsumed bool
 	// vtabGroupByOrderConsumed: the statement's vtab scan consumed its
 	// ORDER BY (= the GROUP BY's terms, the WHERE_GROUPBY parity), so the
 	// aggregate group phase preserves the scan order (the streaming
