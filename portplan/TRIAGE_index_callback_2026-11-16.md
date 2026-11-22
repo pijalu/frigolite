@@ -427,3 +427,39 @@ fixture's vtab-naming (xConnect's $src) needs the same cross-check.
    trip around every callback.
 5. The distinct/orderby consumption (bestindexF 2.x.2 ×10 + 1.4.1) and
    bestindexE 3.x's named-read module registration.
+
+---
+
+## 11. S43 SLICE 1 DELIVERED (2026-11-22): bestindex6-1.2/1.3 GONE — the left-join null-match exclusion
+
+**The oracle cross-check settled both open questions from section 10**:
+1. The returned SQL's `FROM t1` is CORRECT — the fixture's
+   `CREATE VIRTUAL TABLE vt1 USING tcl(vtab_command t1)` passes the
+   SOURCE table as the module arg, so xConnect's `$src` and xFilter's
+   `FROM $src` legitimately target t1 (the "naming mystery" dissolved).
+2. **C's xFilter argv is COMPACT** (aa len=1 for one consumed
+   constraint) — section 10's index-aligned-with-NULL-gaps hypothesis was
+   WRONG. The real divergence: **C's clist holds only the ON constraint**
+   (c0: op=eq col=0 usable=1) while ours offered TWO (the WHERE's
+   `vt1.value IS NULL`/`IS $xxx` as c0, shifting the proc's %iCons%
+   placeholder to %1% past our one-slot argv). The WHERE's IS-NULL/IS
+   forms on the scan's own table are the LEFT JOIN's null-row match tests
+   and never reach C's clist (where.c:1453's TERM_VNULL skip — the
+   oracle measured both 1.2's IS NULL and 1.3's IS $xxx excluded).
+
+**The fix** (internal/execquery): VtabScanOptions.LeftJoinInner (set at
+select_join.go's vtab site from join.JoinType) + BuildVtabIndexInfoWithInstance's
+exclusion of the null-match conjuncts (vtabLeftJoinNullMatch: <own column>
+IS NULL, or <own column> IS a NULL literal / unbound parameter). The term
+stays in the residual WHERE so the row matching is unchanged.
+
+**The gates**: bestindex6 2→0; the bestindex universe 29→27 (NEW=0);
+tabfunc/series/wholenumber/generate/index9 all green. The FULL-suite gate
+runs as this section's commit gate.
+
+**The updated slice order**: the next cuts are bestindex1-4.1 (the
+skip-map entry, 1 line), the vtab IN-constraint loop
+(bestindex1-3.4/3.5, wherecode.c:1598-1610), the xBestIndex-global
+push/pull (bestindexF 2.x.1 ×10 + bestindexE ×4 — the S25
+NotifyScriptVarTargets pattern), distinct/orderby consumption
+(bestindexF 2.x.2 ×10 + 1.4.1), bestindexE 3.x's named reads.
