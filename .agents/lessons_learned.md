@@ -2276,3 +2276,23 @@ everywhere; go vet + go build clean.
   rows — a broken divider is invisible to the data path until a seek
   crosses it). Any probe that measures page shape must assert
   PRAGMA integrity_check = ok in the same run.
+- **The balance window's right sibling is CELL k+1's child** (or the
+  parent's rightmost when the page is the last cell's child): cell k
+  whose leftChild == the page is the page|right BOUNDARY DIVIDER and
+  points at the PAGE itself. Reading cell k's child as the right
+  sibling gathers the page TWICE — the merged window holds every entry
+  twice (the interleaved-duplicate signature) and the commit writes
+  duplicated subtrees. Fixed-in-draft; the lesson generalizes: a
+  window's boundary cell k separates child(k) from child(k+1).
+- **A window-redistribution's cut keys are not density-neutral**: they
+  replace the tail-split's dividers downstream, changing every later
+  split's medians — the whole tree's shape shifts. Both 3-old-sibling
+  attempts measured WORSE on the full probe set (structurally correct,
+  density-negative); evaluate window extensions on ALL probes and keep
+  the reverted tree if the metric regresses. The leaf 3-old's remaining
+  corruption (dup pairs whose page direct-decodes clean but order-ok
+  false) stays an open thread in the density plan doc.
+- **The probe's integrity_check line pays for itself**: the densprobe
+  caught two real corruptions (the ptrBase off-by-8, the vanishing
+  boundary entry) the data-path checks missed. Any shape-measuring
+  probe asserts PRAGMA integrity_check = ok in the same run.
