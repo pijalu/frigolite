@@ -2296,3 +2296,17 @@ everywhere; go vet + go build clean.
   caught two real corruptions (the ptrBase off-by-8, the vanishing
   boundary entry) the data-path checks missed. Any shape-measuring
   probe asserts PRAGMA integrity_check = ok in the same run.
+- **A vtab's LEFT-JOIN null-row match tests are NOT offered to
+  xBestIndex**: the WHERE's `<own column> IS NULL` / `IS <null-literal or
+  unbound parameter>` terms on the INNER side of a LEFT JOIN are the
+  join's row-matching semantics — where.c:1453's TERM_VNULL skip keeps
+  them out of the clist (oracle-measured on bestindex6-1.2/1.3: C's
+  clist holds only the ON constraint; the term stays in the residual
+  WHERE). Offering them shifts the proc's %iCons% placeholder indexing
+  past the compact xFilter argv and the module's template SQL keeps the
+  %N% markers ("near %: syntax error").
+- **The oracle-first cross-check resolves forensic loops in minutes**:
+  the section-10 restart note carried two wrong hypotheses (the
+  index-aligned argv; the vtab naming) that one instrumented testfixture
+  run (the procs' puts) disproved. For every vtab/planner divergence,
+  instrument the ORACLE's procs before theorizing about the engine.

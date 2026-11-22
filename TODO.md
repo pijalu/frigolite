@@ -238,9 +238,16 @@ portplan/baselines/s35g_gate_fails.txt.)
    2026-11-22 (2) handover). The remaining delta stays CARDED with the
    resumable lever; the unit's core (the spills, the husk elimination)
    is banked.
-3. **S42/S43** (TRIAGE_index_callback): the S41 residual surfaces
-   (trigger7-2.x sub-program rows, misc3-6.11, distinctagg 5), the
-   tcl-module completion (~34, bestindexF remainder).
+3. **S42/S43** (TRIAGE_index_callback): index9 = 0 (the explain_rows
+   work landed). S43 slice 1 DELIVERED (bestindex6 2→0 — the left-join
+   null-match exclusion, where.c:1453's TERM_VNULL parity; the oracle
+   settled the section-10 hypotheses). The bestindex residue = 27
+   (bestindexE 8, bestindexF 17, bestindex1 2). NEXT: bestindex1-4.1's
+   skip-map entry (1 line), the vtab IN-constraint loop
+   (bestindex1-3.4/3.5), the xBestIndex-global push/pull (bestindexF
+   2.x.1 ×10 + bestindexE ×4), distinct/orderby (bestindexF 2.x.2 ×10),
+   bestindexE 3.x's named reads; then the S41 residuals (trigger7-2.x
+   sub-program rows, misc3-6.11, distinctagg 5).
 4. **Carded converter classes**: expridx1 fossil 10, indexexpr2/3 11,
    e_expr regen drift/callbackVars, A2/A9 engine slices, the fts3*
    residue ~53.
