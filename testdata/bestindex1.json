@@ -7,14 +7,20 @@
       "name": "setup_0",
       "steps": [
         {
+          "type": "runtime_expr",
+          "sql": "file dirname $argv0",
+          "variable": "testdir"
+        },
+        {
           "type": "register_tcl_module",
           "callbackVars": {
             "": "bestindex1",
             "SQLITE_MAX_ATTACHED": "10",
             "SQLITE_MAX_COLUMN": "2000",
             "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_PAGE_SIZE": "65536",
             "SQLITE_MAX_VARIABLE_NUMBER": "32766",
-            "testdir": "",
+            "testdir": "$testdir",
             "testprefix": "bestindex1"
           },
           "callbackProcs": [
@@ -73,7 +79,7 @@
     },
     {
       "name": "__RESET_DB__",
-      "steps": null
+      "steps": []
     },
     {
       "name": "setup_1",
@@ -85,8 +91,9 @@
             "SQLITE_MAX_ATTACHED": "10",
             "SQLITE_MAX_COLUMN": "2000",
             "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_PAGE_SIZE": "65536",
             "SQLITE_MAX_VARIABLE_NUMBER": "32766",
-            "testdir": "",
+            "testdir": "$testdir",
             "testprefix": "bestindex1"
           },
           "callbackProcs": [
@@ -175,6 +182,26 @@
       ]
     },
     {
+      "name": "setup_2",
+      "steps": [
+        {
+          "type": "runtime_expr",
+          "sql": "\"\n    QUERY PLAN\n    |--SCAN t1 VIRTUAL TABLE INDEX 0:SELECT * FROM t1x WHERE a='%1%'\n    `--USE TEMP B-TREE FOR ORDER BY\n  \"",
+          "variable": "plan(use)"
+        },
+        {
+          "type": "runtime_expr",
+          "sql": "\"\n    QUERY PLAN\n    |--SCAN t1 VIRTUAL TABLE INDEX 0:SELECT * FROM t1x WHERE a='%1%'\n    `--USE TEMP B-TREE FOR ORDER BY\n  \"",
+          "variable": "plan(omit)"
+        },
+        {
+          "type": "runtime_expr",
+          "sql": "\"\n    QUERY PLAN\n    |--SCAN t1 VIRTUAL TABLE INDEX 0:SELECT * FROM t1x\n    `--USE TEMP B-TREE FOR ORDER BY\n  \"",
+          "variable": "plan(use2)"
+        }
+      ]
+    },
+    {
       "name": "bestindex1-2.2.use.6",
       "steps": [
         {
@@ -229,6 +256,26 @@
           "type": "query",
           "sql": "SELECT rowid FROM t1 WHERE a IN ('one', 'four') ORDER BY +rowid",
           "expect": "1 4"
+        }
+      ]
+    },
+    {
+      "name": "setup_3",
+      "steps": [
+        {
+          "type": "runtime_expr",
+          "sql": "\"\n    QUERY PLAN\n    |--SCAN t1 VIRTUAL TABLE INDEX 0:SELECT * FROM t1x WHERE a='%1%'\n    `--USE TEMP B-TREE FOR ORDER BY\n  \"",
+          "variable": "plan(use)"
+        },
+        {
+          "type": "runtime_expr",
+          "sql": "\"\n    QUERY PLAN\n    |--SCAN t1 VIRTUAL TABLE INDEX 0:SELECT * FROM t1x WHERE a='%1%'\n    `--USE TEMP B-TREE FOR ORDER BY\n  \"",
+          "variable": "plan(omit)"
+        },
+        {
+          "type": "runtime_expr",
+          "sql": "\"\n    QUERY PLAN\n    |--SCAN t1 VIRTUAL TABLE INDEX 0:SELECT * FROM t1x\n    `--USE TEMP B-TREE FOR ORDER BY\n  \"",
+          "variable": "plan(use2)"
         }
       ]
     },
@@ -291,6 +338,26 @@
       ]
     },
     {
+      "name": "setup_4",
+      "steps": [
+        {
+          "type": "runtime_expr",
+          "sql": "\"\n    QUERY PLAN\n    |--SCAN t1 VIRTUAL TABLE INDEX 0:SELECT * FROM t1x WHERE a='%1%'\n    `--USE TEMP B-TREE FOR ORDER BY\n  \"",
+          "variable": "plan(use)"
+        },
+        {
+          "type": "runtime_expr",
+          "sql": "\"\n    QUERY PLAN\n    |--SCAN t1 VIRTUAL TABLE INDEX 0:SELECT * FROM t1x WHERE a='%1%'\n    `--USE TEMP B-TREE FOR ORDER BY\n  \"",
+          "variable": "plan(omit)"
+        },
+        {
+          "type": "runtime_expr",
+          "sql": "\"\n    QUERY PLAN\n    |--SCAN t1 VIRTUAL TABLE INDEX 0:SELECT * FROM t1x\n    `--USE TEMP B-TREE FOR ORDER BY\n  \"",
+          "variable": "plan(use2)"
+        }
+      ]
+    },
+    {
       "name": "bestindex1-2.2.use2.6",
       "steps": [
         {
@@ -300,8 +367,23 @@
       ]
     },
     {
-      "name": "setup_2",
+      "name": "setup_5",
       "steps": [
+        {
+          "type": "runtime_expr",
+          "sql": "\"PrimaryKey flagA columnA\"",
+          "variable": "G(collist)"
+        },
+        {
+          "type": "runtime_expr",
+          "sql": "join $G(collist) ,",
+          "variable": "G(cols)"
+        },
+        {
+          "type": "runtime_expr",
+          "sql": "\"NULL\"",
+          "variable": "G(nulls)"
+        },
         {
           "type": "close_db"
         }
@@ -317,7 +399,7 @@
       ]
     },
     {
-      "name": "setup_3",
+      "name": "setup_6",
       "steps": [
         {
           "type": "reopen_db",
@@ -328,17 +410,18 @@
           "callbackVars": {
             "": "NULL",
             "G(collist)": "PrimaryKey flagA columnA",
-            "G(cols)": "PrimaryKey,flagA,columnA",
+            "G(cols)": "$G(cols)",
             "G(nulls)": "NULL",
             "SQLITE_MAX_ATTACHED": "10",
             "SQLITE_MAX_COLUMN": "2000",
             "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_PAGE_SIZE": "65536",
             "SQLITE_MAX_VARIABLE_NUMBER": "32766",
             "mode": "use2",
             "plan(omit)": "\n    QUERY PLAN\n    |--SCAN t1 VIRTUAL TABLE INDEX 0:SELECT * FROM t1x WHERE a='%1%'\n    `--USE TEMP B-TREE FOR ORDER BY\n  ",
             "plan(use)": "\n    QUERY PLAN\n    |--SCAN t1 VIRTUAL TABLE INDEX 0:SELECT * FROM t1x WHERE a='%1%'\n    `--USE TEMP B-TREE FOR ORDER BY\n  ",
             "plan(use2)": "\n    QUERY PLAN\n    |--SCAN t1 VIRTUAL TABLE INDEX 0:SELECT * FROM t1x\n    `--USE TEMP B-TREE FOR ORDER BY\n  ",
-            "testdir": "",
+            "testdir": "$testdir",
             "testprefix": "bestindex1",
             "tn": "3"
           },
@@ -374,7 +457,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "CREATE TABLE t1(PrimaryKey,flagA,columnA);\n  INSERT INTO t1 VALUES(1, 0, 'ValueA');\n  INSERT INTO t1 VALUES(2, 0, 'ValueA');\n  INSERT INTO t1 VALUES(3, 0, 'ValueB');\n  INSERT INTO t1 VALUES(4, 0, 'ValueB');"
+          "sql": "CREATE TABLE t1($G(cols));\n  INSERT INTO t1 VALUES(1, 0, 'ValueA');\n  INSERT INTO t1 VALUES(2, 0, 'ValueA');\n  INSERT INTO t1 VALUES(3, 0, 'ValueB');\n  INSERT INTO t1 VALUES(4, 0, 'ValueB');"
         }
       ]
     },
@@ -429,6 +512,10 @@
     {
       "name": "bestindex1-4.1",
       "steps": [
+        {
+          "type": "runtime_var_reset",
+          "variable": "bestindex_calls"
+        },
         {
           "type": "exec",
           "sql": "SELECT * FROM x1 WHERE a=? AND b BETWEEN ? AND ? AND c IN (1, 2, 3, 4);"

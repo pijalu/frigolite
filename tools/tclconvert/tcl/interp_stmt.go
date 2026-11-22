@@ -42,6 +42,58 @@ func NotifyScriptVarTargets(script string) []string {
 	return names
 }
 
+// ScriptVarReads lists the variables a callback script READS: the `global`
+// command's arguments plus every $name / $name(key) reference. The file-level
+// sets whose names appear here must reach the harness's runtime set before
+// the register snapshot (the callback bodies resolve them at invocation).
+func ScriptVarReads(script string) []string {
+	var names []string
+	seen := make(map[string]bool)
+	add := func(name string) {
+		name = strings.TrimSuffix(name, "(")
+		name = strings.TrimPrefix(name, "::")
+		if name == "" || seen[name] {
+			return
+		}
+		seen[name] = true
+		names = append(names, name)
+	}
+	fields := strings.Fields(script)
+	for i := 0; i < len(fields); i++ {
+		if fields[i] == "global" {
+			for j := i + 1; j < len(fields) && fields[j] != ";"; j++ {
+				add(fields[j])
+			}
+		}
+	}
+	for pos := 0; pos < len(script); pos++ {
+		if script[pos] != '$' {
+			continue
+		}
+		pos++
+		start := pos
+		for pos < len(script) {
+			ch := script[pos]
+			if ch >= 'a' && ch <= 'z' || ch >= 'A' && ch <= 'Z' || ch >= '0' && ch <= '9' || ch == '_' || ch == ':' {
+				pos++
+				continue
+			}
+			if ch == '(' {
+				pos++
+				for pos < len(script) && script[pos] != ')' {
+					pos++
+				}
+			}
+			break
+		}
+		if pos > start {
+			add(script[start:pos])
+		}
+		pos--
+	}
+	return names
+}
+
 // commandEnableSharedCache records the sqlite3_enable_shared_cache C-API
 // call (notify1.test's file-level setup): the harness toggles the
 // process-global shared-cache flag; connections opened after "1" join their

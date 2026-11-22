@@ -7,14 +7,20 @@
       "name": "setup_0",
       "steps": [
         {
+          "type": "runtime_expr",
+          "sql": "file dirname $argv0",
+          "variable": "testdir"
+        },
+        {
           "type": "register_tcl_module",
           "callbackVars": {
             "": "bestindexD",
             "SQLITE_MAX_ATTACHED": "10",
             "SQLITE_MAX_COLUMN": "2000",
             "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_PAGE_SIZE": "65536",
             "SQLITE_MAX_VARIABLE_NUMBER": "32766",
-            "testdir": "",
+            "testdir": "$testdir",
             "testprefix": "bestindexD"
           },
           "callbackProcs": [
@@ -56,12 +62,20 @@
       "name": "setup_1",
       "steps": [
         {
+          "type": "runtime_var_reset",
+          "variable": "colUsed"
+        },
+        {
           "type": "exec",
           "sql": "SELECT a FROM x1"
         },
         {
           "type": "exec",
           "sql": "EXPLAIN  SELECT a FROM x1"
+        },
+        {
+          "type": "runtime_var_reset",
+          "variable": "colUsed"
         },
         {
           "type": "exec",
@@ -72,12 +86,20 @@
           "sql": "EXPLAIN  SELECT a,c FROM x1"
         },
         {
+          "type": "runtime_var_reset",
+          "variable": "colUsed"
+        },
+        {
           "type": "exec",
           "sql": "SELECT b FROM x1"
         },
         {
           "type": "exec",
           "sql": "EXPLAIN  SELECT b FROM x1"
+        },
+        {
+          "type": "runtime_var_reset",
+          "variable": "colUsed"
         },
         {
           "type": "exec",
@@ -88,12 +110,20 @@
           "sql": "EXPLAIN  SELECT b FROM x1 WHERE c=?"
         },
         {
+          "type": "runtime_var_reset",
+          "variable": "colUsed"
+        },
+        {
           "type": "exec",
           "sql": "select 1 from t2 full join x1;"
         },
         {
           "type": "exec",
           "sql": "EXPLAIN \n  select 1 from t2 full join x1;"
+        },
+        {
+          "type": "runtime_var_reset",
+          "variable": "colUsed"
         },
         {
           "type": "exec",

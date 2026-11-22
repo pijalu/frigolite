@@ -2284,10 +2284,25 @@ func sqlSafeRuntimeValue(v string) string {
 	if v == "" {
 		return "''"
 	}
-	if isBareSQLToken(v) {
+	if isBareSQLToken(v) || isBareSQLTokenList(v) {
+		// Bare tokens and comma-separated bare-token lists land verbatim:
+		// C builds SQL by string interpolation (bestindex1's
+		// "CREATE TABLE t1($G(cols))" — the column list must stay a bare
+		// identifier list, not one quoted name).
 		return v
 	}
 	return "'" + strings.ReplaceAll(v, "'", "''") + "'"
+}
+
+// isBareSQLTokenList reports whether v is bare SQL tokens separated by
+// commas with optional whitespace ("PrimaryKey,flagA,columnA", "1, 2, 3").
+func isBareSQLTokenList(v string) bool {
+	for _, part := range strings.Split(v, ",") {
+		if strings.TrimSpace(part) == "" || !isBareSQLToken(strings.TrimSpace(part)) {
+			return false
+		}
+	}
+	return true
 }
 
 // isBareSQLToken reports whether v can substitute into SQL text verbatim: an
@@ -4423,6 +4438,21 @@ func TestSQLiteSuite(t *testing.T) {
 							continue
 						}
 						if step.Type == "register_tcl_module" {
+							// The register's callbackVars seed the runtime
+							// set (the register_collation pattern): the
+							// module's procs read the file-scope globals
+							// (bestindex1's G(collist)) through the runtime
+							// variables, and the runtime-marker values
+							// ("$G(cols)") resolve against them below.
+							for name, value := range step.CallbackVars {
+								name = strings.TrimPrefix(name, "::")
+								if name == "" || strings.Contains(value, "$") {
+									continue
+								}
+								if _, exists := runtimeVars[name]; !exists {
+									runtimeVars[name] = value
+								}
+							}
 							runtime := newHarnessTclCallbackRuntime(step, execDB, runtimeVars)
 							execDB.RegisterVtabModule("tcl", vtab.NewTclCommandModuleWithRuntime(runtime))
 							continue

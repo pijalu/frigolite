@@ -7,14 +7,20 @@
       "name": "setup_0",
       "steps": [
         {
+          "type": "runtime_expr",
+          "sql": "file dirname $argv0",
+          "variable": "testdir"
+        },
+        {
           "type": "register_tcl_module",
           "callbackVars": {
             "": "bestindexB",
             "SQLITE_MAX_ATTACHED": "10",
             "SQLITE_MAX_COLUMN": "2000",
             "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_PAGE_SIZE": "65536",
             "SQLITE_MAX_VARIABLE_NUMBER": "32766",
-            "testdir": "",
+            "testdir": "$testdir",
             "testprefix": "bestindexB"
           },
           "callbackProcs": [
@@ -70,6 +76,16 @@
           "type": "exec",
           "sql": "CREATE TRIGGER y1tr BEFORE INSERT ON y1 BEGIN\n    SELECT * FROM x1;\n  END;\n  INSERT INTO y1 VALUES(3, 4) RETURNING rowid;",
           "expect": "2"
+        }
+      ]
+    },
+    {
+      "name": "setup_1",
+      "steps": [
+        {
+          "type": "runtime_expr",
+          "sql": "INSERT INTO y2 VALUES(NULL, NULL) RETURNING rowid;",
+          "variable": "xbestindex_sql"
         }
       ]
     },

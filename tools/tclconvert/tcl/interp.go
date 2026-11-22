@@ -6,6 +6,8 @@
 package tcl
 
 import (
+	"os"
+
 	"errors"
 	"fmt"
 	"regexp"
@@ -144,6 +146,10 @@ type Interp struct {
 	stmts              []Stmt // captured SQL statements
 	preparedSQL        map[string]string
 	preparedSeq        int
+	// pendingFileSets holds the file-level array-element sets
+	// ("name\x00value") awaiting the register_tcl_module flush that seeds
+	// the harness's runtime set for the callback procs' reads.
+	pendingFileSets    []string
 	curTest            string // current test name (from do_test/do_execsql_test)
 	depth              int    // call stack depth guard
 	selectGroup        int
@@ -312,6 +318,7 @@ func NewInterp() *Interp {
 		procGlobals:      make(map[string]bool),
 		fileWrites:       make(map[string]*tclFileWrite),
 		preparedSQL:      make(map[string]string),
+		pendingFileSets:  make([]string, 0, 8),
 		runtimeVars:      make(map[string]int),
 	}
 }
@@ -971,7 +978,26 @@ func (i *Interp) cmdSet(args []string, localVars map[string]string) error {
 		// so without the reset step every later comparison sees the whole
 		// history.
 		if varName := strings.TrimPrefix(name, "::"); i.trackedVars[varName] && args[1] == "" {
+			// A plain reset of a callback-recorded global (`set
+			// ::triggers_fired [list]` in e_droptrigger's
+			// droptrigger_reopen_db, `set ::matchargs [list]` between e_expr
+			// tests) must reach the harness too: the runtime list only
+			// grows there (the callback appends per firing), so without the
+			// reset step every later comparison sees the whole history.
 			i.stmts = append(i.stmts, Stmt{Type: "runtime_var_reset", Variable: varName, TestName: i.curTest})
+		} else if localVars == nil && strings.Contains(name, "(") {
+			if os.Getenv("TCLCONV_SET_DBG") != "" {
+				println("FILESET", name, "value:", args[1])
+			}
+			// A FILE-level array-element set (`set G(collist) [list
+			// PrimaryKey flagA columnA]` in bestindex1.test:173) seeds the
+			// harness's runtime set: the callback procs read these through
+			// the file scope ($G(cols) in the schema template), and the
+			// runtime_expr steps that join them run BEFORE the register
+			// snapshot that carries the values in callbackVars. The value
+			// is baked (static at capture); the quoted-literal form
+			// round-trips through the runtime_expr evaluator.
+			i.stmts = append(i.stmts, Stmt{Type: "runtime_expr", Variable: varName, SQL: `"` + args[1] + `"`, TestName: i.curTest})
 		}
 	}
 	val, _ := i.getVar(name, localVars)
@@ -1929,10 +1955,10 @@ func (i *Interp) cmdProc(rawWords []rawWord) error {
 	// body.
 	if i.walHookProcs[strings.TrimPrefix(name, "::")] {
 		i.stmts = append(i.stmts, Stmt{
-			Type:           "register_wal_hook",
-			FunctionProc:   strings.TrimPrefix(name, "::"),
-			CallbackProcs:  []Proc{*proc},
-			TestName:       i.curTest,
+			Type:          "register_wal_hook",
+			FunctionProc:  strings.TrimPrefix(name, "::"),
+			CallbackProcs: []Proc{*proc},
+			TestName:      i.curTest,
 		})
 		i.seedCallbackTargets(body)
 	}

@@ -7,14 +7,20 @@
       "name": "setup_0",
       "steps": [
         {
+          "type": "runtime_expr",
+          "sql": "file dirname $argv0",
+          "variable": "testdir"
+        },
+        {
           "type": "register_tcl_module",
           "callbackVars": {
             "": "bestindexA",
             "SQLITE_MAX_ATTACHED": "10",
             "SQLITE_MAX_COLUMN": "2000",
             "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_PAGE_SIZE": "65536",
             "SQLITE_MAX_VARIABLE_NUMBER": "32766",
-            "testdir": "",
+            "testdir": "$testdir",
             "testprefix": "bestindexA"
           },
           "callbackProcs": [
@@ -76,6 +82,15 @@
       ]
     },
     {
+      "name": "setup_1",
+      "steps": [
+        {
+          "type": "runtime_var_reset",
+          "variable": "vtab_constraints"
+        }
+      ]
+    },
+    {
       "name": "bestindexA-1.2",
       "steps": [
         {
@@ -86,6 +101,15 @@
           "type": "runtime_var",
           "variable": "vtab_constraints",
           "expect": "{eq 0} {limit 0}"
+        }
+      ]
+    },
+    {
+      "name": "setup_2",
+      "steps": [
+        {
+          "type": "runtime_var_reset",
+          "variable": "vtab_constraints"
         }
       ]
     },
@@ -104,8 +128,12 @@
       ]
     },
     {
-      "name": "setup_1",
+      "name": "setup_3",
       "steps": [
+        {
+          "type": "runtime_var_reset",
+          "variable": "vtab_constraints"
+        },
         {
           "type": "register_function",
           "functionName": "even",
@@ -114,10 +142,22 @@
             "SQLITE_MAX_ATTACHED": "10",
             "SQLITE_MAX_COLUMN": "2000",
             "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_PAGE_SIZE": "65536",
             "SQLITE_MAX_VARIABLE_NUMBER": "32766",
-            "testdir": "",
-            "testprefix": "bestindexA"
+            "testdir": "$testdir",
+            "testprefix": "bestindexA",
+            "vtab_constraints": ""
           },
+          "callbackProcs": [
+            {
+              "Name": "error_function",
+              "Args": [
+                "args"
+              ],
+              "Body": " error \"not a function!\" ",
+              "Defaults": null
+            }
+          ],
           "functionProc": "error_function",
           "functionArgs": [
             "args"
@@ -142,6 +182,15 @@
       ]
     },
     {
+      "name": "setup_4",
+      "steps": [
+        {
+          "type": "runtime_var_reset",
+          "variable": "vtab_constraints"
+        }
+      ]
+    },
+    {
       "name": "bestindexA-1.5",
       "steps": [
         {
@@ -152,6 +201,15 @@
           "type": "runtime_var",
           "variable": "vtab_constraints",
           "expect": "{eq 1} {152 0}"
+        }
+      ]
+    },
+    {
+      "name": "setup_5",
+      "steps": [
+        {
+          "type": "runtime_var_reset",
+          "variable": "vtab_constraints"
         }
       ]
     },
@@ -170,6 +228,15 @@
       ]
     },
     {
+      "name": "setup_6",
+      "steps": [
+        {
+          "type": "runtime_var_reset",
+          "variable": "vtab_constraints"
+        }
+      ]
+    },
+    {
       "name": "bestindexA-1.7",
       "steps": [
         {
@@ -180,6 +247,15 @@
           "type": "runtime_var",
           "variable": "vtab_constraints",
           "expect": "{152 1} {limit 0}"
+        }
+      ]
+    },
+    {
+      "name": "setup_7",
+      "steps": [
+        {
+          "type": "runtime_var_reset",
+          "variable": "vtab_constraints"
         }
       ]
     },
@@ -198,6 +274,15 @@
       ]
     },
     {
+      "name": "setup_8",
+      "steps": [
+        {
+          "type": "runtime_var_reset",
+          "variable": "vtab_constraints"
+        }
+      ]
+    },
+    {
       "name": "bestindexA-1.9",
       "steps": [
         {
@@ -208,6 +293,15 @@
           "type": "runtime_var",
           "variable": "vtab_constraints",
           "expect": "{eq 0} {limit 0}"
+        }
+      ]
+    },
+    {
+      "name": "setup_9",
+      "steps": [
+        {
+          "type": "runtime_var_reset",
+          "variable": "vtab_constraints"
         }
       ]
     }

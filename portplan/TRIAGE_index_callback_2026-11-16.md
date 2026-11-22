@@ -524,3 +524,52 @@ stale fixtures until that card runs (bestindexE's 1.2.2/2.1.2/2.2.2
 accumulation leaves need the regen's runtime_var_reset steps).
 
 **The slice's FULL gate** (/tmp/s43_gate2.log, 1122.9s): the wins = bestindex6-1.2/1.3, bestindexE-1.1.2 (+ temptable2-4.1.1/where2-2.4's benign draws); the 67 NEWs = ALL avtrans — **the draw-dependent flake class**: the fixture's case names carry `$::sig` (the DB checksum) and EVERY sig matched the previous gates exactly (the DB state deterministic), but the t3 workload's `INSERT ... SELECT randstr(10,400)` / `random()%10` are UNSEEDED — this gate's draw hit a "database disk image is malformed" in setup_17 that cascades through the 9.x cases; isolated runs pass 6/6. Same class as the resetdb load flap (TODO watchlist); the malformation itself = a real AV-machinery residue bug to chase in its own unit, not a btree-density or vtab matter. The slice's identity = the three GONEs with zero non-avtrans NEWs.
+
+---
+
+## 14. S43 slice 2 DELIVERED (2026-11-22): the selective fixture regen + the seeding machinery — 11 leaves gone
+
+**The corpus regen card ran with the selective bestindex keep-set** (go
+run ./tools/tclconvert/; the non-bestindex fixtures reverted; the stray
+.gz/untracked regen artifacts removed): the kept 16 bestindex fixtures
+landed the runtime_var_reset steps AND the runtime-var markers
+("testdir": "$testdir", "G(cols)": "$G(cols)").
+
+**Four supporting fixes were required**:
+1. **The converter's file-level array-set seeding** (interp.go's
+   set-handler + commandRegisterTCLModule's flush): the file-level
+   array-element sets (`set G(collist) [list PrimaryKey flagA columnA]`,
+   bestindex1.test:173) are DEFERRED and flushed at the next
+   register_tcl_module whose registered procs READ them
+   (ScriptVarReads: the `global` decls + the $-references) — the flush
+   emits the runtime_expr seed steps (the quoted-literal round trip)
+   BEFORE the register snapshot. bestindex1's seeds land in setup_5
+   (the G sets), setup_6 carries the register — C-exact ordering. The
+   emission's scope = the file-level array sets ONLY (the naive
+   immediate emission fired 37,500 times across the corpus — the
+   procs' per-case array sets).
+2. **The harness's register seeding** (the register_collation pattern):
+   the callbackVars' plain values seed runtimeVars before the runtime
+   construction.
+3. **The runtime's marker resolution**: the callbackVars' "$name" values
+   resolve against runtimeVars via evalHarnessRuntimeExpr.
+4. **The SQL-safe rendering's bare lists** (sqlSafeRuntimeValue): the
+   comma-separated bare-token lists land VERBATIM ("PrimaryKey,flagA,
+   columnA" must stay an identifier list, not one quoted name) — C
+   builds SQL by string interpolation.
+
+**The gates**: bestindex6 0, bestindexE 6 (NEW=0; 1.1.2 + 1.2.2 green),
+bestindex1 2 (the carded 3.4/3.5), bestindexF 15 (NEW=1: 2.11.0), the
+select/where/where2 families = the baseline. The FULL gate
+(/tmp/s43_gate3.log, 1142.7s): 1195 fails, GONE = 11 (bestindex6 ×2,
+bestindexE-1.1.2/1.2.2, bestindexF-1.4.1 + 2.2.1/2.3.0/2.4.0/2.5.0/
+2.10.1/2.10.2 class), the avtrans draw CLEAN this run, the flap class
+= 12, **REAL NEW = 1: bestindexF-2.11.0** — the first leaf of the
+DISTINCT+GROUP-BY ORDER-BY-consumed trio (2.11.0/1/2: the module's
+ORDER-BY-consumed decision for `SELECT DISTINCT a, count(*) FROM t1
+GROUP BY a` must drive IdxInsert/the idxStr/the delivery order — the
+where.c ORDER BY consumption for the aggregate plans) = the NEXT
+engine slice.
+
+**The bestindex residue**: 24 leaves (E: 2.1.2/2.2.2 + 3.x ×4; F: 14
+incl. the 2.11 trio; 1: 3.4/3.5).

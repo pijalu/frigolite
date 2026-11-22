@@ -4,74 +4,12 @@
   "ordered": true,
   "tests": [
     {
-      "name": "delete_file",
-      "steps": [
-        {
-          "type": "delete_file",
-          "sql": "test.db2"
-        }
-      ]
-    },
-    {
       "name": "setup_0",
       "steps": [
         {
-          "type": "open_named_db",
-          "sql": "test.db2",
-          "database": "dbtest"
-        },
-        {
-          "type": "register_tcl_module",
-          "callbackVars": {
-            "": "bestindex9",
-            "SQLITE_MAX_ATTACHED": "10",
-            "SQLITE_MAX_COLUMN": "2000",
-            "SQLITE_MAX_LENGTH": "1000000000",
-            "SQLITE_MAX_VARIABLE_NUMBER": "32766",
-            "testdir": "",
-            "testprefix": "bestindex9"
-          },
-          "callbackProcs": [
-            {
-              "Name": "vtab_command",
-              "Args": [
-                "method",
-                "args"
-              ],
-              "Body": "\n  switch -- $method {\n    xConnect {\n      return $::create_table\n    }\n\n    xBestIndex {\n      set hdl [lindex $args 0]\n      set ::vtab_orderby [$hdl orderby]\n      set ::vtab_distinct [$hdl distinct]\n\n      return [list orderby 1]\n    }\n\n    xFilter {\n      return \"\"\n    }\n  }\n\n  return {}\n",
-              "Defaults": null
-            },
-            {
-              "Name": "do_bestindex9_test",
-              "Args": [
-                "tn",
-                "create",
-                "select",
-                "orderby",
-                "distinct"
-              ],
-              "Body": "\n  forcedelete test.db2\n  sqlite3 dbtest test.db2\n  register_tcl_module dbtest\n\n  set ::create_table $create\n  dbtest eval { CREATE VIRTUAL TABLE t1 USING tcl(vtab_command); }\n  dbtest eval $select\n\n  do_test $tn.orderby [list set {} $::vtab_orderby] $orderby\n  do_test $tn.distinct [list set {} $::vtab_distinct] $distinct\n\n  dbtest close\n",
-              "Defaults": null
-            }
-          ],
-          "moduleArgs": [
-            "dbtest"
-          ],
-          "database": "dbtest"
-        },
-        {
-          "type": "exec",
-          "sql": "CREATE VIRTUAL TABLE t1 USING tcl(vtab_command);",
-          "database": "dbtest"
-        },
-        {
-          "type": "query",
-          "sql": "SELECT DISTINCT k1, k2 FROM t1",
-          "database": "dbtest"
-        },
-        {
-          "type": "close_named_db",
-          "database": "dbtest"
+          "type": "runtime_expr",
+          "sql": "file dirname $argv0",
+          "variable": "testdir"
         }
       ]
     },
@@ -95,12 +33,13 @@
         {
           "type": "register_tcl_module",
           "callbackVars": {
-            "": "",
+            "": "bestindex9",
             "SQLITE_MAX_ATTACHED": "10",
             "SQLITE_MAX_COLUMN": "2000",
             "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_PAGE_SIZE": "65536",
             "SQLITE_MAX_VARIABLE_NUMBER": "32766",
-            "testdir": "",
+            "testdir": "$testdir",
             "testprefix": "bestindex9"
           },
           "callbackProcs": [
@@ -130,6 +69,11 @@
             "dbtest"
           ],
           "database": "dbtest"
+        },
+        {
+          "type": "runtime_expr",
+          "sql": "CREATE TABLE x(k1, k2, v1, PRIMARY KEY(k1, k2))",
+          "variable": "create_table"
         },
         {
           "type": "exec",
@@ -171,8 +115,10 @@
             "SQLITE_MAX_ATTACHED": "10",
             "SQLITE_MAX_COLUMN": "2000",
             "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_PAGE_SIZE": "65536",
             "SQLITE_MAX_VARIABLE_NUMBER": "32766",
-            "testdir": "",
+            "create_table": "\n  CREATE TABLE x(k1, k2, v1, PRIMARY KEY(k1, k2))\n",
+            "testdir": "$testdir",
             "testprefix": "bestindex9"
           },
           "callbackProcs": [
@@ -202,6 +148,11 @@
             "dbtest"
           ],
           "database": "dbtest"
+        },
+        {
+          "type": "runtime_expr",
+          "sql": "CREATE TABLE x(k1, k2, v1, PRIMARY KEY(k1, k2)) WITHOUT ROWID",
+          "variable": "create_table"
         },
         {
           "type": "exec",
@@ -243,8 +194,10 @@
             "SQLITE_MAX_ATTACHED": "10",
             "SQLITE_MAX_COLUMN": "2000",
             "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_PAGE_SIZE": "65536",
             "SQLITE_MAX_VARIABLE_NUMBER": "32766",
-            "testdir": "",
+            "create_table": "\n  CREATE TABLE x(k1, k2, v1, PRIMARY KEY(k1, k2)) WITHOUT ROWID\n",
+            "testdir": "$testdir",
             "testprefix": "bestindex9"
           },
           "callbackProcs": [
@@ -276,13 +229,18 @@
           "database": "dbtest"
         },
         {
+          "type": "runtime_expr",
+          "sql": "CREATE TABLE x(k1 NOT NULL, k2 NOT NULL, v1, PRIMARY KEY(k1, k2))",
+          "variable": "create_table"
+        },
+        {
           "type": "exec",
           "sql": "CREATE VIRTUAL TABLE t1 USING tcl(vtab_command);",
           "database": "dbtest"
         },
         {
           "type": "query",
-          "sql": "SELECT DISTINCT c1 FROM t1 ORDER BY c1",
+          "sql": "SELECT DISTINCT k1, k2 FROM t1",
           "database": "dbtest"
         },
         {
@@ -315,8 +273,10 @@
             "SQLITE_MAX_ATTACHED": "10",
             "SQLITE_MAX_COLUMN": "2000",
             "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_PAGE_SIZE": "65536",
             "SQLITE_MAX_VARIABLE_NUMBER": "32766",
-            "testdir": "",
+            "create_table": "\n  CREATE TABLE x(k1 NOT NULL, k2 NOT NULL, v1, PRIMARY KEY(k1, k2))\n",
+            "testdir": "$testdir",
             "testprefix": "bestindex9"
           },
           "callbackProcs": [
@@ -348,13 +308,18 @@
           "database": "dbtest"
         },
         {
+          "type": "runtime_expr",
+          "sql": "CREATE TABLE x(c1, c2, c3);",
+          "variable": "create_table"
+        },
+        {
           "type": "exec",
           "sql": "CREATE VIRTUAL TABLE t1 USING tcl(vtab_command);",
           "database": "dbtest"
         },
         {
           "type": "query",
-          "sql": "SELECT DISTINCT c1 FROM t1 GROUP BY c1",
+          "sql": "SELECT DISTINCT c1 FROM t1 ORDER BY c1",
           "database": "dbtest"
         },
         {
@@ -387,8 +352,10 @@
             "SQLITE_MAX_ATTACHED": "10",
             "SQLITE_MAX_COLUMN": "2000",
             "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_PAGE_SIZE": "65536",
             "SQLITE_MAX_VARIABLE_NUMBER": "32766",
-            "testdir": "",
+            "create_table": "\n  CREATE TABLE x(c1, c2, c3);\n",
+            "testdir": "$testdir",
             "testprefix": "bestindex9"
           },
           "callbackProcs": [
@@ -418,6 +385,90 @@
             "dbtest"
           ],
           "database": "dbtest"
+        },
+        {
+          "type": "runtime_expr",
+          "sql": "CREATE TABLE x(c1, c2, c3);",
+          "variable": "create_table"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE VIRTUAL TABLE t1 USING tcl(vtab_command);",
+          "database": "dbtest"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT DISTINCT c1 FROM t1 GROUP BY c1",
+          "database": "dbtest"
+        },
+        {
+          "type": "close_named_db",
+          "database": "dbtest"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db2"
+        }
+      ]
+    },
+    {
+      "name": "setup_6",
+      "steps": [
+        {
+          "type": "open_named_db",
+          "sql": "test.db2",
+          "database": "dbtest"
+        },
+        {
+          "type": "register_tcl_module",
+          "callbackVars": {
+            "": "",
+            "SQLITE_MAX_ATTACHED": "10",
+            "SQLITE_MAX_COLUMN": "2000",
+            "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_PAGE_SIZE": "65536",
+            "SQLITE_MAX_VARIABLE_NUMBER": "32766",
+            "create_table": "\n  CREATE TABLE x(c1, c2, c3);\n",
+            "testdir": "$testdir",
+            "testprefix": "bestindex9"
+          },
+          "callbackProcs": [
+            {
+              "Name": "vtab_command",
+              "Args": [
+                "method",
+                "args"
+              ],
+              "Body": "\n  switch -- $method {\n    xConnect {\n      return $::create_table\n    }\n\n    xBestIndex {\n      set hdl [lindex $args 0]\n      set ::vtab_orderby [$hdl orderby]\n      set ::vtab_distinct [$hdl distinct]\n\n      return [list orderby 1]\n    }\n\n    xFilter {\n      return \"\"\n    }\n  }\n\n  return {}\n",
+              "Defaults": null
+            },
+            {
+              "Name": "do_bestindex9_test",
+              "Args": [
+                "tn",
+                "create",
+                "select",
+                "orderby",
+                "distinct"
+              ],
+              "Body": "\n  forcedelete test.db2\n  sqlite3 dbtest test.db2\n  register_tcl_module dbtest\n\n  set ::create_table $create\n  dbtest eval { CREATE VIRTUAL TABLE t1 USING tcl(vtab_command); }\n  dbtest eval $select\n\n  do_test $tn.orderby [list set {} $::vtab_orderby] $orderby\n  do_test $tn.distinct [list set {} $::vtab_distinct] $distinct\n\n  dbtest close\n",
+              "Defaults": null
+            }
+          ],
+          "moduleArgs": [
+            "dbtest"
+          ],
+          "database": "dbtest"
+        },
+        {
+          "type": "runtime_expr",
+          "sql": "CREATE TABLE x(c1, c2, c3);",
+          "variable": "create_table"
         },
         {
           "type": "exec",

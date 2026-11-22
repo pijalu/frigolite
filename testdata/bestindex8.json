@@ -7,14 +7,20 @@
       "name": "setup_0",
       "steps": [
         {
+          "type": "runtime_expr",
+          "sql": "file dirname $argv0",
+          "variable": "testdir"
+        },
+        {
           "type": "register_tcl_module",
           "callbackVars": {
             "": "bestindex8",
             "SQLITE_MAX_ATTACHED": "10",
             "SQLITE_MAX_COLUMN": "2000",
             "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_PAGE_SIZE": "65536",
             "SQLITE_MAX_VARIABLE_NUMBER": "32766",
-            "testdir": "",
+            "testdir": "$testdir",
             "testprefix": "bestindex8"
           },
           "callbackProcs": [
@@ -54,6 +60,20 @@
         {
           "type": "exec",
           "sql": "CREATE TABLE t1(a, b);\n  CREATE INDEX i1 ON t1(a, b);\n  INSERT INTO t1 VALUES('a', 'b'), ('c', 'd');\n  INSERT INTO t1 VALUES('a', 'b'), ('c', 'd');\n  CREATE VIRTUAL TABLE vt1 USING tcl(vtab_command t1);\n\n  CREATE TABLE t0(c0);\n  INSERT INTO t0(c0) VALUES (1), (0);"
+        }
+      ]
+    },
+    {
+      "name": "setup_1",
+      "steps": [
+        {
+          "type": "runtime_var_reset",
+          "variable": "lBestIndexDistinct"
+        },
+        {
+          "type": "runtime_expr",
+          "sql": "0",
+          "variable": "lOrderByConsumed"
         }
       ]
     },
@@ -98,6 +118,20 @@
       ]
     },
     {
+      "name": "setup_2",
+      "steps": [
+        {
+          "type": "runtime_var_reset",
+          "variable": "lBestIndexDistinct"
+        },
+        {
+          "type": "runtime_expr",
+          "sql": "0",
+          "variable": "lOrderByConsumed"
+        }
+      ]
+    },
+    {
       "name": "bestindex8-1.2.1",
       "steps": [
         {
@@ -134,6 +168,20 @@
           "type": "runtime_var",
           "variable": "lOrderByConsumed",
           "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "setup_3",
+      "steps": [
+        {
+          "type": "runtime_var_reset",
+          "variable": "lBestIndexDistinct"
+        },
+        {
+          "type": "runtime_expr",
+          "sql": "0",
+          "variable": "lOrderByConsumed"
         }
       ]
     },
@@ -178,6 +226,20 @@
       ]
     },
     {
+      "name": "setup_4",
+      "steps": [
+        {
+          "type": "runtime_var_reset",
+          "variable": "lBestIndexDistinct"
+        },
+        {
+          "type": "runtime_expr",
+          "sql": "0",
+          "variable": "lOrderByConsumed"
+        }
+      ]
+    },
+    {
       "name": "bestindex8-1.4.1",
       "steps": [
         {
@@ -214,6 +276,20 @@
           "type": "runtime_var",
           "variable": "lOrderByConsumed",
           "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "setup_5",
+      "steps": [
+        {
+          "type": "runtime_var_reset",
+          "variable": "lBestIndexDistinct"
+        },
+        {
+          "type": "runtime_expr",
+          "sql": "0",
+          "variable": "lOrderByConsumed"
         }
       ]
     },
@@ -258,6 +334,20 @@
       ]
     },
     {
+      "name": "setup_6",
+      "steps": [
+        {
+          "type": "runtime_var_reset",
+          "variable": "lBestIndexDistinct"
+        },
+        {
+          "type": "runtime_expr",
+          "sql": "0",
+          "variable": "lOrderByConsumed"
+        }
+      ]
+    },
+    {
       "name": "bestindex8-1.6.1",
       "steps": [
         {
@@ -294,6 +384,20 @@
           "type": "runtime_var",
           "variable": "lOrderByConsumed",
           "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "setup_7",
+      "steps": [
+        {
+          "type": "runtime_var_reset",
+          "variable": "lBestIndexDistinct"
+        },
+        {
+          "type": "runtime_expr",
+          "sql": "0",
+          "variable": "lOrderByConsumed"
         }
       ]
     },
@@ -338,6 +442,20 @@
       ]
     },
     {
+      "name": "setup_8",
+      "steps": [
+        {
+          "type": "runtime_var_reset",
+          "variable": "lBestIndexDistinct"
+        },
+        {
+          "type": "runtime_expr",
+          "sql": "0",
+          "variable": "lOrderByConsumed"
+        }
+      ]
+    },
+    {
       "name": "bestindex8-1.8.1",
       "steps": [
         {
@@ -374,6 +492,20 @@
           "type": "runtime_var",
           "variable": "lOrderByConsumed",
           "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "setup_9",
+      "steps": [
+        {
+          "type": "runtime_var_reset",
+          "variable": "lBestIndexDistinct"
+        },
+        {
+          "type": "runtime_expr",
+          "sql": "0",
+          "variable": "lOrderByConsumed"
         }
       ]
     },
@@ -418,6 +550,20 @@
       ]
     },
     {
+      "name": "setup_10",
+      "steps": [
+        {
+          "type": "runtime_var_reset",
+          "variable": "lBestIndexDistinct"
+        },
+        {
+          "type": "runtime_expr",
+          "sql": "0",
+          "variable": "lOrderByConsumed"
+        }
+      ]
+    },
+    {
       "name": "bestindex8-1.10.1",
       "steps": [
         {
@@ -454,6 +600,20 @@
           "type": "runtime_var",
           "variable": "lOrderByConsumed",
           "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "setup_11",
+      "steps": [
+        {
+          "type": "runtime_var_reset",
+          "variable": "lBestIndexDistinct"
+        },
+        {
+          "type": "runtime_expr",
+          "sql": "0",
+          "variable": "lOrderByConsumed"
         }
       ]
     },
@@ -499,27 +659,28 @@
     },
     {
       "name": "__RESET_DB__",
-      "steps": null
+      "steps": []
     },
     {
-      "name": "setup_1",
+      "name": "setup_12",
       "steps": [
         {
           "type": "register_tcl_module",
           "callbackVars": {
             "": "0",
-            "::lBestIndexDistinct": "",
-            "::lOrderByConsumed": "0",
             "SQLITE_MAX_ATTACHED": "10",
             "SQLITE_MAX_COLUMN": "2000",
             "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_PAGE_SIZE": "65536",
             "SQLITE_MAX_VARIABLE_NUMBER": "32766",
             "bConsumed": "1",
             "bDistinct": "2",
             "idxinsert": "0",
+            "lBestIndexDistinct": "",
+            "lOrderByConsumed": "0",
             "res": "a b",
             "sql": "SELECT DISTINCT a, b FROM vt1 WHERE +b='b'",
-            "testdir": "",
+            "testdir": "$testdir",
             "testprefix": "bestindex8",
             "tn": "11"
           },
@@ -567,6 +728,10 @@
       "name": "bestindex8-2.1",
       "steps": [
         {
+          "type": "runtime_var_reset",
+          "variable": "lFilterArgs"
+        },
+        {
           "type": "exec",
           "sql": "SELECT * FROM vt1 LIMIT 10"
         },
@@ -580,6 +745,10 @@
     {
       "name": "bestindex8-2.2",
       "steps": [
+        {
+          "type": "runtime_var_reset",
+          "variable": "lFilterArgs"
+        },
         {
           "type": "exec",
           "sql": "SELECT * FROM vt1 LIMIT 5 OFFSET 50"
@@ -595,6 +764,10 @@
       "name": "bestindex8-2.3",
       "steps": [
         {
+          "type": "runtime_var_reset",
+          "variable": "lFilterArgs"
+        },
+        {
           "type": "exec",
           "sql": "SELECT * FROM vt1 ORDER BY a, b LIMIT 1 OFFSET 1"
         },
@@ -609,6 +782,10 @@
       "name": "bestindex8-2.4",
       "steps": [
         {
+          "type": "runtime_var_reset",
+          "variable": "lFilterArgs"
+        },
+        {
           "type": "exec",
           "sql": "SELECT * FROM vt1 ORDER BY a, +b LIMIT 1 OFFSET 1"
         },
@@ -621,28 +798,29 @@
     },
     {
       "name": "__RESET_DB__",
-      "steps": null
+      "steps": []
     },
     {
-      "name": "setup_2",
+      "name": "setup_13",
       "steps": [
         {
           "type": "register_tcl_module",
           "callbackVars": {
             "": "",
-            "::lBestIndexDistinct": "",
-            "::lFilterArgs": "",
-            "::lOrderByConsumed": "0",
             "SQLITE_MAX_ATTACHED": "10",
             "SQLITE_MAX_COLUMN": "2000",
             "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_PAGE_SIZE": "65536",
             "SQLITE_MAX_VARIABLE_NUMBER": "32766",
             "bConsumed": "1",
             "bDistinct": "2",
             "idxinsert": "0",
+            "lBestIndexDistinct": "",
+            "lFilterArgs": "",
+            "lOrderByConsumed": "0",
             "res": "a b",
             "sql": "SELECT DISTINCT a, b FROM vt1 WHERE +b='b'",
-            "testdir": "",
+            "testdir": "$testdir",
             "testprefix": "bestindex8",
             "tn": "11"
           },
@@ -690,6 +868,10 @@
       "name": "bestindex8-3.1",
       "steps": [
         {
+          "type": "runtime_var_reset",
+          "variable": "lFilterArg"
+        },
+        {
           "type": "exec",
           "sql": "SELECT * FROM vt1 WHERE b IN (10, 20, 30)"
         },
@@ -703,6 +885,10 @@
     {
       "name": "bestindex8-3.2",
       "steps": [
+        {
+          "type": "runtime_var_reset",
+          "variable": "lFilterArg"
+        },
         {
           "type": "exec",
           "sql": "SELECT * FROM vt1 WHERE b IN ('abc', 'def')"
@@ -718,6 +904,10 @@
       "name": "bestindex8-3.3",
       "steps": [
         {
+          "type": "runtime_var_reset",
+          "variable": "lFilterArg"
+        },
+        {
           "type": "exec",
           "sql": "SELECT * FROM vt1 WHERE a IS NULL AND b IN ('abc', 'def')"
         },
@@ -731,6 +921,10 @@
     {
       "name": "bestindex8-3.4",
       "steps": [
+        {
+          "type": "runtime_var_reset",
+          "variable": "lFilterArg"
+        },
         {
           "type": "exec",
           "sql": "SELECT * FROM vt1 WHERE a IN (1,2,3) AND b IN ('abc', 'def')"
@@ -746,6 +940,10 @@
       "name": "bestindex8-3.5",
       "steps": [
         {
+          "type": "runtime_var_reset",
+          "variable": "lFilterArg"
+        },
+        {
           "type": "exec",
           "sql": "SELECT * FROM vt1 \n     WHERE a IN (SELECT 1 UNION SELECT 2) AND b IN ('abc', 'def')"
         },
@@ -760,6 +958,10 @@
       "name": "bestindex8-3.6",
       "steps": [
         {
+          "type": "runtime_var_reset",
+          "variable": "lFilterArg"
+        },
+        {
           "type": "exec",
           "sql": "SELECT * FROM vt1 \n     WHERE b IN ('abc', 'def') AND a IN (SELECT 1 UNION SELECT 2)"
         },
@@ -772,30 +974,31 @@
     },
     {
       "name": "__RESET_DB__",
-      "steps": null
+      "steps": []
     },
     {
-      "name": "setup_3",
+      "name": "setup_14",
       "steps": [
         {
           "type": "register_tcl_module",
           "callbackVars": {
             "": "",
-            "::lBestIndexDistinct": "",
-            "::lFilterArg": "",
-            "::lFilterArgs": "",
-            "::lOrderByConsumed": "0",
             "SQLITE_MAX_ATTACHED": "10",
             "SQLITE_MAX_COLUMN": "2000",
             "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_PAGE_SIZE": "65536",
             "SQLITE_MAX_VARIABLE_NUMBER": "32766",
             "bConsumed": "1",
             "bDistinct": "2",
             "idxinsert": "0",
+            "lBestIndexDistinct": "",
+            "lFilterArg": "",
+            "lFilterArgs": "",
+            "lOrderByConsumed": "0",
             "lfa": "{abc def} {1 2}",
             "res": "a b",
             "sql": "SELECT * FROM vt1 \n     WHERE b IN ('abc', 'def') AND a IN (SELECT 1 UNION SELECT 2)",
-            "testdir": "",
+            "testdir": "$testdir",
             "testprefix": "bestindex8",
             "tn": "6"
           },
@@ -843,6 +1046,10 @@
       "name": "bestindex8-4.1",
       "steps": [
         {
+          "type": "runtime_var_reset",
+          "variable": "lBestIndexRhs"
+        },
+        {
           "type": "exec",
           "sql": "SELECT * FROM vt1 WHERE b = 10"
         },
@@ -856,6 +1063,10 @@
     {
       "name": "bestindex8-4.2",
       "steps": [
+        {
+          "type": "runtime_var_reset",
+          "variable": "lBestIndexRhs"
+        },
         {
           "type": "exec",
           "sql": "SELECT * FROM vt1 WHERE a = 'abc' AND b \u003c 30"
@@ -871,6 +1082,10 @@
       "name": "bestindex8-4.3",
       "steps": [
         {
+          "type": "runtime_var_reset",
+          "variable": "lBestIndexRhs"
+        },
+        {
           "type": "exec",
           "sql": "SELECT * FROM vt1 WHERE a = 'abc' AND b \u003c 30+2"
         },
@@ -884,6 +1099,10 @@
     {
       "name": "bestindex8-4.4",
       "steps": [
+        {
+          "type": "runtime_var_reset",
+          "variable": "lBestIndexRhs"
+        },
         {
           "type": "exec",
           "sql": "SELECT * FROM vt1 WHERE a IN (1,2,3) AND b \u003c 30+2"
@@ -899,6 +1118,10 @@
       "name": "bestindex8-4.5",
       "steps": [
         {
+          "type": "runtime_var_reset",
+          "variable": "lBestIndexRhs"
+        },
+        {
           "type": "exec",
           "sql": "SELECT * FROM vt1 WHERE a IS 111 AND b \u003c 30+2"
         },
@@ -911,32 +1134,33 @@
     },
     {
       "name": "__RESET_DB__",
-      "steps": null
+      "steps": []
     },
     {
-      "name": "setup_4",
+      "name": "setup_15",
       "steps": [
         {
           "type": "register_tcl_module",
           "callbackVars": {
             "": "",
-            "::lBestIndexDistinct": "",
-            "::lBestIndexRhs": "",
-            "::lFilterArg": "",
-            "::lFilterArgs": "",
-            "::lOrderByConsumed": "0",
             "SQLITE_MAX_ATTACHED": "10",
             "SQLITE_MAX_COLUMN": "2000",
             "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_PAGE_SIZE": "65536",
             "SQLITE_MAX_VARIABLE_NUMBER": "32766",
             "bConsumed": "1",
             "bDistinct": "2",
             "idxinsert": "0",
+            "lBestIndexDistinct": "",
+            "lBestIndexRhs": "",
+            "lFilterArg": "",
+            "lFilterArgs": "",
+            "lOrderByConsumed": "0",
             "lbir": "111 -",
             "lfa": "{abc def} {1 2}",
             "res": "a b",
             "sql": "SELECT * FROM vt1 WHERE a IS 111 AND b \u003c 30+2",
-            "testdir": "",
+            "testdir": "$testdir",
             "testprefix": "bestindex8",
             "tn": "5"
           },
@@ -968,6 +1192,11 @@
           "moduleArgs": [
             "db"
           ]
+        },
+        {
+          "type": "runtime_expr",
+          "sql": "1",
+          "variable": "vtab_handle_in"
         }
       ]
     },
@@ -977,6 +1206,15 @@
         {
           "type": "exec",
           "sql": "CREATE TABLE t1(a, b, c);\n  CREATE VIRTUAL TABLE vt1 USING tcl(vtab_command t1);\n  INSERT INTO t1 VALUES(1, 2, 3);\n  INSERT INTO t1 VALUES(2, 3, 4);\n  INSERT INTO t1 VALUES(3, 4, 5);\n  INSERT INTO t1 VALUES(1, 5, 6);\n  INSERT INTO t1 VALUES(2, 6, 7);\n  INSERT INTO t1 VALUES(3, 7, 8);\n  INSERT INTO t1 VALUES(1, 8, 9);\n  INSERT INTO t1 VALUES(2, 9, 0);"
+        }
+      ]
+    },
+    {
+      "name": "setup_16",
+      "steps": [
+        {
+          "type": "runtime_var_reset",
+          "variable": "lFilterSql"
         }
       ]
     },
@@ -1001,6 +1239,15 @@
       ]
     },
     {
+      "name": "setup_17",
+      "steps": [
+        {
+          "type": "runtime_var_reset",
+          "variable": "lFilterSql"
+        }
+      ]
+    },
+    {
       "name": "bestindex8-5.1.2.1",
       "steps": [
         {
@@ -1017,6 +1264,15 @@
           "type": "runtime_var",
           "variable": "lFilterSql",
           "expect": "{SELECT rowid, a, b, c FROM t1 ORDER BY a}"
+        }
+      ]
+    },
+    {
+      "name": "setup_18",
+      "steps": [
+        {
+          "type": "runtime_var_reset",
+          "variable": "lFilterSql"
         }
       ]
     },
@@ -1041,6 +1297,20 @@
       ]
     },
     {
+      "name": "setup_19",
+      "steps": [
+        {
+          "type": "runtime_expr",
+          "sql": "0",
+          "variable": "vtab_handle_in"
+        },
+        {
+          "type": "runtime_var_reset",
+          "variable": "lFilterSql"
+        }
+      ]
+    },
+    {
       "name": "bestindex8-5.1.4.1",
       "steps": [
         {
@@ -1057,6 +1327,20 @@
           "type": "runtime_var",
           "variable": "lFilterSql",
           "expect": "{SELECT DISTINCT 0, a, 0, 0 FROM t1 WHERE c = 4} {SELECT DISTINCT 0, a, 0, 0 FROM t1 WHERE c = 5} {SELECT DISTINCT 0, a, 0, 0 FROM t1 WHERE c = 6} {SELECT DISTINCT 0, a, 0, 0 FROM t1 WHERE c = 7} {SELECT DISTINCT 0, a, 0, 0 FROM t1 WHERE c = 8}"
+        }
+      ]
+    },
+    {
+      "name": "setup_20",
+      "steps": [
+        {
+          "type": "runtime_expr",
+          "sql": "1",
+          "variable": "vtab_handle_in"
+        },
+        {
+          "type": "runtime_var_reset",
+          "variable": "lFilterSql"
         }
       ]
     },
@@ -1081,6 +1365,20 @@
       ]
     },
     {
+      "name": "setup_21",
+      "steps": [
+        {
+          "type": "runtime_expr",
+          "sql": "0",
+          "variable": "vtab_handle_in"
+        },
+        {
+          "type": "runtime_var_reset",
+          "variable": "lFilterSql"
+        }
+      ]
+    },
+    {
       "name": "bestindex8-5.1.5b.1",
       "steps": [
         {
@@ -1097,6 +1395,16 @@
           "type": "runtime_var",
           "variable": "lFilterSql",
           "expect": "{SELECT rowid, a, b, c FROM t1 WHERE c = 4} {SELECT rowid, a, b, c FROM t1 WHERE c = 5} {SELECT rowid, a, b, c FROM t1 WHERE c = 6} {SELECT rowid, a, b, c FROM t1 WHERE c = 7}"
+        }
+      ]
+    },
+    {
+      "name": "setup_22",
+      "steps": [
+        {
+          "type": "runtime_expr",
+          "sql": "1",
+          "variable": "vtab_handle_in"
         }
       ]
     }

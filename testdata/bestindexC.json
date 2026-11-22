@@ -7,14 +7,20 @@
       "name": "setup_0",
       "steps": [
         {
+          "type": "runtime_expr",
+          "sql": "file dirname $argv0",
+          "variable": "testdir"
+        },
+        {
           "type": "register_tcl_module",
           "callbackVars": {
             "": "bestindexC",
             "SQLITE_MAX_ATTACHED": "10",
             "SQLITE_MAX_COLUMN": "2000",
             "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_PAGE_SIZE": "65536",
             "SQLITE_MAX_VARIABLE_NUMBER": "32766",
-            "testdir": "",
+            "testdir": "$testdir",
             "testprefix": "bestindexC"
           },
           "callbackProcs": [
@@ -399,7 +405,7 @@
     },
     {
       "name": "__RESET_DB__",
-      "steps": null
+      "steps": []
     },
     {
       "name": "setup_17",
@@ -411,12 +417,13 @@
             "SQLITE_MAX_ATTACHED": "10",
             "SQLITE_MAX_COLUMN": "2000",
             "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_PAGE_SIZE": "65536",
             "SQLITE_MAX_VARIABLE_NUMBER": "32766",
             "expect": "$expect",
             "limit": "LIMIT 8 OFFSET 4",
             "op": "EXCEPT",
             "tbl": "t_except",
-            "testdir": "",
+            "testdir": "$testdir",
             "testprefix": "bestindexC",
             "tn": "4"
           },
@@ -467,7 +474,7 @@
     },
     {
       "name": "__RESET_DB__",
-      "steps": null
+      "steps": []
     },
     {
       "name": "setup_18",
@@ -479,12 +486,13 @@
             "SQLITE_MAX_ATTACHED": "10",
             "SQLITE_MAX_COLUMN": "2000",
             "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_PAGE_SIZE": "65536",
             "SQLITE_MAX_VARIABLE_NUMBER": "32766",
             "expect": "$expect",
             "limit": "LIMIT 8 OFFSET 4",
             "op": "EXCEPT",
             "tbl": "t_except",
-            "testdir": "",
+            "testdir": "$testdir",
             "testprefix": "bestindexC",
             "tn": "4"
           },
@@ -564,12 +572,32 @@
       ]
     },
     {
+      "name": "setup_19",
+      "steps": [
+        {
+          "type": "runtime_expr",
+          "sql": "1",
+          "variable": "do_not_use_limit"
+        }
+      ]
+    },
+    {
       "name": "bestindexC-3.5",
       "steps": [
         {
           "type": "query",
           "sql": "SELECT * FROM y1 LIMIT 5 OFFSET 3",
           "expect": "4 5 6 7 8"
+        }
+      ]
+    },
+    {
+      "name": "setup_20",
+      "steps": [
+        {
+          "type": "runtime_expr",
+          "sql": "1",
+          "variable": "do_not_use_offset"
         }
       ]
     },
@@ -585,10 +613,10 @@
     },
     {
       "name": "__RESET_DB__",
-      "steps": null
+      "steps": []
     },
     {
-      "name": "setup_19",
+      "name": "setup_21",
       "steps": [
         {
           "type": "register_tcl_module",
@@ -597,12 +625,15 @@
             "SQLITE_MAX_ATTACHED": "10",
             "SQLITE_MAX_COLUMN": "2000",
             "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_PAGE_SIZE": "65536",
             "SQLITE_MAX_VARIABLE_NUMBER": "32766",
+            "do_not_use_limit": "1",
+            "do_not_use_offset": "1",
             "expect": "$expect",
             "limit": "LIMIT 8 OFFSET 4",
             "op": "EXCEPT",
             "tbl": "t_except",
-            "testdir": "",
+            "testdir": "$testdir",
             "testprefix": "bestindexC",
             "tn": "4"
           },
@@ -674,10 +705,10 @@
     },
     {
       "name": "__RESET_DB__",
-      "steps": null
+      "steps": []
     },
     {
-      "name": "setup_20",
+      "name": "setup_22",
       "steps": [
         {
           "type": "register_tcl_module",
@@ -686,12 +717,15 @@
             "SQLITE_MAX_ATTACHED": "10",
             "SQLITE_MAX_COLUMN": "2000",
             "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_PAGE_SIZE": "65536",
             "SQLITE_MAX_VARIABLE_NUMBER": "32766",
+            "do_not_use_limit": "1",
+            "do_not_use_offset": "1",
             "expect": "$expect",
             "limit": "LIMIT 8 OFFSET 4",
             "op": "EXCEPT",
             "tbl": "t_except",
-            "testdir": "",
+            "testdir": "$testdir",
             "testprefix": "bestindexC",
             "tn": "4"
           },
@@ -736,7 +770,15 @@
         {
           "type": "catch",
           "sql": "SELECT * FROM x1 WHERE a=? AND b=? AND c=? AND c=?",
-          "catchMessage": "msg",
+          "variable": "__catchrc_msg",
+          "catchResult": true,
+          "catchMessage": "msg"
+        },
+        {
+          "type": "runtime_list",
+          "listValues": [
+            "$__catchrc_msg"
+          ],
           "expect": "0"
         }
       ]
@@ -747,7 +789,15 @@
         {
           "type": "catch",
           "sql": "SELECT * FROM x1 WHERE a=? AND b=? AND c=?",
-          "catchMessage": "msg",
+          "variable": "__catchrc_msg",
+          "catchResult": true,
+          "catchMessage": "msg"
+        },
+        {
+          "type": "runtime_list",
+          "listValues": [
+            "$__catchrc_msg"
+          ],
           "expect": "0"
         }
       ]
@@ -758,7 +808,15 @@
         {
           "type": "catch",
           "sql": "SELECT * FROM x1 WHERE a=? AND b=? AND (c=? OR c=?)",
-          "catchMessage": "msg",
+          "variable": "__catchrc_msg",
+          "catchResult": true,
+          "catchMessage": "msg"
+        },
+        {
+          "type": "runtime_list",
+          "listValues": [
+            "$__catchrc_msg"
+          ],
           "expect": "0"
         }
       ]
@@ -769,7 +827,15 @@
         {
           "type": "catch",
           "sql": "SELECT * FROM x1 WHERE a=? AND b=? AND (c=? OR c=? OR c=?)",
-          "catchMessage": "msg",
+          "variable": "__catchrc_msg",
+          "catchResult": true,
+          "catchMessage": "msg"
+        },
+        {
+          "type": "runtime_list",
+          "listValues": [
+            "$__catchrc_msg"
+          ],
           "expect": "0"
         }
       ]
@@ -780,7 +846,15 @@
         {
           "type": "catch",
           "sql": "SELECT * FROM x1 WHERE a=? AND b=? AND (c IS ? OR c IS ?)",
-          "catchMessage": "msg",
+          "variable": "__catchrc_msg",
+          "catchResult": true,
+          "catchMessage": "msg"
+        },
+        {
+          "type": "runtime_list",
+          "listValues": [
+            "$__catchrc_msg"
+          ],
           "expect": "0"
         }
       ]
@@ -791,7 +865,15 @@
         {
           "type": "catch",
           "sql": "SELECT * FROM x1 WHERE a=? AND ((b=? AND c=?) OR (c=? AND b=?))",
-          "catchMessage": "msg",
+          "variable": "__catchrc_msg",
+          "catchResult": true,
+          "catchMessage": "msg"
+        },
+        {
+          "type": "runtime_list",
+          "listValues": [
+            "$__catchrc_msg"
+          ],
           "expect": "0"
         }
       ]
@@ -802,7 +884,15 @@
         {
           "type": "catch",
           "sql": "SELECT * FROM x1 WHERE a=? AND ((b=? AND c=?) OR (c=?))",
-          "catchMessage": "msg",
+          "variable": "__catchrc_msg",
+          "catchResult": true,
+          "catchMessage": "msg"
+        },
+        {
+          "type": "runtime_list",
+          "listValues": [
+            "$__catchrc_msg"
+          ],
           "expect": "1"
         }
       ]
@@ -877,10 +967,10 @@
     },
     {
       "name": "__RESET_DB__",
-      "steps": null
+      "steps": []
     },
     {
-      "name": "setup_21",
+      "name": "setup_23",
       "steps": [
         {
           "type": "register_tcl_module",
@@ -889,14 +979,17 @@
             "SQLITE_MAX_ATTACHED": "10",
             "SQLITE_MAX_COLUMN": "2000",
             "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_PAGE_SIZE": "65536",
             "SQLITE_MAX_VARIABLE_NUMBER": "32766",
+            "do_not_use_limit": "1",
+            "do_not_use_offset": "1",
             "expect": "$expect",
             "limit": "LIMIT 8 OFFSET 4",
             "msg": "$msg",
             "ok": "0",
             "op": "EXCEPT",
             "tbl": "t_except",
-            "testdir": "",
+            "testdir": "$testdir",
             "testprefix": "bestindexC",
             "tn": "6",
             "where": "WHERE a=? AND ((b=? AND c=?) OR (c=?))"

@@ -2,7 +2,6 @@ package frigolite
 
 import (
 	"fmt"
-	"os"
 	"strconv"
 	"strings"
 	"testing"
@@ -55,6 +54,14 @@ func newHarnessTclCallbackRuntime(step TestStep, db *DB, runtimeVars map[string]
 		return fmt.Sprint(result.Rows[0][0]), nil
 	})
 	for name, value := range step.CallbackVars {
+		// The runtime-marker values ("$G(cols)", "$testdir") resolve
+		// against the harness's runtime variables (the file-scope sets
+		// seeded them); a plain value passes through.
+		if strings.Contains(value, "$") {
+			if resolved, err := evalHarnessRuntimeExpr(value, runtimeVars, func(string) string { return "" }); err == nil {
+				value = resolved
+			}
+		}
 		runtime.interp.SetVariable(name, value)
 	}
 	return runtime

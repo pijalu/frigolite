@@ -2096,6 +2096,39 @@ func commandRegisterTCLModule(i *Interp, rawWords []rawWord, args []string, loca
 	if len(moduleArgs) > 0 && moduleArgs[0] != "db" {
 		database = moduleArgs[0]
 	}
+	// Flush the pending file-level array sets that the registered callback
+	// procs READ: the sets' values must reach the harness's runtime set
+	// BEFORE the register snapshot (the callback bodies resolve them at
+	// invocation — bestindex1's vtab_command reads the G sets the file
+	// level established at :173, with the register at :239). The reads'
+	// set is complete here because the reading procs are already
+	// registered.
+	reads := make(map[string]bool)
+	for _, proc := range i.CallbackProcs() {
+		for _, name := range ScriptVarReads(proc.Body) {
+			reads[name] = true
+		}
+	}
+	if len(i.pendingFileSets) > 0 {
+		remaining := make([]string, 0, len(i.pendingFileSets))
+		for _, entry := range i.pendingFileSets {
+			sep := strings.Index(entry, "\x00")
+			if sep < 0 {
+				continue
+			}
+			base := strings.TrimSuffix(entry[:sep], "(")
+			base = strings.TrimPrefix(base, "::")
+			if reads[base] {
+				i.stmts = append(i.stmts, Stmt{
+					Type: "runtime_expr", Variable: entry[:sep],
+					SQL: `"` + entry[sep+1:] + `"`, TestName: i.curTest,
+				})
+				continue
+			}
+			remaining = append(remaining, entry)
+		}
+		i.pendingFileSets = remaining
+	}
 	i.stmts = append(i.stmts, Stmt{
 		Type: "register_tcl_module", Database: database,
 		ModuleArgs: moduleArgs, CallbackProcs: i.CallbackProcs(), CallbackVars: i.callbackVars(), TestName: i.curTest,

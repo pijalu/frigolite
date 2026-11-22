@@ -69,3 +69,4 @@ benchmarks/perfbench/sqlite/sqlite
 portplan/FULL_SUITE_*.json
 portplan/FULL_SUITE_*.pid
 portplan/FULL_SUITE_*.elapsed
+tclconvert
