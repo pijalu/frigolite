@@ -2310,3 +2310,21 @@ everywhere; go vet + go build clean.
   index-aligned argv; the vtab naming) that one instrumented testfixture
   run (the procs' puts) disproved. For every vtab/planner divergence,
   instrument the ORACLE's procs before theorizing about the engine.
+- **tclWords does NOT preserve braced spans**: the module-args parse must
+  be TCL word-segmented with {a b c} as ONE word — the shared tclWords
+  splits on spaces inside braces, so a module's list argument (lCol =
+  {a b c}) arrived as three words and every following proc parameter
+  misbound ($method = a list element). The module-args parse uses its own
+  braced-aware splitter (moduleCommandWords); a tclWords change would
+  affect every list parse, so the fix is scoped to the module-args path.
+- **A $-substitution's var name ends at a single colon**: "$zName: ..."
+  reads zName (only '::' continues a name). The interp's scanner consumed
+  the colon into the name, making every "$name: ..." substitution after
+  a colon-terminated name return "" — a silent whole-interp breakage
+  (the schemas, the callbacks' globals, the xFilter SQL all degraded).
+- **The blanket fixture regen is a corpus migration, not a slice step**:
+  go run ./tools/tclconvert/ re-emits ALL fixtures in the CURRENT
+  converter's format (1145 files, runtime-var markers, .gz variants) —
+  regenerating for one family's missing reset steps is wrong; the
+  migration is its own card. Revert the blanket, keep the family only if
+  the family's delta was the goal.

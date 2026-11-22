@@ -482,3 +482,43 @@ vtabRowidEquiOuters/seek path's outer maps), not the IN handling.
 Slice order update: the IN-loop leaves stay deferred behind the join-flow
 trace; the independent cuts proceed (the globals push/pull, distinct/
 orderby).
+
+---
+
+## 13. S43 slice 1's ENGINE surface delivered (2026-11-22): four root-cause fixes across the vtab callback stack
+
+The bestindex6 fix exposed THREE deeper shared-machinery bugs, all fixed
+in this slice (the leaf-level wins measured on the stale fixtures:
+bestindexE 8→7, bestindex6 2→0, bestindexF/bestindex1 unchanged with
+NEW=0; the FULL gate = this section's commit gate):
+
+1. **The left-join null-match exclusion** (section 11): the TERM_VNULL
+   parity via VtabScanOptions.LeftJoinInner + vtabLeftJoinNullMatch.
+2. **The braced-word module args** (internal/vtab/tclcmd_callback.go's
+   moduleCommandWords): tclWords split braced spans — `USING
+   tcl('vtab_command x1 {a b c}')` delivered lCol as three words, so the
+   proc's params misbound ($method = a list element "b", the xBestIndex
+   case never matched, the schema fell back empty). The module args are
+   TCL word-segmented with braced spans as single words.
+3. **The xBestIndex-global round trip** (the S25 pattern in
+   frigolite_tcl_vtab_callback_test.go's harnessTclCallbackRuntime): the
+   runtime now takes the harness's runtimeVars map, seeds the tracked
+   targets (NotifyScriptVarTargets over each callback proc's body), and
+   pushes the present values in / pulls the written values out around
+   EVERY callback invocation — bestindexE-1.1.2's ::xBestIndex now lands
+   in the runtime set (the rtgeomBoxFixture.syncVars precedent).
+4. **The $-name scanner's single-colon bug** (tools/tclconvert/tcl/
+   interp.go's readVarName): "$zName: [join ...]" read the name as
+   "zName:" (the colon consumed) so every substitution after a name
+   followed by a colon returned "". TCL's rule: only '::' continues; a
+   single colon terminates. This affected EVERY quoted substitution of
+   the form "$name: ..." across the whole interp.
+
+**The regen card**: regenerating the corpus (go run ./tools/tclconvert/)
+now emits a corpus-wide fixture migration (1145 files: the callbackVars'
+runtime-var markers like "G(cols)": "$G(cols)", the runtime_var_reset
+steps for the callback-written globals, the .gz variants) — a
+project-wide fixture/converter alignment task, CARDED separately from
+S43. The blanket regen was reverted; the bestindex families keep the
+stale fixtures until that card runs (bestindexE's 1.2.2/2.1.2/2.2.2
+accumulation leaves need the regen's runtime_var_reset steps).
