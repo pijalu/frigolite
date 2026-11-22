@@ -386,3 +386,44 @@ Worktree evidence: `/private/tmp/wt_s36triage` (branch `s36-index-triage`),
 per-family logs `/tmp/s36_run_<fam>.log`, leaf sets
 `/tmp/s36_famleaves.json`, detail blocks
 `/tmp/s36_details_index.json` + `/tmp/s36_details_coarse.json`.
+
+---
+
+## 10. S43 RESTART STATE (2026-11-22): the bucket-B residue measured fresh, the first forensic thread recorded
+
+**The fresh sweep** (FRIGOLITE_TEST=bestindex, python raw-scan vs the s35g
+baseline): 29 fails, NEW=0 — bestindex1 2, bestindex6 2, bestindexE 8,
+bestindexF 17. index9 = 0 (S42's explain_rows work landed earlier — the
+step exists in the converter main.go whitelist AND the harness :6218).
+
+**bestindex6-1.2/1.3's forensic capture** (a temporary TCLFILTER print in
+FilterPlan, reverted): the xFilter returns
+`SELECT rowid, * FROM t1 WHERE 1 AND id = %1%` with idxStr `1 AND id =
+%1%` and argv `[1]` — the `%1%` placeholder SURVIVES because the proc's
+map loop (`for {set iCons 0} {$iCons < [llength $aa]}`) indexes the argv
+by the CLIST position while our argv holds ONE value (the compact
+consumed form). C passes this case — its xFilter argv must be
+**index-aligned by argvIndex with NULL gaps** (wherecode.c allocates the
+register block to max(argvIndex); the unconsumed slots stay NULL), so
+`aa` has a slot per clist position up to the max. The fix lever:
+**buildVtabFilterArgv must pad the argv to max(ArgvIndex) with nil gaps**
+— our argv is ALREADY index-aligned by ArgvIndex (make([]interface{}, n))
+so the length IS max(argvIndex)=1 here — the real gap is that C's clist
+for this query yields TWO slots (the proc consumed iCons=1, meaning c0
+was skipped) while ours yields one — **the offered-constraint list shape
+(the ON term + the WHERE's IS NULL as c0/c1 and their usable flags) must
+be cross-checked against C's bestindex6.test offering order.** Note the
+returned SQL targets `t1` while the case's query names vt1/vt2 — the
+fixture's vtab-naming (xConnect's $src) needs the same cross-check.
+
+**The next slice order** (the triage's bucket B, updated):
+1. bestindex6-1.2/1.3 (2): the argv-alignment + the offering-order
+   cross-check above.
+2. bestindex1-4.1 (1): the skip-map entry's t.Errorf → Skip (1 line).
+3. bestindex1-3.4/3.5 (2): the vtab IN-constraint loop
+   (wherecode.c:1598-1610, OP_VFilter + OP_VNext per value).
+4. The xBestIndex-global push/pull (bestindexF 2.x.1 ×10 + bestindexE
+   1.1.2/1.2.2/2.1.2/2.2.2 ×4): the S25 NotifyScriptVarTargets round
+   trip around every callback.
+5. The distinct/orderby consumption (bestindexF 2.x.2 ×10 + 1.4.1) and
+   bestindexE 3.x's named-read module registration.
