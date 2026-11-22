@@ -607,3 +607,35 @@ flat-vm fix; 2.11.1's idxStr via the hint precedence; 2.11.2's delivery
 via the streaming aggregate); bestindexF 17 → **11**; bestindexE 6,
 bestindex1 2, bestindex6 0, where/where2/select/the generator families =
 the baseline. The FULL gate = this section's commit gate.
+
+---
+
+## 16. S43 slice 4 DELIVERED (2026-11-22): the WHERE_DISTINCTBY offering + the DISTINCT suppression + the ephemeral grouping — bestindexF 17→6
+
+**The residue's decomposition** (the fresh bestindexF run): three classes.
+(A) **The 2.3/2.4/2.5's .0/.1/.2 trio** — the WHERE_DISTINCTBY parity:
+C's select.c:8616's non-aggregate WhereBegin passes pDistinct as the
+ordering list, so the DISTINCT's own select-list columns are the offered
+ORDER BY (the vacuous match for the empty ordering → the flag = 2; the
+statement's ORDER BY → 3, the module's else form). The engine now offers
+the DISTINCT's select-list columns (VtabScanOptions.DistinctCols +
+vtabOrderByTerms's WHERE_DISTINCTBY branch), the hint map's DISTINCT
+forms (2 without the statement ORDER BY, 3 with), and the DISTINCT's
+temp node is suppressed when the vtab's ORDER BY (the DISTINCT's own
+columns) is consumed (scanLoop.vtabOrderConsumed).
+(B) **The 2.11 trio** — the WHERE_GROUPBY consumption delivered in
+slice 3 (the streaming aggregate + the ephemeral-index grouping render:
+the GROUP BY over a consumed ORDER BY groups through the ephemeral
+index — no sorter, the want's IdxInsert = the group-key insert).
+(C) **The 2.8/2.9/2.10 .0 leaves** — the fixture-expansion artifact: the
+converter's proc-body expansion groups the do_vtabsorter machinery sets
+under the PREVIOUS case's TestName (the body's sets precede the do_test
+calls, so i.curTest = the stale name), leaving the .0 reads bound to the
+wrong section's machinery. Converter-expansion class, CARD — not engine.
+
+**The gates**: bestindexF 17 → **6 leaves** (the baseline's 17: GONE =
+14 — the 2.2.1/2.3.x/2.4.x/2.5.x/2.6.1/2.7.1/2.10.1/2.10.2/2.11.1/
+2.11.2 class; the residue = 1.4.1 (the multi-table DISTINCT+ORDER BY
+delivery, its own slice) + the 2.8/2.9/2.10 .0 trio (the carded
+fixture-expansion class)); where/where2/select/the generator families =
+the baseline. The FULL gate = this section's commit gate.
