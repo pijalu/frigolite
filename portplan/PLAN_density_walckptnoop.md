@@ -697,3 +697,46 @@ parent's RIGHTMOST pointer (k == CellCount-1 → cell k+1 doesn't exist —
 R = the rightmost, no cell k+1 to preserve). The leaf spill's boundary
 entries in leaf form must re-encode their chains for the landing page
 (the existing divEntry prepareCell path).
+
+## HANDOVER 2026-11-22 (2): SLICE 3 ATTEMPTED AND REVERTED — the 3-old-sibling window regresses; the remaining delta stays carded
+
+**Both 3-old attempts were implemented, measured, and REVERTED** (the
+worktree is back at the committed slice-2 state 755d3c3b0; probes green:
+AV 2000 entries 0 dup, IC ok everywhere, ours 308 pages / 136 i1-leaves
+/ 25 interiors vs C 299/129/22):
+
+1. **The interior 3-old window** ([left, anchor, right] + up to 2 new
+   pages, the parent drop/insert with the cell-count delta): measured
+   315-317 pages / 30-32 interiors — WORSE than slice 2's 308/25. The
+   bisect (an nOld cap + a spill-off env) showed the regression comes
+   from BOTH the no-left [anchor, right] windows and the 3-old gathers:
+   the redistribution's cut keys differ from the tail-split's dividers,
+   which perturbs the downstream leaf-split landscape.
+2. **The leaf 3-old window** ([left, leaf, right], redistribution-only,
+   the double re-key): measured 330 pages / 154 leaves AND corrupted the
+   AV walk (2028 entries, duplicated pairs on leaf pages). Two real bugs
+   were found and fixed in the draft before abandoning it: the right
+   sibling must be read from CELL k+1's child (cell k points at the LEAF
+   itself — the first draft duplicated the leaf's cells into the window,
+   the interleaved-duplicate signature), and the run count must EXACTLY
+   match the gathered pages (the spill is redistribution-only). The
+   remaining corruption was NOT fully root-caused: the dup pairs are
+   P-segment pairs with identical bytes and distinct cell pointers, the
+   leaf page's direct decode is clean (31 cells, 0 dups, each key once)
+   but its stored order measures UNSORTED — pointing at an unsorted-leaf
+   write path or a parent-re-key interaction left unresolved.
+
+**The lesson (recorded in lessons_learned.md)**: the redistribution's
+cut keys are not density-neutral — they change every downstream split's
+medians. A window extension must be evaluated on the FULL probe set, not
+the target metric alone; both attempts looked structurally correct and
+measured worse.
+
+**The density unit's state**: slices 1-2 landed (the leaf spill + the
+interior spill, identity-clean FULL gates). The remaining delta
+(densprobe 308 vs 299 pages; walckptnoop mxFrame 337 vs 298) stays
+CARDED behind slice 3's identified lever (the 3-old window) — resumable
+from this handover with the two draft bugs' fixes already known. The
+densprobe now asserts integrity_check per run (it caught TWO real
+corruptions during slice 2 — the ptrBase off-by-8 and the vanishing
+boundary entry).
