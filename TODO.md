@@ -8,7 +8,7 @@
 
 `close all gaps with sqlite — functional first, then performance.`
 
-## State (2026-11-22, feature/perf @ b15b5a0f1 — S43 slice 1 landed: the left-join null-match exclusion + the vtab callback stack fixes)
+## State (2026-11-22, feature/perf @ bb7d91c49 — S43 slices 1-2 landed: the vtab callback stack + the selective fixture regen)
 
 Full-suite truth **1190 failing leaves** (the s35g gate baseline
 portplan/baselines/s35g_gate_fails.txt minus the three walfault leaves

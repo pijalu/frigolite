@@ -2328,3 +2328,18 @@ everywhere; go vet + go build clean.
   regenerating for one family's missing reset steps is wrong; the
   migration is its own card. Revert the blanket, keep the family only if
   the family's delta was the goal.
+- **The corpus regen is selective by hand**: go run ./tools/tclconvert/
+  re-emits ALL fixtures in the current format — for a single-family fix,
+  regenerate, then revert everything outside the target family's files
+  and delete the stray .gz/untracked regen artifacts (the harness's glob
+  picks them up and changes the family counts).
+- **The file-level array-element sets seed the harness's runtime set at
+  the next register whose procs READ them** (ScriptVarReads: the global
+  decls + the $-references): the immediate emission fired 37,500 times
+  corpus-wide (every proc's per-case array set); the reads-keyed flush
+  at register_tcl_module scopes it and preserves C's ordering (the sets
+  land before the register snapshot that carries them in callbackVars).
+- **The SQL-safe runtime-value rendering needs the bare-token-list form**:
+  C builds SQL by string interpolation, so "PrimaryKey,flagA,columnA" in
+  a CREATE's column-list context must land verbatim — the quoting would
+  make it one identifier.
