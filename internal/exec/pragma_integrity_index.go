@@ -22,6 +22,7 @@ package exec
 
 import (
 	"fmt"
+	"math"
 	"strings"
 
 	"github.com/pijalu/frigolite/internal/btree"
@@ -31,6 +32,7 @@ import (
 	"github.com/pijalu/frigolite/internal/parse"
 	"github.com/pijalu/frigolite/internal/schema"
 	"github.com/pijalu/frigolite/internal/sql"
+	"github.com/pijalu/frigolite/internal/storage"
 	"github.com/pijalu/frigolite/internal/util"
 )
 
@@ -134,8 +136,42 @@ func (e *Engine) checkDatabaseIndexEntryCounts(ctx *DatabaseContext, emit func(s
 		if isSchemaTable(te.Name) || te.RootPage == 0 {
 			continue // schema walker / virtual or FTS table
 		}
+		if schemaRootIsImposter(ctx, te) {
+			continue // imposter table shares an index b-tree (pragma.c tableSkipIntegrityCheck)
+		}
 		e.checkTableIndexEntryCounts(ctx, te, emit)
 	}
+}
+
+// schemaRootIsImposter reports whether a table's rootpage is also an index's
+// root — the footprint left by SQLITE_TESTCTRL_IMPOSTER when the fixture
+// plants a WITHOUT ROWID table over an index b-tree. C marks those tables
+// TF_Imposter and skips them in integrity_check (pragma.c
+// tableSkipIntegrityCheck); the shared rootpage is the engine-visible mark.
+func schemaRootIsImposter(ctx *DatabaseContext, te *schema.Entry) bool {
+	if ctx == nil || ctx.Schema == nil || te == nil || te.RootPage == 0 {
+		return false
+	}
+	return schemaIndexRootIsImposter(ctx, te.RootPage, te.Name)
+}
+
+// schemaIndexRootIsImposter reports whether a rootpage is shared with a
+// DIFFERENT table — the same imposter mark as schemaRootIsImposter, from the
+// index side. exceptName is the owning table, whose own root is not a match.
+func schemaIndexRootIsImposter(ctx *DatabaseContext, root uint32, exceptName string) bool {
+	if ctx == nil || ctx.Schema == nil || root == 0 {
+		return false
+	}
+	entries, err := ctx.Schema.GetEntries(schema.TypeTable)
+	if err != nil {
+		return false
+	}
+	for _, te := range entries {
+		if te.RootPage == root && !strings.EqualFold(te.Name, exceptName) {
+			return true
+		}
+	}
+	return false
 }
 
 // checkTableIndexEntryCounts compares one table's row count against each of
@@ -156,6 +192,9 @@ func (e *Engine) checkTableIndexEntryCounts(ctx *DatabaseContext, te *schema.Ent
 		tgt, ok := parseIntegrityIndex(ent)
 		if !ok || tgt.where != nil {
 			continue // partial indexes are exempt (pragma.c's pPartIdxWhere rule)
+		}
+		if schemaRootIsImposter(ctx, te) {
+			continue // imposter table shares an index b-tree (pragma.c tableSkipIntegrityCheck)
 		}
 		idxTree := btree.NewBTree(ctx.Pager, tgt.root, false)
 		idxCount, err := idxTree.CountEntries()
@@ -313,8 +352,134 @@ func (e *Engine) quickCheckIndexPresence(targets []*integrityIndexTarget, colDef
 		if err != nil || found {
 			continue
 		}
+		if e.indexKeyIsImprecise(t, probe) {
+			emit(fmt.Sprintf("index %s stores an imprecise floating-point value for row %d", t.name, ordinal))
+			continue
+		}
 		emit(fmt.Sprintf("row %d missing from index %s", ordinal, t.name))
 	}
+}
+
+// indexKeyIsImprecise inspects the entries on either side of a failed
+// presence probe. A stale expression index can hold a float a few ULPs away
+// from the value recomputed against the table row; SQLite reports that as a
+// distinct integrity_check diagnostic instead of "row missing" (expridx1
+// 4.3/4.6). One or two ULPs are imprecise, three are a missing row.
+func (e *Engine) indexKeyIsImprecise(t *integrityIndexTarget, probe []interface{}) bool {
+	if t == nil || t.tree == nil || len(probe) <= len(t.terms) {
+		return false
+	}
+	// A failed SeekIndexKey leaves the presence cursor at EOF, so inspect the
+	// neighbours through fresh lower-bound cursors instead.
+	if e.scanImpreciseNeighbours(t, probe, true) {
+		return true
+	}
+	return e.scanImpreciseNeighbours(t, probe, false)
+}
+
+// scanImpreciseNeighbours walks a bounded window from the miss position in
+// one direction. A distorted locator can sit several imprecise entries away
+// from the recomputed key when a group of rows share a nearly equal value;
+// the two-ULP comparison still rejects every key but the requested row's.
+func (e *Engine) scanImpreciseNeighbours(t *integrityIndexTarget, probe []interface{}, forward bool) bool {
+	cur, err := t.tree.OpenCursorAtRoot()
+	if err != nil {
+		return false
+	}
+	defer cur.Close()
+	seekProbe := probe
+	if !forward {
+		seekProbe = impreciseSeekProbe(probe, len(t.terms))
+	}
+	if found, err := cur.SeekIndexLowerBound(btree.NewUnpackedIndexKey(t.ki, seekProbe), false); err != nil || !found {
+		return false
+	}
+	for step := 0; step < impreciseNeighbourWindow; step++ {
+		cell, err := cur.ReadCell()
+		if err == nil && cell != nil && e.indexCellIsImprecise(t, probe, cell) {
+			return true
+		}
+		moved, merr := cur.Next()
+		if merr != nil || !moved {
+			return false
+		}
+	}
+	return false
+}
+
+// impreciseSeekProbe shifts numeric key fields a few ULPs below the expected
+// value so a forward walk starts before a below-expected distorted key.
+func impreciseSeekProbe(probe []interface{}, keyFields int) []interface{} {
+	out := make([]interface{}, len(probe))
+	copy(out, probe)
+	for i := 0; i < keyFields && i < len(out); i++ {
+		f, ok := indexProbeFloat(out[i])
+		if !ok {
+			continue
+		}
+		for j := 0; j < 3; j++ {
+			f = math.Nextafter(f, math.Inf(-1))
+		}
+		out[i] = f
+	}
+	return out
+}
+
+const impreciseNeighbourWindow = 16
+
+// indexCellIsImprecise compares one nearby index entry with the expected
+// key+locator probe. The locator (rowid, or the WITHOUT ROWID PK tail) must
+// match exactly; among the key fields exactly one numeric float may differ
+// by no more than two ULPs.
+func (e *Engine) indexCellIsImprecise(t *integrityIndexTarget, probe []interface{}, cell *storage.Cell) bool {
+	rec, err := storage.DecodeRecord(cell.Payload)
+	if err != nil || rec == nil || len(rec.Values) < len(probe) {
+		return false
+	}
+	for i := len(t.terms); i < len(probe); i++ {
+		if util.CompareValues(unwrapIndexProbeValue(rec.Values[i]), unwrapIndexProbeValue(probe[i])) != 0 {
+			return false
+		}
+	}
+	imprecise := false
+	for i := 0; i < len(t.terms) && i < len(rec.Values); i++ {
+		want, got := unwrapIndexProbeValue(probe[i]), unwrapIndexProbeValue(rec.Values[i])
+		if util.CompareValues(want, got) == 0 {
+			continue
+		}
+		if !floatsWithinTwoULPs(want, got) || imprecise {
+			return false
+		}
+		imprecise = true
+	}
+	return imprecise
+}
+
+// floatsWithinTwoULPs reports whether the two values are distinct float64s
+// no more than two representable steps apart at their own magnitude.
+func floatsWithinTwoULPs(a, b interface{}) bool {
+	af, aok := indexProbeFloat(a)
+	bf, bok := indexProbeFloat(b)
+	if !aok || !bok || af == bf {
+		return false
+	}
+	// SQLite counts ULPs in the direction of the drift: just below a
+	// power of two the representable step is half the step above it.
+	var ulp float64
+	if bf > af {
+		ulp = math.Nextafter(af, math.Inf(1)) - af
+	} else {
+		ulp = af - math.Nextafter(af, math.Inf(-1))
+	}
+	return math.Abs(af-bf) <= 2*ulp
+}
+
+// indexProbeFloat unwraps storage/affinity/collation wrappers and accepts only
+// float64 keys: the imprecise-value diagnostic is a floating-point rule.
+func indexProbeFloat(v interface{}) (float64, bool) {
+	v = unwrapIndexProbeValue(v)
+	f, ok := v.(float64)
+	return f, ok
 }
 
 // integrityIndexProbe builds one row's seek probe for one index: the key

@@ -132,6 +132,24 @@ sqlite3_test_control SQLITE_TESTCTRL_INTERNAL_FUNCTIONS db`); err != nil {
 	}
 }
 
+func TestSQLite3ImposterControlEmitsRootpageRewrite(t *testing.T) {
+	i := NewInterp()
+	if err := i.Execute(`set root 3
+sqlite3_test_control SQLITE_TESTCTRL_IMPOSTER db main 1 $root
+db eval {CREATE TABLE x1(b, rowid, PRIMARY KEY(b, rowid)) WITHOUT ROWID;}
+sqlite3_test_control SQLITE_TESTCTRL_IMPOSTER db main 0 0`); err != nil {
+		t.Fatal(err)
+	}
+	stmts := i.Stmts()
+	if len(stmts) != 2 {
+		t.Fatalf("imposter statements = %#v, want CREATE TABLE + rootpage rewrite", stmts)
+	}
+	want := "PRAGMA writable_schema=ON;\nUPDATE sqlite_schema SET rootpage=$root WHERE name='x1';\nPRAGMA writable_schema=OFF;"
+	if stmts[0].SQL != "CREATE TABLE x1(b, rowid, PRIMARY KEY(b, rowid)) WITHOUT ROWID;" || stmts[1].SQL != want {
+		t.Fatalf("imposter statements = %#v, want rewrite %q", stmts, want)
+	}
+}
+
 func TestSQLite3NamedMemoryOpenEmitsOpenMarker(t *testing.T) {
 	i := NewInterp()
 	if err := i.Execute(`sqlite3 db2 :memory:`); err != nil {

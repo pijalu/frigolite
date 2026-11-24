@@ -158,7 +158,7 @@ func andChainExprs(conjuncts []sql.Expr) sql.Expr {
 // provably-decided matcher calls (select_like_opt.go — the
 // sqlite3_like_count contract).
 func (e *SelectEngine) selectIndexSeekPlanFor(s *sql.SelectStmt, tableEntry *schema.Entry, colDefs []sql.ColumnDef, dbCtx *DatabaseContext) (*indexSeekPlan, error) {
-	if !indexSeekShapeApplies(s, tableEntry) || e.ctx.TableIsWithoutRowidEntry(tableEntry) {
+	if !indexSeekShapeApplies(s, tableEntry) {
 		return nil, nil
 	}
 	if s.From.NotIndexed {
@@ -515,12 +515,55 @@ func (e *SelectEngine) indexSeekExpressionTerm(operand, bound sql.Expr, op strin
 		val, ok = e.seekOuterBoundValue(bound, tableEntry, alias)
 	}
 	if !ok {
+		val, ok = e.seekOuterExprValue(bound, tableEntry.Name)
+	}
+	if !ok {
 		return indexSeekTerm{}, false
 	}
 	if flipSides {
 		op = flipComparisonOp(op)
 	}
 	return indexSeekTerm{col: text, op: op, val: val}, true
+}
+
+// seekOuterExprValue evaluates a correlated expression bound against the
+// enclosing row. C compiles these bounds into a register (where.c's
+// correlated outer reference); an expression that also touches the scanned
+// table is not a bound and must stay a residual filter.
+func (e *SelectEngine) seekOuterExprValue(expr sql.Expr, tableName string) (interface{}, bool) {
+	if expr == nil || (e.outerRow == nil && len(e.OuterRows()) == 0) {
+		return nil, false
+	}
+	if exprReferencesTable(expr, tableName) {
+		return nil, false
+	}
+	val, err := e.ctx.EvalExpr(expr, e.outerRow)
+	if err != nil || val == nil {
+		return nil, false
+	}
+	return execexpr.UnwrapCollatedValue(util.UnwrapColumnValue(val)), true
+}
+
+// exprReferencesTable reports whether an expression names a column of the
+// table currently being sought. A correlation bound may only name outer
+// scopes.
+func exprReferencesTable(expr sql.Expr, tableName string) bool {
+	if tableName == "" {
+		return false
+	}
+	found := false
+	WalkExprFull(expr, func(n sql.Expr) {
+		ref, ok := n.(*sql.ColumnRef)
+		if !ok || found {
+			return
+		}
+		if ref.Table != "" {
+			found = strings.EqualFold(unqualifiedObjectName(ref.Table), unqualifiedObjectName(tableName))
+		} else {
+			found = strings.EqualFold(ref.Name, tableName)
+		}
+	})
+	return found
 }
 
 // flipComparisonOp mirrors a comparison operator when the column operand is

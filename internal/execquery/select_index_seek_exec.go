@@ -53,8 +53,10 @@ func (e *SelectEngine) selectIndexSeekRows(s *sql.SelectStmt, tableEntry *schema
 	if plan.empty {
 		return [][]interface{}{}, nil, true, nil
 	}
-	if !e.indexIsUnique(plan.index) || len(plan.eq) < len(e.indexColumns(plan.index)) {
-		e.ctx.MarkStatsUsed(tableEntry.Name)
+	e.markIndexSeekStatsUsed(plan, tableEntry.Name)
+	needMaps := e.selectNeedsRowMapsCached(s, tableEntry.Name)
+	if !e.indexSeekRunAllowed(s, tableEntry, colDefs, needMaps, plan.index) {
+		return nil, nil, false, nil
 	}
 	run, idxTree, ok := e.openIndexSeekRun(plan, tableEntry, dbCtx, colDefs)
 	if !ok {
@@ -73,14 +75,11 @@ func (e *SelectEngine) selectIndexSeekRows(s *sql.SelectStmt, tableEntry *schema
 	// finds nothing. A plan with neither a range start nor an equality
 	// prefix starts at the index's first entry (OP_Rewind), which the
 	// counter does not track.
-	if run.startProbe != nil || run.eqProbe != nil {
-		e.ctx.IncSearchCount(1)
-	}
+	e.countIndexSeekProbe(run)
 	cursor, ok := run.position(idxTree)
 	if !ok {
 		return [][]interface{}{}, nil, true, nil
 	}
-	needMaps := e.selectNeedsRowMapsCached(s, tableEntry.Name)
 	if e.indexSeekCoversQuery(s, colDefs, run.cols, needMaps) {
 		rows, maps, done := e.indexSeekCoveredRows(s, tableEntry, colDefs, run, cursor, needMaps, feed)
 		return rows, maps, done, nil
@@ -91,6 +90,33 @@ func (e *SelectEngine) selectIndexSeekRows(s *sql.SelectStmt, tableEntry *schema
 	}
 	rows, maps, done := e.indexSeekForwardRows(s, tableEntry, colDefs, tree, run, cursor, needMaps, feed)
 	return rows, maps, done, nil
+}
+
+// markIndexSeekStatsUsed mirrors C's sqlite3Stats2 loop-selection side effect:
+// a fully-bound unique seek is the one shape that does not poll the stats.
+func (e *SelectEngine) markIndexSeekStatsUsed(plan *indexSeekPlan, tableName string) {
+	if !e.indexIsUnique(plan.index) || len(plan.eq) < len(e.indexColumns(plan.index)) {
+		e.ctx.MarkStatsUsed(tableName)
+	}
+}
+
+// countIndexSeekProbe counts the sqlite3_search_count increment for a seek
+// whose start position is an OP_Seek* (a rewind is not counted).
+func (e *SelectEngine) countIndexSeekProbe(run *indexSeekRun) {
+	if run.startProbe != nil || run.eqProbe != nil {
+		e.ctx.IncSearchCount(1)
+	}
+}
+
+// indexSeekRunAllowed gates the WITHOUT ROWID seek: a secondary index has no
+// rowid tail to join back to the table, so only a covering loop can rebuild
+// the row. The rowid-join path owns every other table shape.
+func (e *SelectEngine) indexSeekRunAllowed(s *sql.SelectStmt, tableEntry *schema.Entry, colDefs []sql.ColumnDef, needMaps bool, index string) bool {
+	if !e.ctx.TableIsWithoutRowidEntry(tableEntry) {
+		return true
+	}
+	seekCols := e.indexSeekColumns(tableEntry, indexSchemaName(index))
+	return e.indexSeekCoversQuery(s, colDefs, seekCols, needMaps)
 }
 
 // indexSeekReversed reports whether the loop runs backwards: PRAGMA
@@ -126,7 +152,7 @@ func (e *SelectEngine) openIndexSeekRun(plan *indexSeekPlan, tableEntry *schema.
 		return nil, nil, false
 	}
 	tree.SetIndexKeyInfo(ki, e.indexSeekCollationLookup())
-	run := &indexSeekRun{plan: plan, ki: ki, cols: e.indexColumns(plan.index), desc: e.indexSeekRangeDesc(tableEntry.Name, plan)}
+	run := &indexSeekRun{plan: plan, ki: ki, cols: e.indexSeekColumns(tableEntry, indexSchemaName(plan.index)), desc: e.indexSeekRangeDesc(tableEntry.Name, plan)}
 	if len(plan.eq) > 0 {
 		run.eqProbe = btree.NewUnpackedIndexKey(ki, plan.eq)
 	}
@@ -155,6 +181,39 @@ func (e *SelectEngine) indexSeekKeyInfo(tableName, token string, colDefs []sql.C
 		}
 	}
 	return btree.NewKeyInfo(len(cols), colls, flags)
+}
+
+// indexSeekColumns returns the values an index entry carries for a seek:
+// its key columns plus, for a WITHOUT ROWID secondary index, the PK tail.
+// C's index B-tree records carry those PK columns so a covering loop can
+// read the full row without a table lookup.
+func (e *SelectEngine) indexSeekColumns(tableEntry *schema.Entry, idx string) []string {
+	cols := e.indexColumns(idx)
+	if tableEntry == nil || !e.ctx.TableIsWithoutRowidEntry(tableEntry) || idx == "PRIMARY KEY" {
+		return cols
+	}
+	entry, _, err := e.ctx.FindTable(tableEntry.Name)
+	if err != nil || entry == nil {
+		return cols
+	}
+	colDefs := e.ctx.ParseColumnDefs(entry.Name, entry.SQL)
+	for _, pk := range e.ctx.WithoutRowidPKColumns(entry.Name, entry, colDefs, false) {
+		if pk.Name == "" || anyCoveredIndexColumn(cols, pk.Name) {
+			continue // a PK column already in the key is elided from the tail
+		}
+		cols = append(cols, pk.Name)
+	}
+	return cols
+}
+
+// coveredIndexColumn reports whether an index key supplies colName. Besides a
+// bare column, an explicit unary `+col` key stores the same value (C's
+// covering-index check follows the expression through that no-op operator).
+func coveredIndexColumn(key, colName string) bool {
+	if strings.EqualFold(key, colName) {
+		return true
+	}
+	return len(key) > 1 && key[0] == '+' && strings.EqualFold(strings.TrimSpace(key[1:]), colName)
 }
 
 // indexSeekCollationLookup resolves a key collation name for the b-tree

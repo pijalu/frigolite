@@ -178,22 +178,22 @@ func (e *DMLExecutor) indexDefsIn(ctx *DatabaseContext, tableName string) []inde
 	// columns (sqlite_autoindex_* entries store no SQL; their columns come
 	// from the table's PRIMARY KEY / UNIQUE constraints).
 	tableEntry, _ := ctx.Schema.FindTable(tableName)
-	isWR := tableEntry != nil && tableIsWithoutRowid(tableEntry.SQL)
 	var colDefs []sql.ColumnDef
 	for _, ent := range entries {
 		if !strings.EqualFold(ent.TblName, tableName) {
 			continue
 		}
 		if strings.TrimSpace(ent.SQL) == "" {
-			if !isWR {
-				// sqlite_autoindex_* entry: SQLite maintains this b-tree on
-				// every DML — its stored key order feeds index-driven reads.
-				// The engine's constraint checks scan the table instead, which
-				// left these trees empty; derive the def from the table's
-				// constraints exactly as REINDEX does (indexDefForEntry →
-				// autoindexKeyColumns) so DML and REINDEX agree on the content.
-				result = e.appendAutoindexDef(result, ctx, tableEntry, ent, &colDefs)
-			}
+			// sqlite_autoindex_* entry: SQLite maintains this b-tree on
+			// every DML — its stored key order feeds index-driven reads.
+			// The engine's constraint checks scan the table instead, which
+			// left these trees empty; derive the def from the table's
+			// constraints exactly as REINDEX does (indexDefForEntry →
+			// autoindexKeyColumns) so DML and REINDEX agree on the content.
+			// A WITHOUT ROWID clustered PK has no sqlite_schema entry;
+			// an entry that exists is a secondary UNIQUE index and must
+			// be maintained too (its PK tail is appended below).
+			result = e.appendAutoindexDef(result, ctx, tableEntry, ent, &colDefs)
 			continue
 		}
 		if def, ok := plainIndexDef(ctx, ent); ok {

@@ -532,6 +532,7 @@ func parseIndexKeyCols(colText string) []string {
 			// expression key: keep any COLLATE nested in the expression, strip
 			// only a top-level COLLATE suffix (it is the key's sort collation,
 			// not part of the expression value) and ASC/DESC.
+			name = stripIndexExprOuterParens(name)
 			name = stripTopLevelIndexSuffix(name)
 		} else {
 			if idx := strings.Index(upper, " COLLATE"); idx >= 0 {
@@ -547,6 +548,29 @@ func parseIndexKeyCols(colText string) []string {
 		}
 	}
 	return cols
+}
+
+// stripIndexExprOuterParens removes the CREATE INDEX wrapper around an
+// expression key — `CREATE INDEX i ON t((b+0.0))` stores `(b+0.0)`, while
+// the WHERE term renders as `b+0.0`. Nested parentheses that are part of the
+// expression stay.
+func stripIndexExprOuterParens(key string) string {
+	for len(key) >= 2 && key[0] == '(' && key[len(key)-1] == ')' {
+		depth, quote := 0, byte(0)
+		balanced := true
+		for i := 0; i < len(key); i++ {
+			advanceIndexKeyScan(key, &i, &depth, &quote)
+			if depth == 0 && i < len(key)-1 {
+				balanced = false
+				break
+			}
+		}
+		if !balanced {
+			return key
+		}
+		key = strings.TrimSpace(key[1 : len(key)-1])
+	}
+	return key
 }
 
 // stripTopLevelIndexSuffix removes a trailing top-level COLLATE <name>,

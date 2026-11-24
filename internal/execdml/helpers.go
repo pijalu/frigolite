@@ -56,6 +56,15 @@ func indexKeyColName(col string) string {
 	// old-MySQL-compatibility form (where.test's `CREATE INDEX i1xy ON
 	// t1(\`x\`,'y' ASC)`): sqlite3NameFromToken dequotes it exactly like the
 	// identifier quotes.
+	// An expression key wrapped by CREATE INDEX's mandatory parentheses is
+	// stored as the expression itself (build.c keeps pExpr without that
+	// wrapper); make the planner's index-column list agree with the term text
+	// rendered from WHERE. Function-call expressions keep their own parens.
+	if strings.ContainsAny(col, "()") {
+		if trimmed := trimOuterParens(col); trimmed != col {
+			return trimmed
+		}
+	}
 	if col != "" && (col[0] == '"' || col[0] == '`' || col[0] == '[' || col[0] == '\'') {
 		col = quotedToken(col)
 	}

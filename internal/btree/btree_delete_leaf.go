@@ -8,9 +8,11 @@ import (
 	"encoding/binary"
 	"fmt"
 	"os"
+	"strings"
 
 	"github.com/pijalu/frigolite/internal/pager"
 	"github.com/pijalu/frigolite/internal/storage"
+	"github.com/pijalu/frigolite/internal/util"
 )
 
 // leafCellType maps a leaf page type to its on-page cell encoding.
@@ -43,6 +45,104 @@ func (t *BTree) DeleteIndexEntry(target []byte) (bool, error) {
 	}
 	n, err := t.deleteIndexEntriesWalk([][]byte{target})
 	return n > 0, err
+}
+
+// DeleteIndexEntryByTail removes the one index entry whose trailing locator
+// fields (rowid, or a WITHOUT ROWID PK tail) equal the target's. It is the
+// stale-key fallback for an imposter-distorted index: the recomputed key does
+// not match the stored key, but the entry still belongs to the deleted row.
+// The walk mirrors C's cursor-positioned OP_IdxDelete, where the cursor lands
+// on the entry to delete rather than requiring byte equality on a new key.
+func (t *BTree) DeleteIndexEntryByTail(target []byte, tailFields int) (bool, error) {
+	tail, err := indexTailFromTarget(target, tailFields)
+	if err != nil || tail == nil {
+		return false, err
+	}
+	t.saveAllCursors()
+	t.invalidateAppendCursor()
+	cur, err := t.OpenCursorAtRoot()
+	if err != nil {
+		return false, err
+	}
+	defer cur.Close()
+	return t.deleteIndexEntryByTailScan(cur, tail, tailFields)
+}
+
+// indexTailFromTarget decodes the target record's trailing locator fields.
+// nil (with a nil error) means the target carries no usable tail.
+func indexTailFromTarget(target []byte, tailFields int) ([]interface{}, error) {
+	rec, err := storage.DecodeRecord(target)
+	if err != nil || rec == nil || tailFields <= 0 || tailFields > len(rec.Values) {
+		return nil, err
+	}
+	return rec.Values[len(rec.Values)-tailFields:], nil
+}
+
+// deleteIndexEntryByTailScan walks the index from the cursor's root position,
+// deleting the first entry whose tail matches. A clean end-of-cursor is a
+// no-match, not an error.
+func (t *BTree) deleteIndexEntryByTailScan(cur *Cursor, tail []interface{}, tailFields int) (bool, error) {
+	for {
+		matched, done, err := t.indexTailCursorMatches(cur, tail, tailFields)
+		if err != nil || done {
+			return false, err
+		}
+		if matched {
+			if cur.onInteriorCell {
+				return t.deleteInteriorIndexEntry(cur)
+			}
+			return t.dropIndexLeafCell(cur.pageNum, cur.cellIdx)
+		}
+		more, err := cur.Next()
+		if err != nil || !more {
+			return false, err
+		}
+	}
+}
+
+// indexTailCursorMatches decides the cursor's current entry: matched when its
+// tail equals the wanted one, done when the cursor reached the end.
+func (t *BTree) indexTailCursorMatches(cur *Cursor, tail []interface{}, tailFields int) (matched, done bool, err error) {
+	cell, err := cur.ReadCell()
+	if err != nil {
+		if strings.Contains(err.Error(), "cursor at end") {
+			return false, true, nil
+		}
+		return false, false, err
+	}
+	if cell == nil {
+		return false, true, nil
+	}
+	full, err := t.indexCursorCellPayload(cur)
+	if err != nil {
+		return false, false, err
+	}
+	matched, err = indexRecordTailMatches(full, tail, tailFields)
+	return matched, false, err
+}
+
+// indexRecordTailMatches decodes one stored index record and compares its
+// trailing locator with the target's, using the engine's value comparator so
+// integer/real spellings of the same locator agree.
+func indexRecordTailMatches(payload []byte, tail []interface{}, tailFields int) (bool, error) {
+	rec, err := storage.DecodeRecord(payload)
+	if err != nil || rec == nil || len(rec.Values) < tailFields {
+		return false, err
+	}
+	got := rec.Values[len(rec.Values)-tailFields:]
+	for i, want := range tail {
+		if util.CompareValues(unwrapIndexTailValue(want), unwrapIndexTailValue(got[i])) != 0 {
+			return false, nil
+		}
+	}
+	return true, nil
+}
+
+func unwrapIndexTailValue(v interface{}) interface{} {
+	if cv, ok := v.(*util.ColumnValue); ok {
+		return cv.Value
+	}
+	return v
 }
 
 // DeleteIndexEntries removes one index cell per target whose FULL payload

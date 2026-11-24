@@ -120,10 +120,44 @@ func (e *DMLExecutor) deleteIndexCellsBatch(def indexDef, colDefs []sql.ColumnDe
 	// collation-aware comparator the insert side ordered it with — extended
 	// over the WR PK tail for WITHOUT ROWID tables.
 	e.installIndexWriteOrder(idxTree, def, colDefs, tableSQL, plan)
-	if _, err := idxTree.DeleteIndexEntries(encoded); err != nil {
+	deleted, err := idxTree.DeleteIndexEntries(encoded)
+	if err != nil {
 		return err
 	}
+	if indexRootIsImposter(def) && deleted < len(encoded) {
+		tailFields := 1
+		if plan.valid() {
+			tailFields = len(plan.cols)
+		}
+		for _, target := range encoded {
+			if ok, err := idxTree.DeleteIndexEntryByTail(target, tailFields); err != nil {
+				return err
+			} else if ok {
+				deleted++
+			}
+		}
+	}
 	return nil
+}
+
+// indexRootIsImposter reports whether the index b-tree is also the root of
+// a table — the SQLITE_TESTCTRL_IMPOSTER footprint. Only those deliberately
+// distorted trees need the locator-tail delete fallback; ordinary missing
+// index entries stay tolerated without touching any other row's entry.
+func indexRootIsImposter(def indexDef) bool {
+	if def.Ctx == nil || def.Ctx.Schema == nil || def.RootPage == 0 {
+		return false
+	}
+	entries, err := def.Ctx.Schema.GetEntries(schema.TypeTable)
+	if err != nil {
+		return false
+	}
+	for _, te := range entries {
+		if te.RootPage == def.RootPage {
+			return true
+		}
+	}
+	return false
 }
 
 // deleteIndexCell removes one index entry (the record of indexValues),
@@ -146,8 +180,18 @@ func (e *DMLExecutor) deleteIndexCell(def indexDef, colDefs []sql.ColumnDef, tab
 	// comparator the insert side ordered the tree with — extended over the
 	// WR PK tail for WITHOUT ROWID tables.
 	e.installIndexWriteOrder(idxTree, def, colDefs, tableSQL, plan)
-	if _, err := idxTree.DeleteIndexEntry(payload); err != nil {
+	deleted, err := idxTree.DeleteIndexEntry(payload)
+	if err != nil {
 		return err
+	}
+	if indexRootIsImposter(def) && !deleted {
+		tailFields := 1
+		if plan.valid() {
+			tailFields = len(plan.cols)
+		}
+		if _, err := idxTree.DeleteIndexEntryByTail(payload, tailFields); err != nil {
+			return err
+		}
 	}
 	return nil
 }

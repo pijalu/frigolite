@@ -1894,7 +1894,21 @@ func commandDBStatus(i *Interp, _ []rawWord, args []string, _ map[string]string)
 	return nil
 }
 
-func commandSQLite3TestControl(i *Interp, _ []rawWord, args []string, _ map[string]string) error {
+func commandSQLite3TestControl(i *Interp, rawWords []rawWord, args []string, _ map[string]string) error {
+	if len(args) >= 4 && args[0] == "SQLITE_TESTCTRL_IMPOSTER" {
+		if args[3] == "0" {
+			i.imposterRoot = ""
+			return nil
+		}
+		if args[3] == "1" && len(args) >= 5 {
+			root := args[4]
+			if len(rawWords) > 5 && strings.HasPrefix(rawWords[5].Text, "$") {
+				root = rawWords[5].Text // preserve the Tcl variable for the harness
+			}
+			i.imposterRoot = root
+		}
+		return nil
+	}
 	if len(args) != 2 || args[0] != "SQLITE_TESTCTRL_INTERNAL_FUNCTIONS" || args[1] != "db" {
 		return nil
 	}

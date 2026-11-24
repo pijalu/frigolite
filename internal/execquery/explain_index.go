@@ -809,6 +809,12 @@ func collectBinaryRef(binop *sql.BinaryOp, tableName string, e *SelectEngine, wh
 		return collectLikeRef(binop, tableName, e, where)
 	}
 	colRef, constVal, constExpr := findColAndConstExpr(binop, e)
+	// A qualified outer reference (o.c) is a bound, not this table's column
+	// side. Without this check findColAndConstExpr takes it as colRef and the
+	// expression-index path never gets a chance to match +c.
+	if colRef != nil && !e.seekRefIsOwnColumn(colRef, tableName) {
+		colRef, constVal, constExpr = nil, nil, nil
+	}
 	// An expression operand (b||'x' > ?) drives an expression-index seek
 	// (where.c's whereLoopAddBtree matches Index.aCol[].pExpr). Try it before
 	// the correlated-column path, which declines non-ColumnRef operands.
@@ -817,6 +823,24 @@ func collectBinaryRef(binop *sql.BinaryOp, tableName string, e *SelectEngine, wh
 			return exprRef
 		}
 	}
+	colRef, constVal, constExpr, op := binarySeekOperand(binop, tableName, e, colRef, constVal, constExpr)
+	if colRef == nil {
+		return nil
+	}
+	idxName := e.findIndexOnColumn(tableName, colRef.Name, where)
+	if idxName == "" {
+		return nil
+	}
+	if !e.seekCollationAgrees(tableName, idxName, colRef.Name, binop) {
+		return nil
+	}
+	return []indexedRef{{indexName: idxName, colName: colRef.Name, constant: constVal, constantExpr: constExpr, op: op}}
+}
+
+// binarySeekOperand finalizes a comparison's column side, bound and operator:
+// a correlated bound pairs with the own-table column side, while a constant
+// found on the RIGHT operand flips the operator (5 > d means d < 5).
+func binarySeekOperand(binop *sql.BinaryOp, tableName string, e *SelectEngine, colRef *sql.ColumnRef, constVal interface{}, constExpr sql.Expr) (*sql.ColumnRef, interface{}, sql.Expr, string) {
 	flip := false
 	if colRef == nil || constVal == nil && constExpr == nil {
 		// A correlated bound: the comparison's own-table column side pairs
@@ -827,7 +851,7 @@ func collectBinaryRef(binop *sql.BinaryOp, tableName string, e *SelectEngine, wh
 		var bound sql.Expr
 		colRef, bound, flip = e.seekRefSides(binop, tableName)
 		if colRef == nil {
-			return nil
+			return nil, nil, nil, ""
 		}
 		constExpr = bound
 	} else if _, leftIsCol := binop.Left.(*sql.ColumnRef); !leftIsCol {
@@ -841,14 +865,7 @@ func collectBinaryRef(binop *sql.BinaryOp, tableName string, e *SelectEngine, wh
 	if flip {
 		op = flipComparisonOp(op)
 	}
-	idxName := e.findIndexOnColumn(tableName, colRef.Name, where)
-	if idxName == "" {
-		return nil
-	}
-	if !e.seekCollationAgrees(tableName, idxName, colRef.Name, binop) {
-		return nil
-	}
-	return []indexedRef{{indexName: idxName, colName: colRef.Name, constant: constVal, constantExpr: constExpr, op: op}}
+	return colRef, constVal, constExpr, op
 }
 
 // collectExpressionRef resolves a comparison against an expression-index
@@ -885,16 +902,29 @@ func findExprAndConstExpr(b *sql.BinaryOp, e *SelectEngine) (exprSQL string, val
 		if text == "" || text == "?" {
 			continue
 		}
-		val = extractConst(sides[1])
-		if val == nil {
-			constExpr = deterministicConstExpr(sides[1], e)
-		}
+		val, constExpr = exprBoundValue(sides[1], e)
 		if val == nil && constExpr == nil {
 			continue
 		}
 		return text, val, constExpr, sides[0] == b.Left, sides[0] == b.Right
 	}
 	return "", nil, nil, false, false
+}
+
+// exprBoundValue resolves a comparison's other operand into a seek constant:
+// a literal first, then a deterministic expression, then a correlated
+// expression from the enclosing row (where.c's outer-loop register).
+func exprBoundValue(bound sql.Expr, e *SelectEngine) (interface{}, sql.Expr) {
+	if val := extractConst(bound); val != nil {
+		return val, nil
+	}
+	if constExpr := deterministicConstExpr(bound, e); constExpr != nil {
+		return nil, constExpr
+	}
+	if val, ok := e.seekOuterExprValue(bound, ""); ok {
+		return val, nil
+	}
+	return nil, nil
 }
 
 // exprSeekCollationAgrees mirrors seekCollationAgrees for an expression key:

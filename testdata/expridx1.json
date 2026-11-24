@@ -30,6 +30,10 @@
           "sql": "CREATE TABLE x1(b, rowid, PRIMARY KEY(b, rowid)) WITHOUT ROWID;"
         },
         {
+          "type": "exec",
+          "sql": "PRAGMA writable_schema=ON;\nUPDATE sqlite_schema SET rootpage=$root WHERE name='x1';\nPRAGMA writable_schema=OFF;"
+        },
+        {
           "type": "query",
           "sql": "PRAGMA integrity_check",
           "expect": "ok"
@@ -254,6 +258,10 @@
         {
           "type": "exec",
           "sql": "CREATE TABLE x1(a, b, c, PRIMARY KEY(c, a, b)) WITHOUT ROWID;"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA writable_schema=ON;\nUPDATE sqlite_schema SET rootpage=$root WHERE name='x1';\nPRAGMA writable_schema=OFF;"
         }
       ]
     },
@@ -2325,6 +2333,10 @@
         {
           "type": "exec",
           "sql": "CREATE TABLE x1(c, rowid, PRIMARY KEY(c, rowid)) WITHOUT ROWID;"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA writable_schema=ON;\nUPDATE sqlite_schema SET rootpage=$root WHERE name='x1';\nPRAGMA writable_schema=OFF;"
         }
       ]
     },
@@ -2394,6 +2406,10 @@
         {
           "type": "exec",
           "sql": "CREATE TABLE x1(b, a, PRIMARY KEY(b, a)) WITHOUT ROWID;"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA writable_schema=ON;\nUPDATE sqlite_schema SET rootpage=$root WHERE name='x1';\nPRAGMA writable_schema=OFF;"
         }
       ]
     },

@@ -143,6 +143,7 @@ type Interp struct {
 	dynamicVars        map[string]bool
 	trackedVars        map[string]bool // globals written by registered callbacks (runtime_var candidates)
 	internalFunctions  bool
+	imposterRoot       string // SQLITE_TESTCTRL_IMPOSTER root expression, pending the next CREATE TABLE
 	callbackCommands   map[string]func([]string) (string, error)
 	defaultCallbackCmd func(name string, args []string) (string, error, bool)
 	currentLocalVars   map[string]string

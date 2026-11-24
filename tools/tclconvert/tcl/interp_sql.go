@@ -47,6 +47,7 @@ func (i *Interp) cmdSQL(rawWords []rawWord, args []string, sqlType string, local
 					})
 				}
 				i.markRowReturningValue()
+				i.maybeEmitImposterRewrite(sql)
 			}
 			break
 		}
@@ -62,11 +63,36 @@ func (i *Interp) cmdSQL(rawWords []rawWord, args []string, sqlType string, local
 					TestName: i.curTest,
 				})
 				i.markRowReturningValue()
+				i.maybeEmitImposterRewrite(val)
 			}
 			break
 		}
 	}
 	return nil
+}
+
+// imposterCreateTableRE extracts the table name of the CREATE TABLE that
+// follows SQLITE_TESTCTRL_IMPOSTER (expridx1.test's `x1`).
+var imposterCreateTableRE = regexp.MustCompile(`(?is)^\s*CREATE\s+TABLE\s+(?:IF\s+NOT\s+EXISTS\s+)?([A-Za-z_][A-Za-z0-9_]*)`)
+
+// maybeEmitImposterRewrite turns an active test-control imposter into the
+// SQL the harness can execute: repoint the newly created table's schema
+// rootpage at the index root before any DML distorts that b-tree.
+func (i *Interp) maybeEmitImposterRewrite(sql string) {
+	if i.imposterRoot == "" {
+		return
+	}
+	m := imposterCreateTableRE.FindStringSubmatch(strings.TrimSpace(sql))
+	if m == nil {
+		return
+	}
+	i.stmts = append(i.stmts, Stmt{
+		Type: "exec",
+		SQL: fmt.Sprintf("PRAGMA writable_schema=ON;\nUPDATE sqlite_schema SET rootpage=%s WHERE name='%s';\nPRAGMA writable_schema=OFF;",
+			i.imposterRoot, m[1]),
+		TestName: i.curTest,
+	})
+	i.imposterRoot = ""
 }
 
 // markRowReturningValue marks the statement just captured as holding rows
@@ -583,6 +609,8 @@ func (i *Interp) dbEval(rawWords []rawWord, args []string, localVars map[string]
 			// the rendered rows instead of sorting an empty list.
 			i.vars[""] = i.markRuntimeValue(&i.stmts[len(i.stmts)-1])
 		}
+		// Repoint the imposter table's schema root at the index b-tree.
+		i.maybeEmitImposterRewrite(sql)
 	}
 	return nil
 }

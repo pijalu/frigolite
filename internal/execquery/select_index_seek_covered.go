@@ -67,7 +67,12 @@ func indexSeekColumnCovered(ref string, colDefs []sql.ColumnDef, cols []string) 
 		if isIPKRowidAliasCol(colDefs[i]) {
 			return true // the rowid fills it
 		}
-		return indexColPos(cols, colDefs[i].Name) < len(cols)
+		for _, key := range cols {
+			if coveredIndexColumn(key, colDefs[i].Name) {
+				return true
+			}
+		}
+		return false
 	}
 	if IsRowIDName(ref) {
 		return !RowHasRowIDColumn(colDefs)
@@ -85,11 +90,22 @@ func (e *SelectEngine) indexCoversAllTableColsFor(colDefs []sql.ColumnDef, cols 
 		if isIPKRowidAliasCol(colDefs[i]) {
 			continue // the rowid fills it
 		}
-		if indexColPos(cols, colDefs[i].Name) >= len(cols) {
+		if !anyCoveredIndexColumn(cols, colDefs[i].Name) {
 			return false
 		}
 	}
 	return true
+}
+
+// anyCoveredIndexColumn reports whether any index value column supplies
+// colName (a bare column or its unary-plus key form).
+func anyCoveredIndexColumn(cols []string, colName string) bool {
+	for _, key := range cols {
+		if coveredIndexColumn(key, colName) {
+			return true
+		}
+	}
+	return false
 }
 
 // colDefsCoverable reports whether the table's columns are a plain stored
@@ -124,12 +140,12 @@ func (e *SelectEngine) indexSeekCoveredRows(s *sql.SelectStmt, tableEntry *schem
 		// table b-tree (the PK b-tree holds the full row), so the same
 		// offset serves both sources and every column is index-provided.
 		off, offOK := cursor.PayloadOffset()
-		if e.ctx.TableIsWithoutRowidEntry(tableEntry) {
+		if e.ctx.TableIsWithoutRowidEntry(tableEntry) && run.plan.index == "PRIMARY KEY" {
 			e.ctx.SetScanRowOffsets(off, offOK, off, offOK, indexOffsetAllCols(colDefs))
 		} else {
 			e.ctx.SetScanRowOffsets(0, false, off, offOK, indexOffsetCols(run.cols, true))
 		}
-		rows, maps, ok := e.indexSeekCoveredOutput(s, colDefs, run.cols, cell, needMaps, feed)
+		rows, maps, ok := e.indexSeekCoveredOutput(s, colDefs, run.cols, cell, needMaps, feed, e.ctx.TableIsWithoutRowidEntry(tableEntry))
 		if !ok {
 			return nil, nil, false
 		}
@@ -158,26 +174,17 @@ func (e *SelectEngine) indexSeekCoveredRows(s *sql.SelectStmt, tableEntry *schem
 // statement's WHERE is evaluated on it, and the output is built exactly like
 // the rowid-join path's. The entry's rowid is its record's trailing element
 // (an index cell's Cell.RowID is not set — the key carries it).
-func (e *SelectEngine) indexSeekCoveredOutput(s *sql.SelectStmt, colDefs []sql.ColumnDef, cols []string, cell *storage.Cell, needMaps bool, feed *simpleAggFeed) ([][]interface{}, []RowMap, bool) {
+func (e *SelectEngine) indexSeekCoveredOutput(s *sql.SelectStmt, colDefs []sql.ColumnDef, cols []string, cell *storage.Cell, needMaps bool, feed *simpleAggFeed, withoutRowid bool) ([][]interface{}, []RowMap, bool) {
 	rec, err := storage.DecodeRecord(cell.Payload)
-	if err != nil || rec == nil || len(rec.Values) < len(cols)+1 {
+	if err != nil || rec == nil {
 		return nil, nil, false
 	}
-	rowid, ok := util.UnwrapColumnValue(rec.Values[len(rec.Values)-1]).(int64)
+	rowid, ok := coveredRecordRowID(rec, len(cols), withoutRowid)
 	if !ok {
 		return nil, nil, false
 	}
 	values := e.seekRowScratchFor(len(colDefs))
-	for i := range colDefs {
-		if isIPKRowidAliasCol(colDefs[i]) {
-			continue // the rowid fill below sets it
-		}
-		pos := indexColPos(cols, colDefs[i].Name)
-		if pos >= len(cols) {
-			continue // not a key column: the eligibility gate proved nobody reads it
-		}
-		values[i] = rec.Values[pos]
-	}
+	fillCoveredRecordValues(values, colDefs, cols, rec.Values)
 	srow := e.seekSRowScratchFor()
 	srow.Index = e.seekColIndexFor(colDefs)
 	affinityCols := e.scanTableAffinityCols(s, colDefs, needMaps)
@@ -198,6 +205,48 @@ func (e *SelectEngine) indexSeekCoveredOutput(s *sql.SelectStmt, colDefs []sql.C
 	}
 	rows, maps, ok := e.seekRowOutput(s, colDefs, srow, true, needMaps)
 	return rows, maps, ok
+}
+
+// coveredRecordRowID extracts the locator of one index record: a rowid table's
+// final field, or the synthetic zero of a WITHOUT ROWID secondary index whose
+// final field is a PK-tail value.
+func coveredRecordRowID(rec *storage.Record, colCount int, withoutRowid bool) (int64, bool) {
+	minFields := colCount
+	if !withoutRowid {
+		minFields++
+	}
+	if len(rec.Values) < minFields {
+		return 0, false
+	}
+	if withoutRowid {
+		return 0, true
+	}
+	rowid, ok := util.UnwrapColumnValue(rec.Values[len(rec.Values)-1]).(int64)
+	return rowid, ok
+}
+
+// fillCoveredRecordValues maps each declared column onto its stored index
+// field. A column absent from the key is left unset: the coverage gate proved
+// no consumer reads it (except an IPK alias, filled from the rowid below).
+func fillCoveredRecordValues(values []interface{}, colDefs []sql.ColumnDef, cols []string, stored []interface{}) {
+	for i := range colDefs {
+		if isIPKRowidAliasCol(colDefs[i]) {
+			continue
+		}
+		pos := indexColPos(cols, colDefs[i].Name)
+		if pos >= len(cols) {
+			for j, key := range cols {
+				if coveredIndexColumn(key, colDefs[i].Name) {
+					pos = j
+					break
+				}
+			}
+		}
+		if pos >= len(cols) || pos >= len(stored) {
+			continue
+		}
+		values[i] = stored[pos]
+	}
 }
 
 // indexSeekCurrentCell reads the cursor's current entry, reporting whether it

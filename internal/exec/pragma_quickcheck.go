@@ -338,6 +338,9 @@ func (e *Engine) quickCheckAllTables(emit func(string), quick bool) {
 			if isSchemaTable(te.Name) {
 				continue
 			}
+			if schemaRootIsImposter(dbCtx, te) {
+				continue // C skips TF_Imposter tables in integrity_check
+			}
 			if te.RootPage == 0 {
 				e.quickCheckFTSReport(te, emit)
 				continue
