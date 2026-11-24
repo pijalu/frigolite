@@ -1232,6 +1232,21 @@ func (i *Interp) cmdDoTest(rawWords []rawWord, localVars map[string]string) erro
 				bodyValueCaptured = true
 			}
 		}
+		if lastCmd := bodyCommands[len(bodyCommands)-1]; len(lastCmd) == 4 && lastCmd[0].Text == "string" && strings.EqualFold(lastCmd[1].Text, "match") {
+			pattern, str := lastCmd[2].Text, lastCmd[3].Text
+			if i.exprReadsRuntimeVar(str) {
+				// `set txt [db eval {EXPLAIN ...}]; string match *x* $txt`:
+				// the body's value is the glob match over the runtime-captured
+				// rows, not the rows themselves (trigger7-2.x).
+				i.stmts = append(i.stmts, Stmt{
+					Type:     "runtime_expr",
+					SQL:      "string match " + pattern + " " + str,
+					Expected: expected,
+					TestName: name,
+				})
+				bodyValueCaptured = true
+			}
+		}
 	}
 
 	// Preserve Tcl list postprocessing that changes only captured SQL output.

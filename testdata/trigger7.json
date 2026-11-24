@@ -38,7 +38,11 @@
           "type": "query_assign",
           "sql": "EXPLAIN UPDATE t1 SET x=5",
           "variable": "txt",
-          "resultAll": true,
+          "resultFlat": true
+        },
+        {
+          "type": "runtime_expr",
+          "sql": "string match *___update_t1.x___* $txt",
           "expect": "1"
         }
       ]
@@ -50,7 +54,11 @@
           "type": "query_assign",
           "sql": "EXPLAIN UPDATE t1 SET x=5",
           "variable": "txt",
-          "resultAll": true,
+          "resultFlat": true
+        },
+        {
+          "type": "runtime_expr",
+          "sql": "string match *___update_t1.y___* $txt",
           "expect": "0"
         }
       ]
@@ -62,7 +70,11 @@
           "type": "query_assign",
           "sql": "EXPLAIN UPDATE t1 SET y=5",
           "variable": "txt",
-          "resultAll": true,
+          "resultFlat": true
+        },
+        {
+          "type": "runtime_expr",
+          "sql": "string match *___update_t1.x___* $txt",
           "expect": "0"
         }
       ]
@@ -74,7 +86,11 @@
           "type": "query_assign",
           "sql": "EXPLAIN UPDATE t1 SET y=5",
           "variable": "txt",
-          "resultAll": true,
+          "resultFlat": true
+        },
+        {
+          "type": "runtime_expr",
+          "sql": "string match *___update_t1.y___* $txt",
           "expect": "1"
         }
       ]
@@ -86,7 +102,11 @@
           "type": "query_assign",
           "sql": "EXPLAIN UPDATE t1 SET rowid=5",
           "variable": "txt",
-          "resultAll": true,
+          "resultFlat": true
+        },
+        {
+          "type": "runtime_expr",
+          "sql": "string match *___update_t1.x___* $txt",
           "expect": "0"
         }
       ]
@@ -98,7 +118,11 @@
           "type": "query_assign",
           "sql": "EXPLAIN UPDATE t1 SET rowid=5",
           "variable": "txt",
-          "resultAll": true,
+          "resultFlat": true
+        },
+        {
+          "type": "runtime_expr",
+          "sql": "string match *___update_t1.x___* $txt",
           "expect": "0"
         }
       ]

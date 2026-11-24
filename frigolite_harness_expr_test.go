@@ -1103,6 +1103,22 @@ func evalHarnessTclCommand(words []string, vars map[string]string, resolvePath f
 	case "list":
 		// Tcl `list ?arg ...?`: the properly quoted list of the words.
 		return tclListString(words[1:]), nil
+	case "string":
+		if len(words) >= 4 && strings.EqualFold(words[1], "match") {
+			pattern, str := words[2], words[3]
+			nocase := strings.EqualFold(pattern, "-nocase")
+			if nocase {
+				if len(words) < 5 {
+					return "", fmt.Errorf("string match -nocase: wrong # of arguments")
+				}
+				pattern, str = words[3], words[4]
+			}
+			if tcl.StringMatch(pattern, str) || (nocase && tcl.StringMatch(strings.ToLower(pattern), strings.ToLower(str))) {
+				return "1", nil
+			}
+			return "0", nil
+		}
+		return "", fmt.Errorf("unsupported string command: %v", words)
 	case "wal_frame_count":
 		// wal_common.tcl's wal_frame_count FILE PGSZ: the frame count a
 		// -wal file holds — (size-32)/(pgsz+24) — 0 for a missing or
@@ -1298,7 +1314,8 @@ func harnessCommandValue(out string) tclExprVal {
 // names ::T] ,` — index9's set-in line) rather than as an expression.
 var harnessRuntimeCommands = map[string]bool{
 	"lsearch": true, "lindex": true, "join": true, "list": true,
-	"array": true, "file": true, "expr": true, "wal_frame_count": true,
+	"array": true, "file": true, "expr": true, "string": true,
+	"wal_frame_count": true,
 }
 
 // firstWordIsRuntimeCommand reports whether the text's leading word is one of
