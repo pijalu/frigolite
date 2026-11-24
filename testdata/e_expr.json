@@ -388900,6 +388900,11 @@
       "name": "e_expr-26.1.6",
       "steps": [
         {
+          "type": "runtime_expr",
+          "sql": "0",
+          "variable": "evalcount"
+        },
+        {
           "type": "query",
           "sql": "SELECT CASE \n    WHEN ceval(x)=w1 THEN r1 \n    WHEN ceval(x)=w2 THEN r2 \n    ELSE r3 END \n  FROM t2",
           "expect": "R1 R2 R3"
