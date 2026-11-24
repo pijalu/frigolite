@@ -2511,11 +2511,31 @@ everywhere; go vet + go build clean.
   (3 instead of 2/0): a `global cnt` callback proc's `set ::cnt 0` also
   emits `runtime_expr Variable=cnt SQL=0`. Check the converter shape before
   hunting the UPDATE/index-expression engine path.
-- **expridx1's residual is engine-side expression-index maintenance**, not a
-  converter fossil: UPDATE/DELETE leaves index entries stale, integrity_check
-  misses `row N missing from index` / imprecise-float diagnostics, and
-  NOT-INDEXED existence probes return no rows. Treat it as a DML/index unit,
-  not a fixture reset.
+- **expridx1's imposter leaves were a fixture-fidelity + engine gap, not a
+  plain fixture reset**: `SQLITE_TESTCTRL_IMPOSTER` rewrites the next
+  table's rootpage to the index root, so DML distorts the index. Emulate it
+  with `writable_schema` + `UPDATE sqlite_schema SET rootpage=...`;
+  integrity/quickcheck must skip the shared-root imposter table (C's
+  `tableSkipIntegrityCheck`).
+- **A WITHOUT ROWID clustered PK has no `sqlite_schema` index entry**: any
+  empty-SQL `sqlite_autoindex_*` entry on a WR table is a secondary UNIQUE
+  index and must be maintained on INSERT/UPDATE/DELETE, with the PK tail
+  appended (skipping PK columns already in the key). Skipping all WR
+  autoindexes left the index empty and broke `collate1-8.2` once WR covering
+  seeks were enabled — fix the maintenance, do not disable the seek.
+- **Imposter-distorted stale keys need a locator-tail `OP_IdxDelete`
+  fallback**: when the recomputed exact key is absent, delete by rowid/WR
+  PK tail. Gate the fallback to the shared-root imposter marker: ungated,
+  it deterministically broke `collate1`, `pager1`, `pagerfault`, `conflict`.
+- **integrity_check's imprecise-float diagnostic is directional**: 1–2
+  float64 ULP key drift reports `index ... stores an imprecise floating-
+  point value for row N`; 3 ULPs stays `row N missing from index ...`.
+  Count ULPs in the drift direction; below a power of two the step is half
+  the step above it.
+- **Correlated expression bounds are runtime constants for expression-index
+  seeks**, but an expression that also references the sought table must
+  remain a residual filter. `collectBinaryRef` must drop a column ref that
+  resolves to an outer table before trying the expression-key path.
 - **Expression-index WHERE support needs BOTH planner and executor key
   matching**: compare canonical SQL (whitespace/identifier-case-insensitive,
   quotes preserved) against the index key after dropping its top-level

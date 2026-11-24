@@ -1,6 +1,6 @@
 # TODO — the live restart index
 
-> Details live in **[portplan/HANDOFF_2026-11-24_S51_INDEXEXPR2.md](portplan/HANDOFF_2026-11-24_S51_INDEXEXPR2.md)** —
+> Details live in **[portplan/HANDOFF_2026-11-24_S52_EXPRIDX1.md](portplan/HANDOFF_2026-11-24_S52_EXPRIDX1.md)** —
 > read it first (then the older WAL-residue handoff for the durable baseline
 > methodology). This file is the one-page index; update BOTH when checking
 > items off.
@@ -9,7 +9,7 @@
 
 `close all gaps with sqlite — functional first, then performance.`
 
-## State (2026-11-24, feature/perf @ e3f3ed7ad — S43 slices 1-6 + S44-S51 landed: bestindexE, bestindexF-1.4.1, distinctagg 5→0, trigger7 6→0, misc3 1→0, gencol1 6→5, indexexpr3 2→0, e_expr 2→0, indexexpr2 3→0, starschema1 8→1; FULL gate NEW=only documented randomblob/load flakes)
+## State (2026-11-24, feature/perf @ 0fec78348 — S43 slices 1-6 + S44-S52 landed: bestindexE, bestindexF-1.4.1, distinctagg 5→0, trigger7 6→0, misc3 1→0, gencol1 6→5, indexexpr3 2→0, e_expr 2→0, indexexpr2 3→0, starschema1 8→1, expridx1 11→0; FULL gate NEW=0 vs the durable t10 baseline; only documented flakes)
 
 Full-suite truth **1190 failing leaves** (the s35g gate baseline
 portplan/baselines/s35g_gate_fails.txt minus the three walfault leaves
@@ -274,10 +274,14 @@ portplan/baselines/s35g_gate_fails.txt.)
    index ORDER BY matching, and C's correlated-aggregate context rule
    (argument with an inner-column reference stays inner). The balanced
    CREATE INDEX key parser also fixed starschema1-1.3..1.9 (8→1).
-   NEXT: expridx1 / A2 / A9 / fts3* residue.
-4. **Engine residue cards**: expridx1 10 (expression-index maintenance —
-   stale entries after UPDATE/DELETE + integrity_check diagnostics), A2/A9
-   engine slices, fts3* residue ~53; `binary format`/`binary scan` + file-write
+   NEXT: A2 / A9 / fts3* residue.
+3c. **S52 slice 1 DELIVERED — expridx1 11→0**: imposter rootpage rewrite in
+   the converter/fixture, canonical expression seeks with correlated outer
+   bounds, WITHOUT ROWID secondary autoindex maintenance + covering seeks,
+   imposter-only stale-key delete fallback, imprecise-float integrity
+   diagnostics, and pure-Go engine pins. FULL gate NEW=0 vs t10.
+4. **Engine residue cards**: A2/A9 engine slices, fts3* residue ~53;
+   `binary format`/`binary scan` + file-write
 5. **The performance phase** (F1c/F3 lanes in
    GAP_CLOSURE_PLAN_2026-10-31.md) after functional gaps close.
 
@@ -343,8 +347,7 @@ portplan/baselines/s35g_gate_fails.txt.)
    global push/pull, %N% xFilter substitution, vtab IN-constraint loop,
    bestindexF 2.3.0/2.4.0/2.5.0 eDistinct handshake + xBestIndex
    globals).
-4. **Engine residue cards**: expridx1 10 (S51 triage — expression-index
-   maintenance + integrity_check), A2/A9 engine slices, fts3* residue ~53;
+4. **Engine residue cards**: A2/A9 engine slices, fts3* residue ~53;
    `binary format`/`binary scan` + file-write (43 files — the format-c piece
    landed in S35d), the interleaved row-callback step.
 5. **Engine residue cards**: pager1 4.4.2 directory-hierarchy machinery,
