@@ -26,3 +26,27 @@ do_test 2 { db eval {SELECT ceval(1)}; set ::evalcount } {1}`
 	}
 	t.Fatalf("no numeric runtime reset emitted: %#v", i.Stmts())
 }
+
+// TestGlobalVarNumericResetEmitsSetStep pins indexexpr2-4.120/4.130's
+// `set ::cnt 0` after a proc that declares `global cnt`.
+func TestGlobalVarNumericResetEmitsSetStep(t *testing.T) {
+	i := NewInterp()
+	script := `proc refcnt {x} {
+  global cnt
+  incr cnt
+  return $x
+}
+db function refcnt -deterministic refcnt
+do_test 1 { db eval {SELECT refcnt(1)}; set ::cnt } {1}
+set ::cnt 0
+do_test 2 { db eval {SELECT refcnt(1)}; set ::cnt } {1}`
+	if err := i.Execute(script); err != nil {
+		t.Fatal(err)
+	}
+	for _, s := range i.Stmts() {
+		if s.Type == "runtime_expr" && s.Variable == "cnt" && s.SQL == "0" {
+			return
+		}
+	}
+	t.Fatalf("no numeric cnt reset emitted: %#v", i.Stmts())
+}

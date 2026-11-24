@@ -282,6 +282,11 @@
       "name": "indexexpr2-4.120",
       "steps": [
         {
+          "type": "runtime_expr",
+          "sql": "0",
+          "variable": "cnt"
+        },
+        {
           "type": "exec",
           "sql": "UPDATE t1 SET b=b+1;"
         },
@@ -295,6 +300,11 @@
     {
       "name": "indexexpr2-4.130",
       "steps": [
+        {
+          "type": "runtime_expr",
+          "sql": "0",
+          "variable": "cnt"
+        },
         {
           "type": "exec",
           "sql": "UPDATE t1 SET d=d+1;"
