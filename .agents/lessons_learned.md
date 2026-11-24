@@ -2497,3 +2497,8 @@ everywhere; go vet + go build clean.
   NotNull/String8 jumps. The converter cannot run the initial `db eval
   EXPLAIN`, so a fixture that bakes `SELECT 0;` is a converter artifact when
   the engine really has two Function rows (indexexpr3-1.5/1.6).
+- **REAL-to-text fixtures can drift with the SQLite CLI version**: 3.54
+  prints `9.2233720368547758e+18` (17 digits) where the in-tree 3.51 oracle
+  prints `9.22337203685478e+18` (15 digits). Pin the engine against the
+  in-tree oracle and correct the fixture expectation; do not change the
+  engine's float formatting globally for a version-specific spelling.

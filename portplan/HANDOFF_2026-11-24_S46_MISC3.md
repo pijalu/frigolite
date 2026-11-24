@@ -70,3 +70,15 @@ loop, bestindexF eDistinct handshake) remains ahead of those in the queue.
   the rerun — load flakes.
 - Next unit: remaining carded converter classes (`expridx1` 10,
   `indexexpr2` 5, `e_expr` regen drift/callbackVars, A2/A9, fts3* ~53).
+
+## S48 slice 1 (bad21a9c2): e_expr-32.2.8 1→0
+
+- The four long REALs in the fixture were SQLite 3.54's 17-digit spelling
+  (`9.2233720368547758e+18`); the in-tree 3.51 oracle and Frigolite both
+  render `9.22337203685478e+18`. Corrected the fixture expectation only;
+  no engine formatting change. Pure-Go pin `TestEExpr32RealText`.
+- Full gate `/tmp/s48_full.log` (1240.5s): **1152** leaves; vs S47 NEW=1
+  (`resetdb-300`, documented load flap), GONE=2 (`e_expr-32.2.8` and
+  `atof1-2.40`'s dice flake). `e_expr-26.1.6` remains the family's one
+  real residual (runtime evalcount 8 vs 5).
+- Next unit: e_expr-26.1.6, then expridx1 / indexexpr2 / A2 / A9 / fts3*.
