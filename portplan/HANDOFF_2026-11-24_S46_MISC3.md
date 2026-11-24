@@ -106,3 +106,14 @@ loop, bestindexF eDistinct handshake) remains ahead of those in the queue.
   small-cache stress and vacuum6-4.0's `parent split lost child` under
   load (focused vacuum6 passed 2/3 repeats and 3/3 at HEAD).
 - Next unit: expridx1 (10), indexexpr2's three engine leaves, A2/A9, fts3*.
+
+## S51 triage (no code change): expridx1 is engine residue, not a converter fossil
+
+- Focused `FRIGOLITE_TEST=expridx1` still has 10 leaves. They split into
+  expression-index MAINTENANCE failures (integrity_check reports
+  `row ... missing from index` / imprecise value after UPDATE/DELETE;
+  NOT-INDEXED existence probes find missing rows), plus 2.3's missing
+  500-row result and 4.3/4.6's imprecise-float checks.
+- This needs real DML index-expression upkeep and integrity_check support,
+  not a fixture reset. It stays carded behind the smaller indexexpr2 engine
+  leaves (1.2 nocase, 3.4.5eqp ORDER BY, 11.0 aggregate misuse).

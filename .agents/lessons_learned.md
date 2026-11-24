@@ -2511,3 +2511,8 @@ everywhere; go vet + go build clean.
   (3 instead of 2/0): a `global cnt` callback proc's `set ::cnt 0` also
   emits `runtime_expr Variable=cnt SQL=0`. Check the converter shape before
   hunting the UPDATE/index-expression engine path.
+- **expridx1's residual is engine-side expression-index maintenance**, not a
+  converter fossil: UPDATE/DELETE leaves index entries stale, integrity_check
+  misses `row N missing from index` / imprecise-float diagnostics, and
+  NOT-INDEXED existence probes return no rows. Treat it as a DML/index unit,
+  not a fixture reset.
