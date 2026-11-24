@@ -6,6 +6,7 @@
 package execquery
 
 import (
+	"fmt"
 	"strconv"
 	"strings"
 
@@ -55,9 +56,31 @@ func (e *SelectEngine) emitExplainExprRows(prog *explainProgram, expr sql.Expr, 
 		if !e.explainGeneratedColumnSupplied(v, ctx) {
 			prog.emit("Column", 0, 0, 2, e.explainColumnDefault(v, ctx.tables), 0, "r[2]=cursor 0 column "+v.Name)
 		}
+	case *sql.FuncCall:
+		for _, arg := range v.Args {
+			e.emitExplainExprRows(prog, arg, ctx)
+		}
+		if !e.explainOpcodeFunctionName(v.Name) {
+			prog.emit("Function", 0, 0, 2, fmt.Sprintf("%s(%d)", v.Name, len(v.Args)), 0, "r[2]=func()")
+		}
 	case *sql.NumericLit:
 		e.emitExplainNumericRows(prog, v)
 	}
+}
+
+// explainOpcodeFunctionName reports names C compiles without OP_Function:
+// aggregates use AggStep/AggFinal, and COALESCE/IFNULL/NULLIF compile as
+// NotNull/String8 jump sequences. JSON's nested scalar calls do use
+// OP_Function, which is what indexexpr3's do_hasfunction_test counts.
+func (e *SelectEngine) explainOpcodeFunctionName(name string) bool {
+	if e.isAggregateFuncCallName(name) {
+		return true
+	}
+	switch strings.ToLower(name) {
+	case "coalesce", "ifnull", "nullif":
+		return true
+	}
+	return false
 }
 
 // emitExplainNumericRows renders the literal-load opcode SQLite chooses:

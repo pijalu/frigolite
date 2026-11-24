@@ -102,7 +102,7 @@
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT 0;\n    \n  SELECT json_insert( '{}', '$.y', json_extract(j, '$.x') ) FROM t1 WHERE a=2",
+          "sql": "SELECT 2;\n    \n  SELECT json_insert( '{}', '$.y', json_extract(j, '$.x') ) FROM t1 WHERE a=2",
           "expect": "\n  2 {{\"y\":\"two\"}}\n"
         }
       ]
@@ -121,7 +121,7 @@
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT 0;\n    \n  SELECT json_insert( '{}', '$.y', coalesce( json_extract(j, '$.x'), 'five' ) )\n  FROM t1 WHERE a=2",
+          "sql": "SELECT 2;\n    \n  SELECT json_insert( '{}', '$.y', coalesce( json_extract(j, '$.x'), 'five' ) )\n  FROM t1 WHERE a=2",
           "expect": "\n  2 {{\"y\":\"two\"}}\n"
         }
       ]
