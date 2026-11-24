@@ -2380,3 +2380,68 @@ everywhere; go vet + go build clean.
   section's machinery. The converter-side fix = emit the machinery sets
   with the CALLER's pending TestName; carded for bestindexF's 2.8/2.9/
   2.10 .0 leaves.
+- **The vtab column resolver binds DECLARED columns before the rowid
+  pseudo-names** (resolve.c parity): a vtab column literally named
+  `oid`/`rowid` must resolve to its declared position, not the implicit
+  rowid (-1). bestindexE-2.1.2's `oid=?` (column 0) pinned the ordering.
+- **xBestIndex fires at PREPARE time for EVERY vtab loop regardless of
+  row counts** (where.c): an empty outer table must NOT short-circuit
+  the join operands' materialization — C's planner runs before any
+  execution. The engine's empty-vtab early return now excludes join
+  statements so emptyJoinShortCircuit's operand materialization carries
+  the prepare contract.
+- **A JOIN ON term's value side referencing OTHER tables is USABLE at
+  the prepare-time xBestIndex call** (where.c prereqRight): the nested
+  loop binds those values from the outer side; the constraint must not
+  wait for a materialized outer row. bestindexE-2.1.2's `{Customer:
+  oid=?}` requires usable=1.
+- **C's predicate push-down (pushDownWhereTerms, tag-select-0420) pushes
+  the outer WHERE's single-table conjuncts into FROM-subquery MEMBERS**
+  (each member's own select-list expression substitutes for the output
+  column; aggregate members take the terms in HAVING; guards: windows in
+  arms, compound trailing LIMIT/OFFSET, non-UNION-ALL needs BINARY
+  output collations). The substituted terms make the members' planners
+  see the constraint (bestindexE-2.2.2's arms' `id=?`).
+- **The FROM-side vtab materializations must pass opts.TableName (the
+  alias-else-name qualifier)**: the constraint builder rejects QUALIFIED
+  self-references (`Delivery.ID`) when the table name is empty. The
+  explain path already passed the qualifier; execution passing "" was
+  the inconsistency.
+- **register_tcl_module's named form (`db eponymous_cmd`) names the
+  callback command the EPONYMOUS instance invokes**: the module-name-in-
+  FROM instance carries NO module args, so the module needs a
+  registration-time default command. The write path resolves eponymous
+  targets through the module registry too (one fix covers both).
+- **The vtab write path's xUpdate contract**: argv = old-rowid, new-rowid,
+  column values ("" for NULL); the response value is the NEW rowid
+  (last_insert_rowid). The engine's RowUpdater handshake uses the
+  optional TclUpdateRuntime interface so runtimes without xUpdate keep
+  the read-only module.
+- **A JOIN-operand subquery's pushdown qualifier is the OPERAND's own
+  name/alias, not the outer statement's base FROM** (C's
+  sqlite3ExprIsSingleTableConstraint takes the srclist index): the
+  first cut resolved against s.From and pushed `A.id='1'` into a derived
+  table where A is out of scope — the sibling operands' shadow check
+  (otherOperandHasColumn) must see the same operand list (whereL-300/301/
+  302: `FROM A, (SELECT ...) subq, B`).
+- **Restriction (8)'s collation audit uses the RESOLVED output collation**
+  (sqlite3ExprCollSeq over each member's output expressions): a DECLARED
+  column collation (`a COLLATE nocase` flowing through a compound's
+  select list) blocks the pushdown into non-UNION-ALL compounds — a
+  syntactic COLLATE-wrapper check misses it (selectA-9.2). The engine's
+  selectOutputCollations resolver is the right probe.
+- **pushDownWhereTerms' other restrictions are semantic, not cosmetic**: a
+  FROM operand on the nullable side of LEFT/RIGHT JOIN is not a single-table
+  constraint (expr.c:2754's JT_LTORJ rule — join2-7.0's `WHERE c IS NULL`
+  must stay after the join), and CTE/VALUES subqueries keep their own row
+  semantics (select.c:5272's SF_Recursive/SF_MultiPart + restriction 7).
+  A pushdown that only checks WHERE's column provenance changes results.
+- **C's substExpr preserves the compound's OUTPUT collation in pushed terms**
+  (select.c:3983-3995's `pCList`): substituting arm2's BINARY `d` for the
+  compound output `b` must wrap it with the leftmost arm's NOCASE —
+  collate5-5.1's `b='BbB'` then finds `bbb`. Taking the arm's natural
+  collation silently loses UNION ALL rows.
+- **Push-down substitutes a RESOLVED select list**: an AST `SELECT *` member
+  must expand to `ColumnRef`s through its FROM source before substituting;
+  leaving the star node in the pushed predicate matches nothing
+  (subquery2-3.0).

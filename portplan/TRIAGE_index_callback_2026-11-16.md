@@ -639,3 +639,94 @@ wrong section's machinery. Converter-expansion class, CARD — not engine.
 delivery, its own slice) + the 2.8/2.9/2.10 .0 trio (the carded
 fixture-expansion class)); where/where2/select/the generator families =
 the baseline. The FULL gate = this section's commit gate.
+
+---
+
+## 17. S43 slice 5 DELIVERED (2026-11-22): bestindexE 6→0 — the LEFT JOIN xBestIndex contract, the compound push-down, the eponymous tcl module
+
+**The residue's decomposition** (the E gate after slice 4: 2.1.2/2.2.2 +
+3.x ×4). Five root causes, each fixed with the C mechanism (the probe
+discipline: a pure-Go recording runtime drove `xBestIndex` directly and
+diffed the constraint lists against C's `::xBestIndex` records):
+
+1. **The vtab column-index's rowid precedence** (`vtab_bestindex_expr.go`
+   resolve()): the rowid pseudo-names (rowid/_rowid_/oid) were checked
+   BEFORE the declared columns, so `Customer.OID` — a DECLARED column
+   literally named oid — resolved to -1 (rowid) instead of column 0.
+   resolve.c binds a declared column first; the alias only wins when the
+   name is not declared. bestindexE-2.1.2's want (`oid=?` = column 0)
+   pinned it.
+2. **The empty-base short-circuit swallowed the join operands' prepare
+   contract** (`select_cte_exec2.go`): the materialized-vtab scan's
+   zero-row early return skipped the join pipeline entirely, so the LEFT
+   JOIN's inner vtab never ran xBestIndex (C fires it at prepare time for
+   EVERY vtab loop regardless of row counts). The early return now
+   excludes join statements — the emptyJoinShortCircuit machinery (which
+   materializes each operand for its defs) runs and carries the
+   prepare-time contract. PLUS the usable rule: the builder's `usable()`
+   with a nil outer row now accepts a JOIN ON term whose value side
+   references only OTHER tables (where.c prereqRight — the nested loop
+   binds those values; the prepare-time call marks them usable).
+3. **The compound WHERE push-down** (`select_subq_pushdown.go`, NEW —
+   select.c pushDownWhereTerms / tag-select-0420 parity): the outer
+   statement's single-table WHERE conjuncts push into a FROM-clause
+   subquery's members (each member's own select-list expression
+   substitutes for the output-column reference; aggregate members take
+   the terms in HAVING). C's guards mirrored: windows in arms → skip;
+   the compound's trailing LIMIT/OFFSET → skip; a non-UNION-ALL compound
+   needs BINARY output collations (restriction 8). bestindexE-2.2.2: the
+   UNION arms' Delivery/ReturnDelivery scans must see the pushed
+   `ID = 1` → substituted to `Delivery.ID = 1` / `ReturnDelivery.ID = 1`.
+4. **The FROM-side scan's TableName** (`select.go` vtabScanQualifier +
+   the three materialization sites): the FROM-side materializations
+   passed opts.TableName="" and the constraint builder REJECTS qualified
+   references when the table name is empty — the pushed `Delivery.ID = 1`
+   offered nothing. The scan's own qualifier (alias-else-name — SQLite
+   rejects the table name once aliased) now flows through (the explain
+   path already did this; execution was the inconsistency).
+5. **The eponymous tcl module** (the 3.x leaves): `register_tcl_module db
+   eponymous_cmd` names the callback command; the EPONYMOUS instance (the
+   module name used directly in FROM, no CREATE, no module args) invokes
+   that command. TclCommandModule gained defaultProc
+   (NewTclCommandModuleWithRuntimeNamed) + the connect fallback; the
+   harness register handler passes ModuleArgs[1]; the runtime's `db`
+   callback gained `eval` (xConnect's side-effecting schema read); and
+   tclCmdVTab implements RowUpdater through the optional TclUpdateRuntime
+   interface (xUpdate argv = old-rowid/new-rowid/values; the response is
+   the new rowid — `INSERT INTO tcl VALUES(...) RETURNING *`).
+
+**Two mid-implementation refinements the focused sweeps caught** (the
+probe-then-sweep discipline):
+- **The pushdown qualifier is the OPERAND's own name/alias** (C's
+  sqlite3ExprIsSingleTableConstraint takes the srclist index): the first
+  cut resolved against s.From and pushed `A.id='1'` into a JOIN-operand
+  derived table where A is out of scope — whereL-300/301/302
+  (`FROM A, (SELECT ...) subq, B`) returned empty. pushDownWhereTermsIntoSub
+  now takes the operand's TableRef + the other operands (joinOperandRefs)
+  for the unqualified-shadow check.
+- **Restriction (8) audits the RESOLVED output collation**
+  (sqlite3ExprCollSeq over each member's outputs): a DECLARED column
+  collation flowing through a compound's select list (`a COLLATE nocase`)
+  blocks the pushdown into non-UNION-ALL compounds — the syntactic
+  COLLATE-wrapper check missed it (selectA-9.2 returned empty).
+  selectOutputCollations is the probe.
+
+**The gate-regression audit** (the full gate caught four NEW leaves the
+focused sweeps had missed — collate5-5.1, join2-7.0, subquery2-3.0,
+with2-1.15.2): pushDownWhereTerms' remaining C restrictions are semantic.
+The fixes restore (a) the JT_LTORJ single-table-constraint veto for nullable
+JOIN operands, (b) substExpr's pCList collation wrapper so a UNION ALL arm's
+substituted BINARY column keeps the head arm's NOCASE, (c) a resolved
+`SELECT *` expansion before substitution, and (d) the CTE/VALUES guards.
+See `portplan/PLAN_S43_slice5_regressions.md`.
+
+**The gates**: bestindexE **6 → 0**; the bestindex family = the pre-slice
+residue only (bestindex1-3.4/3.5 + bestindexF 6 — no NEWs); the where
+superset **0 fails** (whereL was its residue — the qualifier bug fixed);
+the select superset + the vtab superset REAL NEW=0; SOLID ok; the new
+pushdown file passes gocognit/gocyclo. The FULL gate
+(`/tmp/s43_slice7_full.log`, 1181.1s, raw-byte failure-name scan): **1170
+leaves**. Versus the pre-slice gate5: GONE = the six bestindexE leaves,
+NEW = 0. The intermediate gate6 regressions above are all GONE at the
+commit; the documented resetdb/temptable2 flakes and bestindexF's carded
+.0 trio remain.
