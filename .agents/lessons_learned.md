@@ -2013,8 +2013,13 @@ everywhere; go vet + go build clean.
   (setup_0's callbackProcs gained myrand, +10/-4 lines, generator format
   preserved: json.dumps(indent=2) == Go MarshalIndent's output shape).
 - **binary format c*** landed in the interpreter (tclBinary.c's 'c' case:
-  letter + count-digits-or-star; TCL truncates to the low 8 bits). The
-  full binary format/scan class stays carded.
+  letter + count-digits-or-star; TCL truncates to the low 8 bits). **binary
+  scan i*/I*** also landed with `tcl_platform(byteOrder)=littleEndian`:
+  FTS `mit` UDFs render matchinfo's u32 blob via `binary scan $blob i* r`.
+  Without it, a TCL callback fails with an "unsupported binary form"
+  error even when the engine's matchinfo blob is correct — fault the
+  converter/harness layer before touching FTS. The rest of the binary class
+  stays carded.
 - **NEW CARD — the btree page-density divergence**: the NOOP report shape
   is C-exact but our bulk insert's WAL holds mxFrame 451 vs C's 298
   (page_size=1024, t1(x INTEGER PRIMARY KEY, y TEXT) + i1 on y, 1000 rows
