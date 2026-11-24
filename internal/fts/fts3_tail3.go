@@ -66,7 +66,7 @@ func (t *FTS3Table) MatchInfoX(phrase, scope QueryNode, side int, gate QueryNode
 	} else {
 		local = make([]int, nCol)
 	}
-	globalOcc, globalRows := t.globalPhraseStats(phrase, scope, side, nCol, docID)
+	globalOcc, globalRows := t.globalPhraseStats(phrase, scope, side, nCol, docID, gate)
 	for i := 0; i < nCol; i++ {
 		out[i*3+0] = uint32(local[i])
 		if globalOcc != nil {
@@ -80,9 +80,21 @@ func (t *FTS3Table) MatchInfoX(phrase, scope QueryNode, side int, gate QueryNode
 // globalPhraseStats accumulates the per-column global occurrence and global
 // row counts of the phrase (fts3_snippet.c fts3ExprGlobalHitsCb): every row
 // whose scope matches contributes its phrase counts, the current row first.
-func (t *FTS3Table) globalPhraseStats(phrase, scope QueryNode, side, nCol int, docID int64) (globalOcc, globalRows []int) {
+func (t *FTS3Table) globalPhraseStats(phrase, scope QueryNode, side, nCol int, docID int64, gate QueryNode) (globalOcc, globalRows []int) {
+	kind, terms := t.phraseDeferral(phrase, gate)
+	if kind == phraseDeferAll {
+		return deferredNDocStats(t.index.AllDocIDs(), nCol)
+	}
+	phraseNode := phrase
+	scopeNode := scope
+	if kind == phraseDeferSome {
+		// A phrase mixing deferred and loaded tokens is counted through
+		// its loaded tokens only (fts3.c:5968).
+		phraseNode = phraseTermsNode(terms)
+		scopeNode = phraseNode
+	}
 	addRow := func(d int64) {
-		c := phraseCountsFor(t.index, d, phrase, scope, side, nCol)
+		c := phraseCountsFor(t.index, d, phraseNode, scope, side, nCol)
 		if globalOcc == nil {
 			globalOcc = make([]int, nCol)
 			globalRows = make([]int, nCol)
@@ -94,18 +106,163 @@ func (t *FTS3Table) globalPhraseStats(phrase, scope QueryNode, side, nCol int, d
 			}
 		}
 	}
-	if ScopeMatchesDoc(t.index, docID, scope) {
+	if ScopeMatchesDoc(t.index, docID, scopeNode) {
 		addRow(docID)
 	}
 	for _, d := range t.index.AllDocIDs() {
 		if d == docID {
 			continue
 		}
-		if ScopeMatchesDoc(t.index, d, scope) {
+		if ScopeMatchesDoc(t.index, d, scopeNode) {
 			addRow(d)
 		}
 	}
 	return globalOcc, globalRows
+}
+
+// deferredNDocStats applies C's sqlite3Fts3EvalPhraseStats shortcut: an
+// all-deferred phrase whose parent is not NEAR is assumed to occur once in
+// every column of every document (fts3.c:5964).
+func deferredNDocStats(docIDs []int64, nCol int) (globalOcc, globalRows []int) {
+	nDoc := len(docIDs)
+	globalOcc = make([]int, nCol)
+	globalRows = make([]int, nCol)
+	for i := 0; i < nCol; i++ {
+		globalOcc[i] = nDoc
+		globalRows[i] = nDoc
+	}
+	return globalOcc, globalRows
+}
+
+// phraseTerm is one token of a MATCH phrase (a prefix wildcard matches a
+// family of index terms).
+type phraseTerm struct {
+	text   string
+	prefix bool
+}
+
+type deferredPhraseKind int
+
+const (
+	phraseDeferNone deferredPhraseKind = iota
+	phraseDeferSome
+	phraseDeferAll
+)
+
+// phraseDeferral classifies a phrase's tokens under C's deferred-token rule
+// and returns the non-deferred terms for the partial case. Deferral is an
+// AND/NEAR-cluster decision (fts3.c fts3EvalSelectDeferred): with no enclosing
+// AND/NEAR there is nothing to defer against, and a NEAR parent keeps the
+// gather-stats path because its global hits are trimmed by the NEAR distance.
+func (t *FTS3Table) phraseDeferral(phrase, gate QueryNode) (deferredPhraseKind, []phraseTerm) {
+	if _, ok := gate.(*AndNode); !ok {
+		return phraseDeferNone, nil
+	}
+	if !strings.EqualFold(t.moduleName, "fts4") || t.contentTable != "" {
+		return phraseDeferNone, nil
+	}
+	terms := collectPhraseTerms(phrase)
+	if len(terms) == 0 {
+		return phraseDeferNone, nil
+	}
+	loaded := make([]phraseTerm, 0, len(terms))
+	deferred := 0
+	for _, term := range terms {
+		if t.termDoclistOverflows(term) {
+			deferred++
+		} else {
+			loaded = append(loaded, term)
+		}
+	}
+	if deferred == len(terms) {
+		return phraseDeferAll, nil
+	}
+	if deferred > 0 {
+		return phraseDeferSome, loaded
+	}
+	return phraseDeferNone, nil
+}
+
+// phraseTermsNode rebuilds the non-deferred tokens as a query node so the
+// ordinary phrase-count path can count their potential occurrences.
+func phraseTermsNode(terms []phraseTerm) QueryNode {
+	if len(terms) == 1 {
+		if terms[0].prefix {
+			return &PrefixNode{Prefix: terms[0].text}
+		}
+		return &TermNode{Term: terms[0].text}
+	}
+	n := &PhraseNode{Terms: make([]string, 0, len(terms)), Prefixes: make([]bool, 0, len(terms))}
+	for _, term := range terms {
+		n.Terms = append(n.Terms, term.text)
+		n.Prefixes = append(n.Prefixes, term.prefix)
+	}
+	return n
+}
+
+// collectPhraseTerms unwraps column restrictions and returns the phrase's
+// tokens in query order. A nil slice means an unrecognized node.
+func collectPhraseTerms(node QueryNode) []phraseTerm {
+	if cn, ok := node.(*ColumnNode); ok {
+		return collectPhraseTerms(cn.Inner)
+	}
+	switch n := node.(type) {
+	case *TermNode:
+		return []phraseTerm{{text: n.Term}}
+	case *PrefixNode:
+		return []phraseTerm{{text: n.Prefix, prefix: true}}
+	case *PhraseNode:
+		out := make([]phraseTerm, 0, len(n.Terms))
+		for i, term := range n.Terms {
+			out = append(out, phraseTerm{text: term, prefix: i < len(n.Prefixes) && n.Prefixes[i]})
+		}
+		return out
+	}
+	return nil
+}
+
+// termDoclistOverflows estimates the packed FTS3 doclist size of one token:
+// a delta varint per docid, a column byte, and a position varint per posting.
+const ftsDeferredDoclistBytes = 4096
+
+func (t *FTS3Table) termDoclistOverflows(term phraseTerm) bool {
+	size := 0
+	for name, postings := range t.index.index {
+		if term.prefix {
+			if !strings.HasPrefix(name, term.text) {
+				continue
+			}
+		} else if name != term.text {
+			continue
+		}
+		size += packedDoclistBytes(postings)
+		if size >= ftsDeferredDoclistBytes {
+			return true
+		}
+	}
+	return false
+}
+
+func packedDoclistBytes(postings []Posting) int {
+	size, prevDoc := 0, int64(0)
+	for i, p := range postings {
+		delta := p.DocID - prevDoc
+		if i == 0 {
+			delta = p.DocID
+		}
+		size += fts3VarintLen(uint64(delta)) + 1 + fts3VarintLen(uint64(p.Position+2))
+		prevDoc = p.DocID
+	}
+	return size
+}
+
+func fts3VarintLen(v uint64) int {
+	n := 1
+	for v >= 0x80 {
+		v >>= 7
+		n++
+	}
+	return n
 }
 
 // MatchInfoY computes the 'y' format values for one phrase: the per-column
