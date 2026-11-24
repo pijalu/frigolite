@@ -2507,3 +2507,7 @@ everywhere; go vet + go build clean.
   step with `Variable=evalcount, SQL=0`; without it the callback counter
   accumulates across probes (26.1.6 saw 8 instead of 5). Fixtures generated
   before that converter emission need the step added directly.
+- The same numeric-reset artifact explains indexexpr2-4.120/4.130's `cnt`
+  (3 instead of 2/0): a `global cnt` callback proc's `set ::cnt 0` also
+  emits `runtime_expr Variable=cnt SQL=0`. Check the converter shape before
+  hunting the UPDATE/index-expression engine path.

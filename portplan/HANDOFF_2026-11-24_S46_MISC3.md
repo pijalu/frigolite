@@ -93,3 +93,16 @@ loop, bestindexF eDistinct handshake) remains ahead of those in the queue.
   GONE=1 (`e_expr-26.1.6`). The first S49 gate's nine temptable2-9.1.x
   small-cache stress failures did not reproduce focused or in the rerun.
 - Next unit: expridx1 (10), indexexpr2 (5), A2/A9 engine slices, fts3*.
+
+## S50 slice 1 (a164bc943): indexexpr2-4.120/4.130 1→0 each
+
+- The same numeric-reset artifact as S49: `set ::cnt 0` before each UPDATE
+  was missing from the checked-in fixture. Added two `runtime_expr` steps
+  (`Variable=cnt, SQL=0`); converter shape pinned for `global cnt` procs.
+- Focused `indexexpr2` now has only three leaves: 1.2 (nocase collation),
+  3.4.5eqp (expression-index ORDER BY), 11.0 (aggregate misuse).
+- Full gates `/tmp/s50_full{,2,3}.log` consistently GONE the two counter
+  leaves. NEWs were only the documented load flakes: temptable2-9.1.x
+  small-cache stress and vacuum6-4.0's `parent split lost child` under
+  load (focused vacuum6 passed 2/3 repeats and 3/3 at HEAD).
+- Next unit: expridx1 (10), indexexpr2's three engine leaves, A2/A9, fts3*.
