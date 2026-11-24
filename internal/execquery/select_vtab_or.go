@@ -22,6 +22,7 @@ func (e *SelectEngine) execCreatedVTabOrBranches(stmt *sql.SelectStmt, tableName
 		opts.Limit, opts.Offset, opts.MaxRows = nil, nil, -1
 		residual := opts.Where
 		opts.Residual = &residual
+		opts.TableName = vtabScanQualifier(stmt)
 		branchDefs, branchRows, branchIDs, err, handled := e.ctx.MaterializeCreatedVTab(tableName, opts)
 		if !handled {
 			return nil, false

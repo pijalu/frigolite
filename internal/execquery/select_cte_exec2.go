@@ -57,7 +57,7 @@ func (e *SelectEngine) execSelectOverMaterializedRowids(s *sql.SelectStmt, colDe
 	e.currentScanTable = materializedAlias(s)
 	defer func() { e.currentScanTable = prevScanTable }()
 	allRows := rows
-	if len(allRows) == 0 && !e.hasAggregates(s.Columns) && len(s.GroupBy) == 0 && s.Union == nil {
+	if len(allRows) == 0 && !e.hasAggregates(s.Columns) && len(s.GroupBy) == 0 && s.Union == nil && len(s.Joins) == 0 {
 		return &Result{Columns: e.buildColumnNames(s.Columns, colDefs, s), Rows: [][]interface{}{}}
 	}
 	allRowMaps := buildMaterializedRowMaps(s, colDefs, allRows, rowids)

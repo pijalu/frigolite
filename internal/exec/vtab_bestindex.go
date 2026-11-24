@@ -2,6 +2,7 @@ package exec
 
 import (
 	"errors"
+
 	"github.com/pijalu/frigolite/internal/util"
 
 	"github.com/pijalu/frigolite/internal/execquery"

@@ -40,18 +40,36 @@ func newHarnessTclCallbackRuntime(step TestStep, db *DB, runtimeVars map[string]
 	}
 	runtime.interp.LoadProcedures(procs)
 	runtime.interp.RegisterCallbackCommand("db", func(args []string) (string, error) {
-		if len(args) != 2 || args[0] != "one" {
+		switch {
+		case len(args) == 2 && args[0] == "one":
+			query := runtime.interp.BindSQLParams(args[1])
+			result := db.Query(query)
+			if result.Error != nil {
+				return "", result.Error
+			}
+			if len(result.Rows) == 0 || len(result.Rows[0]) == 0 || result.Rows[0][0] == nil {
+				return "", nil
+			}
+			return fmt.Sprint(result.Rows[0][0]), nil
+		case len(args) == 2 && args[0] == "eval":
+			// db eval SQL — no body script: the callback runs the query and
+			// the flat row list is the command result (bestindexE-3.1.x's
+			// xConnect `db eval { SELECT * FROM sqlite_schema }`).
+			query := runtime.interp.BindSQLParams(args[1])
+			result := db.Query(query)
+			if result.Error != nil {
+				return "", result.Error
+			}
+			words := make([]string, 0, len(result.Rows)*2)
+			for _, row := range result.Rows {
+				for _, cell := range row {
+					words = append(words, tclList([]string{fmt.Sprint(cell)}))
+				}
+			}
+			return strings.Join(words, " "), nil
+		default:
 			return "", fmt.Errorf("unsupported Tcl db callback command: %v", args)
 		}
-		query := runtime.interp.BindSQLParams(args[1])
-		result := db.Query(query)
-		if result.Error != nil {
-			return "", result.Error
-		}
-		if len(result.Rows) == 0 || len(result.Rows[0]) == 0 || result.Rows[0][0] == nil {
-			return "", nil
-		}
-		return fmt.Sprint(result.Rows[0][0]), nil
 	})
 	for name, value := range step.CallbackVars {
 		// The runtime-marker values ("$G(cols)", "$testdir") resolve
@@ -99,6 +117,38 @@ func (r *harnessTclCallbackRuntime) Filter(proc string, moduleArgs []string, idx
 		values[i] = fmt.Sprint(value)
 	}
 	return r.invoke(proc, moduleArgs, "xFilter", strconv.Itoa(idxNum), idxStr, tclList(values))
+}
+
+func (r *harnessTclCallbackRuntime) Update(proc string, moduleArgs []string, oldValues, newValues []interface{}) (string, error) {
+	values := append([]string{}, tclXUpdateWords(oldValues, newValues)...)
+	return r.invoke(proc, moduleArgs, "xUpdate", tclList(values))
+}
+
+// tclXUpdateWords renders one xUpdate argv the way the C module hands it to
+// the Tcl command: the old rowid, the new rowid, then the column values
+// ("" standing in for NULL).
+func tclXUpdateWords(oldValues, newValues []interface{}) []string {
+	render := func(v interface{}) string {
+		if v == nil {
+			return ""
+		}
+		return fmt.Sprintf("%v", v)
+	}
+	out := []string{"", ""}
+	if len(oldValues) > 0 {
+		out[0] = render(oldValues[0])
+	}
+	if len(newValues) > 0 {
+		out[1] = render(newValues[0])
+	}
+	values := newValues
+	if len(values) == 0 {
+		values = oldValues
+	}
+	for _, v := range values {
+		out = append(out, render(v))
+	}
+	return out
 }
 
 func (r *harnessTclCallbackRuntime) HasProc(proc string) bool { _, ok := r.procs[proc]; return ok }

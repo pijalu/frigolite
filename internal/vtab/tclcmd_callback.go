@@ -85,6 +85,45 @@ type tclCmdCursor struct {
 	index  int
 }
 
+// tclCmdVTabUpdate invokes the runtime's xUpdate callback and parses the
+// response value (the new rowid).
+func (v *tclCmdVTab) tclCmdVTabUpdate(oldValues, newValues []interface{}) (int64, error) {
+	ur, ok := v.runtime.(TclUpdateRuntime)
+	if !ok {
+		return 0, fmt.Errorf("table %T may not be modified", v)
+	}
+	result, err := ur.Update(v.procName, v.moduleArgs, oldValues, newValues)
+	if err != nil {
+		return 0, err
+	}
+	rowid, perr := strconv.ParseInt(strings.TrimSpace(result), 10, 64)
+	if perr != nil {
+		return 0, nil
+	}
+	return rowid, nil
+}
+
+// InsertRow applies an INSERT through xUpdate (argv[0] old rowid empty,
+// argv[1] new rowid empty, argv[2..] the column values) and reports the
+// returned rowid.
+func (v *tclCmdVTab) InsertRow(values []interface{}) (int64, error) {
+	return v.tclCmdVTabUpdate(nil, values)
+}
+
+// DeleteRow applies a DELETE through xUpdate (argv[0] the old rowid,
+// argv[2..] the old column values).
+func (v *tclCmdVTab) DeleteRow(oldValues []interface{}) error {
+	_, err := v.tclCmdVTabUpdate(oldValues, nil)
+	return err
+}
+
+// UpdateRow applies an UPDATE through xUpdate (argv[0] the old rowid,
+// argv[1] the new rowid, argv[2..] the new column values).
+func (v *tclCmdVTab) UpdateRow(oldValues, newValues []interface{}) error {
+	_, err := v.tclCmdVTabUpdate(oldValues, newValues)
+	return err
+}
+
 func (v *tclCmdVTab) Open() (Cursor, error) {
 	return &tclCmdCursor{vtab: v, index: -1}, nil
 }

@@ -357,7 +357,7 @@ func (e *SelectEngine) hasOuterRows() bool {
 
 // materializeSubqueryJoin builds the right-side row maps and column defs for a
 // derived-table subquery join operand.
-func (e *SelectEngine) materializeSubqueryJoin(join sql.JoinClause) ([]RowMap, []sql.ColumnDef, string, []int, error) {
+func (e *SelectEngine) materializeSubqueryJoin(s *sql.SelectStmt, join sql.JoinClause) ([]RowMap, []sql.ColumnDef, string, []int, error) {
 	// A derived table's refs must resolve within its own scope. When the
 	// subquery runs inside an enclosing query whose rows are on the stack
 	// (a correlated scalar/EXISTS subquery), SQLite allows the derived table
@@ -380,10 +380,12 @@ func (e *SelectEngine) materializeSubqueryJoin(join sql.JoinClause) ([]RowMap, [
 	e.derivedScope = !correlated
 	// The materialization scan is not a loop of the outer statement: C
 	// flattens a derived "SELECT * FROM t" into the outer query's own loop,
-	// so the outer statement's counters see no separate scan here.
+	// so the outer statement's counters see no separate scan here. The
+	// outer WHERE's single-table conjuncts push into the subquery first
+	// (select.c pushDownWhereTerms).
 	savedSuppress := e.suppressFullScanCounter
 	e.suppressFullScanCounter = true
-	subqResult := e.execSelect(join.Table.Subquery)
+	subqResult := e.execSelect(e.pushDownWhereTermsIntoSub(join.Table, joinOperandRefs(s, &join.Table), s, join.Table.Subquery))
 	e.suppressFullScanCounter = savedSuppress
 	e.derivedScope = savedDerived
 	if subqResult.Error != nil {

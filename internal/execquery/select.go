@@ -393,6 +393,7 @@ func (e *SelectEngine) execCreatedVTabForm(s *sql.SelectStmt) (*Result, bool) {
 	opts := e.vtabScanOptions(s)
 	createdResidual := opts.Where
 	opts.Residual = &createdResidual
+	opts.TableName = vtabScanQualifier(s)
 	gbConsumed := false
 	opts.GroupByOrderConsumed = &gbConsumed
 	if len(s.Joins) != 0 {
@@ -427,6 +428,19 @@ func (e *SelectEngine) withVtabResidualWhere(s *sql.SelectStmt, opts *VtabScanOp
 	ns := *s
 	ns.Where = *opts.Residual
 	return &ns
+}
+
+// vtabScanQualifier returns the name a FROM term's own references qualify
+// with: the alias when one was written (SQLite rejects the table name once
+// aliased), else the table name. The FROM-side materializations pass it as
+// VtabScanOptions.TableName so the constraint builder resolves QUALIFIED
+// self-references (bestindexE-2.2.2's pushed `Delivery.ID = 1`); the
+// prepare-time explain path (vtabExplainPlan) already does.
+func vtabScanQualifier(s *sql.SelectStmt) string {
+	if s.From.As != "" {
+		return s.From.As
+	}
+	return s.From.Name
 }
 
 // vtabScanOptions builds the materialization options for a FROM-clause
@@ -798,6 +812,7 @@ func (e *SelectEngine) execGenericVtabSelect(s *sql.SelectStmt, tableEntry *sche
 		opts := e.vtabScanOptions(s)
 		residual := opts.Where
 		opts.Residual = &residual
+		opts.TableName = vtabScanQualifier(s)
 		defs, rows, rowids, err, ok := e.ctx.MaterializeCreatedVTab(tableEntry.Name, opts)
 		if ok {
 			if err != nil {

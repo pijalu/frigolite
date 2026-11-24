@@ -69,7 +69,7 @@ func joinTypeHas(joinType, typ string) bool {
 func (e *SelectEngine) materializeJoinRight(s *sql.SelectStmt, join sql.JoinClause, currentMaps []RowMap) ([]RowMap, []sql.ColumnDef, string, []int, error) {
 	// Handle derived table (subquery) in JOIN: JOIN (SELECT ...) AS t
 	if join.Table.Subquery != nil {
-		return e.materializeSubqueryJoin(join)
+		return e.materializeSubqueryJoin(s, join)
 	}
 	if isPragmaTableFunc(join.Table.Name) {
 		return e.materializePragmaJoin(join, currentMaps)

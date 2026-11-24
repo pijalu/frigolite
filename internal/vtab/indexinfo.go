@@ -164,6 +164,14 @@ type TclCallbackRuntime interface {
 	HasProc(proc string) bool
 }
 
+// TclUpdateRuntime is the optional xUpdate half of the callback contract:
+// runtimes serving the newer test_bestindex.c module's write path
+// (bestindexE-3.1.2's eponymous INSERT ... RETURNING). The returned string
+// is the callback's raw result — the xUpdate response value (the new rowid).
+type TclUpdateRuntime interface {
+	Update(proc string, moduleArgs []string, oldValues, newValues []interface{}) (string, error)
+}
+
 // PlanBestIndexer is the optional xBestIndex contract (sqlite3_module
 // xBestIndex). Modules implementing it receive the planner's constraint set
 // before a scan is materialized; returning ErrVtabConstraint rejects the

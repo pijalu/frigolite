@@ -68,7 +68,7 @@ func BuildVtabIndexInfoWithInstance(opts *VtabScanOptions, tableName string, col
 	}
 	joinConjuncts := vtabWhereConjuncts(opts.JoinOn)
 	conjuncts := append(append([]sql.Expr(nil), whereConjuncts...), joinConjuncts...)
-	b := newVtabPlanBuilder(ii, len(conjuncts), opts.OuterRow)
+	b := newVtabPlanBuilder(ii, len(conjuncts), opts)
 	for _, conjunct := range conjuncts {
 		b.beginConjunct()
 		classifyVtabConjunct(b, conjunct, tableName, cols, overloader)
@@ -90,6 +90,13 @@ type vtabPlanBuilder struct {
 	// WHERE term will be withheld from xBestIndex.
 	allQualify bool
 	outerRow   RowMap
+	// selfTable is the scan's own table/alias name ("" for single-table
+	// FROM materializations); joinOperand reports the scan is a nested-loop
+	// JOIN operand whose ON terms bind values from the already-materialized
+	// left side (where.c prereqRight — those terms are usable even at the
+	// prepare-time call when no outer row is at hand).
+	selfTable   string
+	joinOperand bool
 	// currentQualifies tracks the conjunct being classified.
 	currentQualifies bool
 	// origins maps synthetic split terms to their original conjuncts.
@@ -106,13 +113,21 @@ func (b *vtabPlanBuilder) rememberOrigin(synthetic, original sql.Expr) {
 }
 
 // newVtabPlanBuilder pre-sizes the constraint and conjunct slices.
-func newVtabPlanBuilder(ii *vtab.IndexInfo, n int, outerRow RowMap) *vtabPlanBuilder {
+func newVtabPlanBuilder(ii *vtab.IndexInfo, n int, opts *VtabScanOptions) *vtabPlanBuilder {
 	ii.Constraints = make([]vtab.IndexConstraint, 0, n)
+	outerRow := RowMap(nil)
+	joinOperand := false
+	if opts != nil {
+		outerRow = opts.OuterRow
+		joinOperand = opts.JoinOn != nil
+	}
 	return &vtabPlanBuilder{
-		ii:         ii,
-		conjuncts:  make([]sql.Expr, 0, n),
-		outerRow:   outerRow,
-		allQualify: true,
+		ii:          ii,
+		conjuncts:   make([]sql.Expr, 0, n),
+		outerRow:    outerRow,
+		allQualify:  true,
+		selfTable:   opts.TableName,
+		joinOperand: joinOperand,
 	}
 }
 
@@ -129,13 +144,17 @@ func (b *vtabPlanBuilder) endConjunct() {
 
 // usable reports whether a constraint's value is available at this scan.
 // Ordinary scans accept only constant RHS expressions; correlated JOIN scans
-// may also bind every RHS column from the already-materialized outer row.
+// may also bind every RHS column from the already-materialized outer row —
+// and, for a JOIN operand, from the nested loop's outer side generally
+// (where.c prereqRight: the term is usable when its value side references
+// only EARLIER join tables — the prepare-time call marks those usable even
+// before any outer row exists; bestindexE-2.1.2's `oid=?`).
 func (b *vtabPlanBuilder) usable(exprs ...sql.Expr) bool {
 	if vtabUsable(exprs...) {
 		return true
 	}
 	if b.outerRow == nil {
-		return false
+		return b.joinOperand && b.valueBindsFromOtherTables(exprs...)
 	}
 	usable := true
 	for _, expr := range exprs {
@@ -163,6 +182,28 @@ func vtabOuterRowHasRef(row RowMap, ref *sql.ColumnRef) bool {
 		}
 	}
 	return false
+}
+
+// valueBindsFromOtherTables reports whether every column reference in the
+// expressions is qualified with a table other than this scan's own — the
+// shape of a JOIN ON term's value side (`Delivery.Customer` against the
+// Customer scan). Such values bind from the nested loop's outer side, so the
+// prepare-time xBestIndex call marks the constraint usable (where.c offers a
+// term usable when its other-side tables are already in the join prefix).
+func (b *vtabPlanBuilder) valueBindsFromOtherTables(exprs ...sql.Expr) bool {
+	bindable := true
+	for _, expr := range exprs {
+		WalkExprFull(expr, func(node sql.Expr) {
+			ref, ok := node.(*sql.ColumnRef)
+			if !ok || !bindable {
+				return
+			}
+			if ref.Table == "" || strings.EqualFold(ref.Table, b.selfTable) {
+				bindable = false
+			}
+		})
+	}
+	return bindable
 }
 
 // add records one offered constraint. The conjunct (its value source for

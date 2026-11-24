@@ -2,7 +2,6 @@ package vtab
 
 import (
 	"fmt"
-	"os"
 	"strings"
 )
 
@@ -18,11 +17,23 @@ import (
 //   - CREATE TABLE ... AS SELECT parses but is rejected →
 //     "declare_vtab: SQL logic error";
 //   - valid schemas expose their declared columns.
-type TclCommandModule struct{ runtime TclCallbackRuntime }
+type TclCommandModule struct {
+	runtime     TclCallbackRuntime
+	defaultProc string
+}
 
 // NewTclCommandModuleWithRuntime creates a fixture-scoped Tcl callback module.
 func NewTclCommandModuleWithRuntime(runtime TclCallbackRuntime) *TclCommandModule {
 	return &TclCommandModule{runtime: runtime}
+}
+
+// NewTclCommandModuleWithRuntimeNamed creates the fixture-scoped module whose
+// callback command was NAMED at registration time (test_bestindex.c's
+// `register_tcl_module db eponymous_cmd` form): the EPONYMOUS instance —
+// the module name used directly in FROM with no module arguments — invokes
+// that command (bestindexE-3.1.x's `SELECT * FROM tcl`).
+func NewTclCommandModuleWithRuntimeNamed(runtime TclCallbackRuntime, defaultProc string) *TclCommandModule {
+	return &TclCommandModule{runtime: runtime, defaultProc: defaultProc}
 }
 
 // NewTclCommandModule builds the tcl module.
@@ -50,7 +61,7 @@ func (m *TclCommandModule) Create(args []string) (VirtualTable, error) {
 func (m *TclCommandModule) Connect(args []string) (VirtualTable, error) {
 	if len(args) == 1 && m.runtime != nil {
 		words := moduleCommandWords(args[0])
-		if len(words) < 1 || !m.runtime.HasProc(words[0]) {
+		if len(words) < 1 || (!m.runtime.HasProc(words[0]) && words[0] != m.defaultProc) {
 			return nil, fmt.Errorf("wrong number of arguments")
 		}
 	}
@@ -69,6 +80,11 @@ func (m *TclCommandModule) connect(args []string) (VirtualTable, error) {
 	if len(moduleWords) > 0 {
 		procName = moduleWords[0]
 	}
+	// The eponymous instance carries no module arguments: its callback
+	// command is the one named at registration time.
+	if procName == "" {
+		procName = m.defaultProc
+	}
 	moduleArgs := []string{}
 	if len(moduleWords) > 1 {
 		moduleArgs = append(moduleArgs, moduleWords[1:]...)
@@ -85,9 +101,6 @@ func (m *TclCommandModule) connect(args []string) (VirtualTable, error) {
 		if schema == "" && len(args) > 0 {
 			schema = TclVarGet("create_table_sql", "")
 		}
-	}
-	if os.Getenv("CL_DBG") != "" {
-		fmt.Fprintf(os.Stderr, "TCLCMD proc=%q schema=%q\\n", procName, schema)
 	}
 	cols, err := classifyDeclareSchema(schema)
 	if err != nil {

@@ -113,6 +113,9 @@ func newVtabColumnIndex(names []string) vtabColumnIndex {
 // is -1 for the rowid. A qualified reference qualifies only when its Table
 // matches tableName (an empty tableName accepts unqualified references
 // only — a qualifier naming any other table is an outer reference).
+// A DECLARED column always wins over the rowid pseudo-names (resolve.c
+// binds Customer.OID to the declared oid column, not the implicit rowid —
+// bestindexE-2.1.2's `oid=?` offering).
 func (m vtabColumnIndex) resolve(expr sql.Expr, tableName string) (int, bool) {
 	cr, ok := skipVtabCollate(expr).(*sql.ColumnRef)
 	if !ok {
@@ -122,11 +125,13 @@ func (m vtabColumnIndex) resolve(expr sql.Expr, tableName string) (int, bool) {
 		return 0, false
 	}
 	name := strings.ToLower(cr.Name)
+	if idx, ok := m[name]; ok {
+		return idx, true
+	}
 	if isRowIDName(name) {
 		return -1, true
 	}
-	idx, ok := m[name]
-	return idx, ok
+	return 0, false
 }
 
 // skipVtabCollate unwraps parentheses, COLLATE wrappers, and the

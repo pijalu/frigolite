@@ -184,10 +184,12 @@ func (e *SelectEngine) execSelectFromSubquery(s *sql.SelectStmt) *Result {
 		e.disableUnusedSubqueryColumns(s, quals, nil, nil, s.From.Subquery)
 	}
 	// Execute the subquery. A FROM-clause derived table is non-lateral
-	// (SQLite SF_NestedFrom): see SelectEngine.derivedScope.
+	// (SQLite SF_NestedFrom): see SelectEngine.derivedScope. The outer
+	// WHERE's single-table conjuncts push into the subquery's members first
+	// (select.c pushDownWhereTerms — the member planners see them).
 	savedDerived := e.derivedScope
 	e.derivedScope = true
-	subqResult := e.execSelect(s.From.Subquery)
+	subqResult := e.execSelect(e.pushDownWhereTermsIntoSub(s.From, joinOperandRefs(s, &s.From), s, s.From.Subquery))
 	e.derivedScope = savedDerived
 	if subqResult.Error != nil {
 		return subqResult

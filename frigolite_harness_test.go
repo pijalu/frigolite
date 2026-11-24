@@ -4454,7 +4454,16 @@ func TestSQLiteSuite(t *testing.T) {
 								}
 							}
 							runtime := newHarnessTclCallbackRuntime(step, execDB, runtimeVars)
-							execDB.RegisterVtabModule("tcl", vtab.NewTclCommandModuleWithRuntime(runtime))
+							// The named registration form (register_tcl_module
+							// db eponymous_cmd): the second module argument
+							// names the callback command the EPONYMOUS
+							// instance — FROM tcl with no CREATE — invokes
+							// (bestindexE-3.1.x).
+							if len(step.ModuleArgs) > 1 && step.ModuleArgs[1] != "" {
+								execDB.RegisterVtabModule("tcl", vtab.NewTclCommandModuleWithRuntimeNamed(runtime, step.ModuleArgs[1]))
+							} else {
+								execDB.RegisterVtabModule("tcl", vtab.NewTclCommandModuleWithRuntime(runtime))
+							}
 							continue
 						}
 
