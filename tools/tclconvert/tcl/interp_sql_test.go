@@ -3,6 +3,7 @@
 package tcl
 
 import (
+	"encoding/binary"
 	"strings"
 	"testing"
 )
@@ -129,6 +130,32 @@ sqlite3_test_control SQLITE_TESTCTRL_INTERNAL_FUNCTIONS db`); err != nil {
 	stmts := i.Stmts()
 	if len(stmts) != 2 || stmts[0].Type != "internal_functions" || stmts[1].Type != "internal_functions" || stmts[0].SQL != "enable" || stmts[1].SQL != "disable" {
 		t.Fatalf("internal function control markers = %#v, want ordered enable/disable", stmts)
+	}
+}
+
+func TestBinaryScanMatchInfoUDF(t *testing.T) {
+	i := NewInterp()
+	i.LoadProcedures([]Proc{{
+		Name: "mit", Args: []string{"blob"},
+		Body: `
+  set scan(littleEndian) i*
+  set scan(bigEndian) I*
+  binary scan $blob $scan($::tcl_platform(byteOrder)) r
+  return $r
+`,
+	}})
+	var blob []byte
+	for _, v := range []uint32{2, 1, 54} {
+		var b [4]byte
+		binary.LittleEndian.PutUint32(b[:], v)
+		blob = append(blob, b[:]...)
+	}
+	got, err := i.InvokeProcedure("mit", string(blob))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if got != "2 1 54" {
+		t.Fatalf("mit blob = %q, want %q", got, "2 1 54")
 	}
 }
 

@@ -315,6 +315,9 @@ func NewInterp() *Interp {
 			// The multiplexor's MAX_PAGE_SIZE (test_multiplex.c): the
 			// granularity multiplex_set rounds chunk sizes up to.
 			"SQLITE_MAX_PAGE_SIZE": "65536",
+			// The testfixture's TCL platform array: byteOrder selects the
+			// native 32-bit binary-scan field in fts3defer2's mit UDF.
+			"tcl_platform(byteOrder)": "littleEndian",
 		},
 		dynamicVars:      make(map[string]bool),
 		trackedVars:      make(map[string]bool),

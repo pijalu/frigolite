@@ -2,6 +2,7 @@
 package tcl
 
 import (
+	"encoding/binary"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -862,7 +863,39 @@ func commandBinary(i *Interp, rawWords []rawWord, args []string, localVars map[s
 		i.vars[""] = string(out)
 		return nil
 	}
+	if len(args) >= 3 && args[0] == "scan" {
+		values, err := binaryScanFields(args[1], args[2])
+		if err != nil {
+			return err
+		}
+		if len(args) > 3 {
+			i.setVar(args[3], tclList(values), localVars)
+		}
+		i.vars[""] = strconv.Itoa(len(values))
+		return nil
+	}
 	return fmt.Errorf("unsupported binary form: %s", strings.Join(args, " "))
+}
+
+// binaryScanFields reads TCL's 32-bit integer fields from a byte string. `i*`
+// is signed little-endian and `I*` unsigned native-endian (little-endian on
+// the testfixture's platform); a count suffix of `*` consumes every whole
+// field, exactly like tclBinary.c's ScanBinary `*` repeat.
+func binaryScanFields(data, format string) ([]string, error) {
+	if len(format) < 2 || format[1] != '*' || (format[0] != 'i' && format[0] != 'I') {
+		return nil, fmt.Errorf("unsupported binary scan field %q", format)
+	}
+	signed := format[0] == 'i'
+	var out []string
+	for pos := 0; pos+4 <= len(data); pos += 4 {
+		u := binary.LittleEndian.Uint32([]byte(data[pos : pos+4]))
+		if signed {
+			out = append(out, strconv.FormatInt(int64(int32(u)), 10))
+		} else {
+			out = append(out, strconv.FormatUint(uint64(u), 10))
+		}
+	}
+	return out, nil
 }
 
 // binaryFormatFields packs the values per the format string's `c` fields: a
