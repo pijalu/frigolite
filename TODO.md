@@ -8,7 +8,7 @@
 
 `close all gaps with sqlite — functional first, then performance.`
 
-## State (2026-11-22, feature/perf @ 702d2495c — S43 slice 5 landed: the bestindexE LEFT JOIN/push-down/eponymous unit, bestindexE 6→0; FULL gate 1170, GONE=bestindexE 6 + the 4 gate6 push-down regressions, REAL NEW=0 vs the pre-slice gate)
+## State (2026-11-24, feature/perf @ 32b2af96a — S43 slices 1-6 landed: bestindexE and bestindexF-1.4.1 GONE; FULL gate 1168, GONE=1.4.1 + documented flake, REAL NEW=0)
 
 Full-suite truth **1190 failing leaves** (the s35g gate baseline
 portplan/baselines/s35g_gate_fails.txt minus the three walfault leaves
@@ -238,18 +238,19 @@ portplan/baselines/s35g_gate_fails.txt.)
    2026-11-22 (2) handover). The remaining delta stays CARDED with the
    resumable lever; the unit's core (the spills, the husk elimination)
    is banked.
-3. **S42/S43** (TRIAGE_index_callback): index9 = 0; S43 slices 1-5
+3. **S42/S43** (TRIAGE_index_callback): index9 = 0; S43 slices 1-6
    DELIVERED (the vtab callback stack; the selective regen + the seeding
    machinery; the WHERE_GROUPBY consumption with the streaming aggregate;
    the WHERE_DISTINCTBY offering + the DISTINCT suppression + the
    ephemeral grouping; slice 5 = the LEFT JOIN xBestIndex prepare
    contract + the compound WHERE push-down (select.c pushDownWhereTerms
-   parity) + the eponymous tcl module). **bestindexE 6→0**; the
-   bestindex residue = 6 leaves (F: 1.4.1 the multi-table DISTINCT+ORDER
-   BY delivery + the 2.8/2.9/2.10 .0 trio carded as the converter's
-   machinery-placement class) + bestindex1-3.4/3.5 (carded). NEXT: the
-   F 1.4.1 delivery slice; then the S41 residuals (trigger7-2.x
-   sub-program rows, misc3-6.11, distinctagg 5).
+   parity) + the eponymous tcl module; slice 6 = the bestindexF-1.4.1
+   fixture correction + the native EXPLAIN pin — the engine was already
+   green). **bestindexE 6→0; bestindexF-1.4.1 GONE**; the bestindex residue
+   = 7 leaves (F: 2.8.0/2.8.1/2.9.0/2.9.1/2.10.0, the converter's
+   machinery-placement class + bestindex1-3.4/3.5, both carded). NEXT:
+   the S41 residuals (trigger7-2.x sub-program rows, misc3-6.11,
+   distinctagg 5).
 4. **Carded converter classes**: expridx1 fossil 10, indexexpr2/3 11,
    e_expr regen drift/callbackVars, A2/A9 engine slices, the fts3*
    residue ~53.

@@ -2445,3 +2445,10 @@ everywhere; go vet + go build clean.
   must expand to `ColumnRef`s through its FROM source before substituting;
   leaving the star node in the pushed predicate matches nothing
   (subquery2-3.0).
+- **A TCL proc that computes SQL from `db eval` cannot be trusted at
+  conversion time**: `tools/tclconvert` emits `db eval` as a RUNTIME query
+  step and returns a marker; a wrapper like bestindexF's `uses_idxinsert`
+  (`expr [lsearch [db eval "explain $sql"] IdxInsert]>=0`) sees the marker,
+  yields 0, and bakes `SELECT 0 ; ...` into the fixture. Regenerate into /tmp
+  first; when the artifact persists, correct the fixture and add a pure-Go
+  pin test for the engine-visible EXPLAIN contract.

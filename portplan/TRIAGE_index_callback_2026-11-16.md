@@ -730,3 +730,26 @@ leaves**. Versus the pre-slice gate5: GONE = the six bestindexE leaves,
 NEW = 0. The intermediate gate6 regressions above are all GONE at the
 commit; the documented resetdb/temptable2 flakes and bestindexF's carded
 .0 trio remain.
+
+---
+
+## 18. S43 slice 6 DELIVERED (2026-11-24): bestindexF-1.4.1 GONE — the fixture's runtime-computed EXPLAIN value
+
+The failure's first result column comes from the fixture proc
+`uses_idxinsert`: `lsearch [db eval "explain $sql"] IdxInsert`. A pure-Go
+pin test (`frigolite_bestindexF_141_test.go`) drove the same tcl module and
+showed the engine ALREADY emits `OpenEphemeral Found MakeRecord IdxInsert`
+and the EQP node `USE TEMP B-TREE FOR DISTINCT`. No engine fix was needed.
+
+`tools/tclconvert` cannot compute that proc at conversion time: `db eval`
+becomes a runtime `query` step whose result is a marker; `lsearch` over the
+marker yields 0 and the converter bakes `SELECT 0 ; ...` into case 1.4.1.
+Selective regeneration reproduced the artifact, so the installed fixture
+got the one-line correction to `SELECT 1 ; ...` (the regen also reordered
+hand-curated callback procs, so it was not installed wholesale).
+
+**The gates**: bestindexF-1.4.1 green; the native pin test green; the
+bestindexF family leaves only the carded 2.8/2.9/2.10 fixture-placement
+class. The FULL gate (`/tmp/s43_slice8_full.log`, 1177.3s, raw-byte
+failure-name scan): **1168 leaves** — versus gate7, GONE =
+bestindexF-1.4.1 + the documented temptable2 flake, NEW = 0.
