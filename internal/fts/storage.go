@@ -57,6 +57,20 @@ type InvertedIndex struct {
 	// malformed" (fts3corrupt4 11.1/19.1), while queries on other terms
 	// succeed (fts3corrupt4 13.1/24.2).
 	corruptTerms map[string]bool
+	// contentDoclistSizes caches deferred-doclist size estimates from stored
+	// content. It is invalidated by every index mutation; without it a query
+	// evaluated once per row would re-tokenize the whole table for each term.
+	contentDoclistSizes map[contentDoclistKey]int
+	// deferredDoclistOverflows caches the final defer decision (postings plus
+	// any content fallback) for one term. It shares the invalidation points
+	// with contentDoclistSizes.
+	deferredDoclistOverflows map[contentDoclistKey]bool
+}
+
+// contentDoclistKey identifies one cached content-rescan estimate.
+type contentDoclistKey struct {
+	term   string
+	prefix bool
 }
 
 // DocSizeInfo is a document's cached per-column token counts and total text
@@ -76,11 +90,13 @@ func (idx *InvertedIndex) SetColumnCount(n int) {
 
 func NewInvertedIndex() *InvertedIndex {
 	return &InvertedIndex{
-		index:        make(map[string][]Posting),
-		docs:         make(map[int64]*Document),
-		docSizes:     make(map[int64]*DocSizeInfo),
-		corruptTerms: make(map[string]bool),
-		nextID:       1,
+		index:                    make(map[string][]Posting),
+		docs:                     make(map[int64]*Document),
+		docSizes:                 make(map[int64]*DocSizeInfo),
+		corruptTerms:             make(map[string]bool),
+		contentDoclistSizes:      make(map[contentDoclistKey]int),
+		deferredDoclistOverflows: make(map[contentDoclistKey]bool),
+		nextID:                   1,
 	}
 }
 
@@ -136,6 +152,18 @@ func (idx *InvertedIndex) Restore(s *InvertedIndex) {
 	idx.docs = s.docs
 	idx.docSizes = s.docSizes
 	idx.nextID = s.nextID
+	idx.invalidateDeferredCaches()
+}
+
+// invalidateDeferredCaches drops cached deferred-evaluation estimates after
+// the index text or postings change.
+func (idx *InvertedIndex) invalidateDeferredCaches() {
+	if idx.contentDoclistSizes != nil {
+		clear(idx.contentDoclistSizes)
+	}
+	if idx.deferredDoclistOverflows != nil {
+		clear(idx.deferredDoclistOverflows)
+	}
 }
 
 // Insert adds a document to the index. Returns the assigned docid.
@@ -208,6 +236,7 @@ func (idx *InvertedIndex) insertDoc(docID int64, columns []interface{}, tokenize
 		}
 	}
 	idx.docSizes[docID] = &DocSizeInfo{Counts: counts, TotalBytes: totalBytes}
+	idx.invalidateDeferredCaches()
 }
 
 // ftsColumnString renders a stored FTS column value for tokenization: NULL
@@ -251,6 +280,35 @@ func (idx *InvertedIndex) Delete(docID int64) {
 			idx.index[term] = filtered
 		}
 	}
+	idx.invalidateDeferredCaches()
+}
+
+// RestoreDocRow fills a document's stored column values, creating the
+// document when it has no index postings. It computes cached size counts but
+// never registers postings or changes the pending list. Used by the segment
+// reload path, where %_content supplies row identity and text only.
+func (idx *InvertedIndex) RestoreDocRow(docID int64, columns []interface{}, tokenizer Tokenizer) {
+	doc := idx.docs[docID]
+	if doc != nil {
+		doc.Columns = append([]interface{}(nil), columns...)
+		return
+	}
+	idx.docs[docID] = &Document{DocID: docID, Columns: append([]interface{}(nil), columns...)}
+	if docID >= idx.nextID {
+		idx.nextID = docID + 1
+	}
+	counts := make([]int, len(columns))
+	var totalBytes int64
+	for c, value := range columns {
+		text := ftsColumnString(value)
+		totalBytes += int64(len(text))
+		if idx.skipColumns[c] || tokenizer == nil {
+			continue
+		}
+		counts[c] = len(tokenizer.Tokenize(text))
+	}
+	idx.docSizes[docID] = &DocSizeInfo{Counts: counts, TotalBytes: totalBytes}
+	idx.invalidateDeferredCaches()
 }
 
 // Update replaces a document's content in the index.
@@ -342,55 +400,6 @@ func (idx *InvertedIndex) phraseInDoc(docID int64, terms []string, prefixes []bo
 	return false
 }
 
-// phraseInDocFirst reports whether the phrase occurs with its FIRST token at
-// position 0 of some column (the FTS4 "^"phrase"" column-first operator,
-// fts3first.test).
-func (idx *InvertedIndex) phraseInDocFirst(docID int64, terms []string, prefixes []bool) bool {
-	if len(terms) == 0 {
-		return true
-	}
-	for _, fp := range firstTermPostings(idx, prefixes, terms[0]) {
-		if fp.DocID != docID || fp.Position != 0 {
-			continue
-		}
-		if phraseMatchesAt(fp, terms, prefixes, idx) {
-			return true
-		}
-	}
-	return false
-}
-
-// phraseInDocColumn reports whether all terms appear in sequence within a
-// specific column of a document (SQL `col MATCH '"a b"'` / col:phrase).
-func (idx *InvertedIndex) phraseInDocColumn(docID int64, terms []string, prefixes []bool, colNum int) bool {
-	if len(terms) == 0 {
-		return true
-	}
-	for _, p := range firstTermPostings(idx, prefixes, terms[0]) {
-		if p.DocID == docID && p.Column == colNum {
-			if phraseMatchesAt(p, terms, prefixes, idx) {
-				return true
-			}
-		}
-	}
-	return false
-}
-
-// prefixInDocColumn reports whether a document contains a term with the given
-// prefix within a specific column.
-func (idx *InvertedIndex) prefixInDocColumn(docID int64, prefix string, colNum int) bool {
-	for term, postings := range idx.index {
-		if len(term) >= len(prefix) && term[:len(prefix)] == prefix {
-			for _, p := range postings {
-				if p.DocID == docID && p.Column == colNum {
-					return true
-				}
-			}
-		}
-	}
-	return false
-}
-
 // collectDocPostings returns the postings for a doc within a posting list.
 func collectDocPostings(postings []Posting, docID int64) []Posting {
 	var result []Posting
@@ -444,57 +453,6 @@ func postingAt(postings []Posting, fp Posting, nextPos int) bool {
 		}
 	}
 	return false
-}
-
-// collectTermNearPositions returns the (position, column) of every occurrence
-// of term in a document (within one column when colNum >= 0). Used by NEAR
-// matching: a term's position is its own token offset.
-func collectTermNearPositions(idx *InvertedIndex, docID int64, term string, colNum int) []nearPos {
-	var positions []nearPos
-	for _, p := range idx.index[term] {
-		if p.DocID == docID && (colNum < 0 || p.Column == colNum) {
-			positions = append(positions, nearPos{pos: p.Position, col: p.Column})
-		}
-	}
-	return positions
-}
-
-// collectPrefixNearPositions returns the (position, column) of every indexed
-// term starting with the prefix in a document (within one column when colNum
-// >= 0). Each matching posting contributes its own position.
-func collectPrefixNearPositions(idx *InvertedIndex, docID int64, prefix string, colNum int) []nearPos {
-	var positions []nearPos
-	for term, postings := range idx.index {
-		if len(term) < len(prefix) || term[:len(prefix)] != prefix {
-			continue
-		}
-		for _, p := range postings {
-			if p.DocID == docID && (colNum < 0 || p.Column == colNum) {
-				positions = append(positions, nearPos{pos: p.Position, col: p.Column})
-			}
-		}
-	}
-	return positions
-}
-
-// collectPhraseNearPositions returns the LAST-token (position, column) of every
-// occurrence of a phrase in a document (within one column when colNum >= 0).
-// SQLite's NEAR operator uses each phrase's last token as its position, and the
-// phrase length offsets the distance window (fts3.c fts3PoslistPhraseMerge).
-func collectPhraseNearPositions(idx *InvertedIndex, docID int64, terms []string, prefixes []bool, colNum int) []nearPos {
-	if len(terms) == 0 {
-		return nil
-	}
-	var positions []nearPos
-	for _, fp := range firstTermPostings(idx, prefixes, terms[0]) {
-		if fp.DocID != docID || (colNum >= 0 && fp.Column != colNum) {
-			continue
-		}
-		if phraseMatchesAt(fp, terms, prefixes, idx) {
-			positions = append(positions, nearPos{pos: fp.Position + len(terms) - 1, col: fp.Column})
-		}
-	}
-	return positions
 }
 
 // SearchPrefix returns docids containing terms with the given prefix.

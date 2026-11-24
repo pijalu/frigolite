@@ -553,17 +553,14 @@ func (t *FTS3Table) GetDoc(docID int64) *Document {
 	return t.index.GetDoc(docID)
 }
 
-// RestoreDocText sets a document's stored column values without touching its
-// postings, docstats, or the pending list: the segment-reload path needs the
-// document TEXT (which segments do not store) for reads, but must not
-// re-tokenize content rows into the index — SQLite reads %_content lazily for
-// values while the index stays segment-driven (e_fts3 10.1.5).
-func (t *FTS3Table) RestoreDocText(rowid int64, values []interface{}) {
+// RestoreDocRow sets a document's stored column values, creating the document
+// when the segment load had no postings for it. It does not add postings or
+// pend the row: SQLite's FTS row set comes from %_content while the index stays
+// segment-driven (fts3defer2 2.x, fts4check hand-edited shadow rows).
+func (t *FTS3Table) RestoreDocRow(rowid int64, values []interface{}) {
 	t.mu.Lock()
 	defer t.mu.Unlock()
-	if doc := t.index.GetDoc(rowid); doc != nil {
-		doc.Columns = append([]interface{}(nil), values...)
-	}
+	t.index.RestoreDocRow(rowid, values, t.tokenizer)
 }
 
 // HasDoc reports whether a document with the given docid exists.

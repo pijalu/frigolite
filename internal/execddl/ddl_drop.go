@@ -750,7 +750,7 @@ func (e *DDLExecutor) ingestRebuildContentRow(tableName string, ftsTable *fts.FT
 		// Text-only restore: fill the stored text of documents the
 		// segment load already indexed; docs whose content row vanished
 		// stay textless (a matched read reports the corruption).
-		ftsTable.RestoreDocText(docID, vals)
+		ftsTable.RestoreDocRow(docID, vals)
 		return true
 	}
 	ftsTable.InsertWithID(docID, vals)

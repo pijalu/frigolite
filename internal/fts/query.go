@@ -19,20 +19,16 @@ type TermNode struct {
 	// First marks the FTS4 "^term" column-first operator: the term must be
 	// the FIRST token of a column (position 0).
 	First bool
+	// Deferred marks an overflow-sized token selected by FTS4's deferred
+	// evaluation rule (fts3.c fts3EvalSelectDeferred). Its positions come
+	// from re-tokenizing the row content, not from the segment postings.
+	Deferred bool
+	// Tokenizer is the table tokenizer used for the content rescan.
+	Tokenizer Tokenizer
 }
 
 func (n *TermNode) MatchDoc(idx *InvertedIndex, docID int64) bool {
-	postings := idx.index[n.Term]
-	for _, p := range postings {
-		if p.DocID == docID {
-			// "^term": the term must be the column's first token.
-			if n.First && p.Position != 0 {
-				continue
-			}
-			return true
-		}
-	}
-	return false
+	return len(termPostingsForNode(idx, docID, n, -1)) > 0
 }
 
 func (n *TermNode) String() string { return n.Term }
@@ -42,6 +38,11 @@ func (n *TermNode) String() string { return n.Term }
 type PhraseNode struct {
 	Terms    []string
 	Prefixes []bool // parallel to Terms: true when the term is a prefix wildcard
+	// Deferred is parallel to Terms: true when that token is evaluated by a
+	// content rescan because its segment doclist is overflow-sized.
+	Deferred []bool
+	// Tokenizer is the table tokenizer used for deferred content rescans.
+	Tokenizer Tokenizer
 	// First marks the "^"..." column-first operator: the phrase's first
 	// token must be at position 0 of a column.
 	First bool
@@ -57,10 +58,11 @@ func (n *PhraseNode) MatchDoc(idx *InvertedIndex, docID int64) bool {
 		// tokens occupy earlier positions — impossible (fts3first '"K ^H"').
 		return false
 	}
+	firstAt := -1
 	if n.First || n.FirstAt == 0 {
-		return idx.phraseInDocFirst(docID, n.Terms, n.Prefixes)
+		firstAt = 0
 	}
-	return idx.phraseInDoc(docID, n.Terms, n.Prefixes)
+	return len(phraseOccurrenceLastPositions(idx, docID, n, -1, firstAt)) > 0
 }
 
 func (n *PhraseNode) String() string {
@@ -72,20 +74,14 @@ type PrefixNode struct {
 	Prefix string
 	// First marks the "^pre*" column-first operator.
 	First bool
+	// Deferred marks an overflow-sized prefix token evaluated from content.
+	Deferred bool
+	// Tokenizer is the table tokenizer used for the content rescan.
+	Tokenizer Tokenizer
 }
 
 func (n *PrefixNode) MatchDoc(idx *InvertedIndex, docID int64) bool {
-	for term, postings := range idx.index {
-		if !prefixMatches(n.Prefix, term) {
-			continue
-		}
-		for _, p := range postings {
-			if p.DocID == docID && (!n.First || p.Position == 0) {
-				return true
-			}
-		}
-	}
-	return false
+	return len(termPostingsForNode(idx, docID, n, -1)) > 0
 }
 
 // prefixMatches reports whether term starts with the given prefix.
@@ -199,11 +195,11 @@ type nearPos struct {
 func (n *NearNode) phrasePositions(idx *InvertedIndex, docID int64, node QueryNode) ([]nearPos, int) {
 	switch v := node.(type) {
 	case *TermNode:
-		return collectTermNearPositions(idx, docID, v.Term, -1), 1
+		return termNearPositions(idx, docID, v, -1), 1
 	case *PrefixNode:
-		return collectPrefixNearPositions(idx, docID, v.Prefix, -1), 1
+		return termNearPositions(idx, docID, v, -1), 1
 	case *PhraseNode:
-		return collectPhraseNearPositions(idx, docID, v.Terms, v.Prefixes, -1), len(v.Terms)
+		return phraseOccurrenceLastPositions(idx, docID, v, -1, -1), len(v.Terms)
 	case *ColumnNode:
 		return n.columnPhrasePositions(idx, docID, v)
 	case *NearNode:
@@ -217,11 +213,11 @@ func (n *NearNode) phrasePositions(idx *InvertedIndex, docID int64, node QueryNo
 func (n *NearNode) columnPhrasePositions(idx *InvertedIndex, docID int64, v *ColumnNode) ([]nearPos, int) {
 	switch inner := v.Inner.(type) {
 	case *TermNode:
-		return collectTermNearPositions(idx, docID, inner.Term, v.Column), 1
+		return termNearPositions(idx, docID, inner, v.Column), 1
 	case *PrefixNode:
-		return collectPrefixNearPositions(idx, docID, inner.Prefix, v.Column), 1
+		return termNearPositions(idx, docID, inner, v.Column), 1
 	case *PhraseNode:
-		return collectPhraseNearPositions(idx, docID, inner.Terms, inner.Prefixes, v.Column), len(inner.Terms)
+		return phraseOccurrenceLastPositions(idx, docID, inner, v.Column, -1), len(inner.Terms)
 	}
 	return nil, 0
 }
@@ -291,18 +287,14 @@ type ColumnNode struct {
 func (n *ColumnNode) MatchDoc(idx *InvertedIndex, docID int64) bool {
 	// Check if the inner node matches within the specified column
 	switch inner := n.Inner.(type) {
-	case *TermNode:
-		postings := idx.index[inner.Term]
-		for _, p := range postings {
-			if p.DocID == docID && p.Column == n.Column {
-				return true
-			}
-		}
-		return false
+	case *TermNode, *PrefixNode:
+		return len(termPostingsForNode(idx, docID, n.Inner, n.Column)) > 0
 	case *PhraseNode:
-		return idx.phraseInDocColumn(docID, inner.Terms, inner.Prefixes, n.Column)
-	case *PrefixNode:
-		return idx.prefixInDocColumn(docID, inner.Prefix, n.Column)
+		firstAt := -1
+		if inner.First || inner.FirstAt == 0 {
+			firstAt = 0
+		}
+		return len(phraseOccurrenceLastPositions(idx, docID, inner, n.Column, firstAt)) > 0
 	default:
 		// Fall back to normal matching (may over-match for column filters)
 		return n.Inner.MatchDoc(idx, docID)

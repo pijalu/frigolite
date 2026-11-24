@@ -91,6 +91,18 @@ func extractPhrases(node, scope QueryNode, side int, gate QueryNode, out *[]Matc
 // column restriction (-1 for none).
 func PhraseColumnCounts(idx *InvertedIndex, docID int64, phrase QueryNode, nCol int) []int {
 	counts := make([]int, nCol)
+	for _, col := range phraseHitColumns(idx, docID, phrase) {
+		if col >= 0 && col < len(counts) {
+			counts[col]++
+		}
+	}
+	return counts
+}
+
+// phraseHitColumns returns the column index of every local occurrence of a
+// phrase-like node. Keeping this separate from count accumulation lets all
+// node kinds share the same range/bounds check.
+func phraseHitColumns(idx *InvertedIndex, docID int64, phrase QueryNode) []int {
 	col := -1
 	inner := phrase
 	if cn, ok := phrase.(*ColumnNode); ok {
@@ -99,167 +111,39 @@ func PhraseColumnCounts(idx *InvertedIndex, docID int64, phrase QueryNode, nCol 
 	}
 	switch n := inner.(type) {
 	case *TermNode:
-		addPhraseCounts(idx, docID, n.Term, true, col, counts)
-		// Column-first (^term): only the position-0 occurrence counts
-		// (fts3first.test matchinfo semantics).
-		if n.First {
-			for c := range counts {
-				counts[c] = 0
-			}
-			addFirstTermCount(idx, docID, n.Term, col, 0, counts)
-		}
+		return postingColumns(termPostingsForNode(idx, docID, n, col))
 	case *PrefixNode:
-		addPrefixCounts(idx, docID, n.Prefix, col, counts)
-		if n.First {
-			zeroCounts(counts)
-			addFirstPrefixCount(idx, docID, n.Prefix, col, counts)
-		}
+		return postingColumns(termPostingsForNode(idx, docID, n, col))
 	case *PhraseNode:
-		addPhraseSeqCounts(idx, docID, n.Terms, n.Prefixes, col, counts)
-		if n.FirstAt >= 0 {
-			zeroCounts(counts)
-			addPinnedSeqCounts(idx, docID, n.Terms, n.Prefixes, n.FirstAt, col, counts)
-		}
+		return nearPosColumns(phraseOccurrenceLastPositions(idx, docID, n, col, phraseFirstAt(n)))
 	}
-	return counts
+	return nil
 }
 
-func zeroCounts(counts []int) {
-	for i := range counts {
-		counts[i] = 0
+// phraseFirstAt reports the pinned first-token position used by phrase
+// occurrence matching. An explicit "first" flag and FirstAt==0 both pin the
+// phrase to column start.
+func phraseFirstAt(n *PhraseNode) int {
+	if n.First || n.FirstAt == 0 {
+		return 0
 	}
+	return -1
 }
 
-// addFirstTermCount counts position-at occurrences of term (the '^' pin).
-func addFirstTermCount(idx *InvertedIndex, docID int64, term string, col, at int, counts []int) {
-	for _, p := range idx.index[term] {
-		if p.DocID != docID || p.Position != at {
-			continue
-		}
-		if col >= 0 && p.Column != col {
-			continue
-		}
-		if p.Column < len(counts) {
-			counts[p.Column]++
-		}
+func postingColumns(postings []Posting) []int {
+	cols := make([]int, 0, len(postings))
+	for _, p := range postings {
+		cols = append(cols, p.Column)
 	}
+	return cols
 }
 
-// addFirstPrefixCount counts position-0 postings whose term starts with prefix.
-func addFirstPrefixCount(idx *InvertedIndex, docID int64, prefix string, col int, counts []int) {
-	for term, postings := range idx.index {
-		if len(term) < len(prefix) || term[:len(prefix)] != prefix {
-			continue
-		}
-		for _, p := range postings {
-			if p.DocID == docID && p.Position == 0 && (col < 0 || p.Column == col) && p.Column < len(counts) {
-				counts[p.Column]++
-			}
-		}
+func nearPosColumns(positions []nearPos) []int {
+	cols := make([]int, 0, len(positions))
+	for _, p := range positions {
+		cols = append(cols, p.col)
 	}
-}
-
-// firstTermPostings collects the first phrase token's postings: the exact
-// term's postings, or — when the token is a prefix (prefixes[0]) — the
-// postings of every indexed term starting with the prefix.
-func firstTermPostings(idx *InvertedIndex, prefixes []bool, term string) []Posting {
-	if len(prefixes) > 0 && prefixes[0] {
-		var out []Posting
-		for t, postings := range idx.index {
-			if len(t) >= len(term) && t[:len(term)] == term {
-				out = append(out, postings...)
-			}
-		}
-		return out
-	}
-	return idx.index[term]
-}
-
-// addPinnedSeqCounts counts phrase matches where token FirstAt sits at the
-// column-start pin (^ inside a quoted phrase).
-func addPinnedSeqCounts(idx *InvertedIndex, docID int64, terms []string, prefixes []bool, firstAt, col int, counts []int) {
-	if len(terms) <= firstAt || firstAt < 0 {
-		return
-	}
-	// Require match start s with s+firstAt == 0.
-	for _, fp := range firstTermPostings(idx, prefixes, terms[0]) {
-		if fp.DocID != docID || (col >= 0 && fp.Column != col) {
-			continue
-		}
-		// A phrase match starting at s places token firstAt at s+firstAt;
-		// require that to be the pinned absolute position 0.
-		if fp.Position-firstAt != 0 {
-			continue
-		}
-		if phraseMatchesAt(fp, terms, prefixes, idx) && fp.Column < len(counts) {
-			counts[fp.Column]++
-		}
-	}
-}
-
-// addPhraseCounts adds one per-column count for every posting of term in the
-// document (single term when seq is false, or the LAST token of each
-// consecutive phrase match when seq is true via addPhraseSeqCounts).
-func addPhraseCounts(idx *InvertedIndex, docID int64, term string, _ bool, col int, counts []int) {
-	for _, p := range idx.index[term] {
-		if p.DocID != docID {
-			continue
-		}
-		if col >= 0 && p.Column != col {
-			continue
-		}
-		if p.Column < len(counts) {
-			counts[p.Column]++
-		}
-	}
-}
-
-// addPrefixCounts adds per-column counts for every posting whose term starts
-// with the prefix in the document.
-func addPrefixCounts(idx *InvertedIndex, docID int64, prefix string, col int, counts []int) {
-	for term, postings := range idx.index {
-		if len(term) < len(prefix) || term[:len(prefix)] != prefix {
-			continue
-		}
-		for _, p := range postings {
-			bumpColumnCount(p, docID, col, counts)
-		}
-	}
-}
-
-// bumpColumnCount bumps the per-column count for one posting belonging to
-// docID (restricted to col when col is scoped); it reports whether a count
-// was bumped.
-func bumpColumnCount(p Posting, docID int64, col int, counts []int) bool {
-	if p.DocID != docID {
-		return false
-	}
-	if col >= 0 && p.Column != col {
-		return false
-	}
-	if p.Column < len(counts) {
-		counts[p.Column]++
-		return true
-	}
-	return false
-}
-
-// addPhraseSeqCounts adds per-column counts for every occurrence of a
-// consecutive-term phrase in the document (one count per phrase match).
-func addPhraseSeqCounts(idx *InvertedIndex, docID int64, terms []string, prefixes []bool, col int, counts []int) {
-	if len(terms) == 0 {
-		return
-	}
-	for _, fp := range firstTermPostings(idx, prefixes, terms[0]) {
-		if fp.DocID != docID || (col >= 0 && fp.Column != col) {
-			continue
-		}
-		if phraseMatchesAt(fp, terms, prefixes, idx) {
-			if fp.Column < len(counts) {
-				counts[fp.Column]++
-			}
-		}
-	}
+	return cols
 }
 
 // ScopeMatchesDoc reports whether a phrase's scope matches docID. A scope

@@ -187,70 +187,24 @@ func phrasePositionsInCol(idx *InvertedIndex, docID int64, mp MatchPhrase, col i
 		inner = cn.Inner
 	}
 	switch n := inner.(type) {
-	case *TermNode:
-		pos := collectPostingPositions(idx.index[n.Term], docID, col)
-		// fts3_snippet.c: a column-first (^term) phrase only matches at
-		// position 0, so snippets must highlight only that occurrence.
-		if n.First {
-			pos = filterFirstPositions(pos, 0)
+	case *TermNode, *PrefixNode:
+		var out []int
+		for _, np := range termNearPositions(idx, docID, inner, col) {
+			out = append(out, np.pos)
 		}
-		return pos
-	case *PrefixNode:
-		pos := collectPrefixPositions(idx, n.Prefix, docID, col)
-		if n.First {
-			pos = filterFirstPositions(pos, 0)
-		}
-		return pos
+		return out
 	case *PhraseNode:
-		pos := collectPhraseNearPositions(idx, docID, n.Terms, n.Prefixes, col)
-		out := make([]int, len(pos))
-		for i, np := range pos {
-			out[i] = np.pos
+		firstAt := -1
+		if n.First || n.FirstAt == 0 {
+			firstAt = 0
 		}
-		// ^ inside a quoted phrase pins the marked token to position 0;
-		// FirstAt<0 means no pin (fts3first.test semantics).
-		if n.FirstAt >= 0 {
-			out = filterFirstPositions(out, n.FirstAt)
+		var out []int
+		for _, np := range phraseOccurrenceLastPositions(idx, docID, n, col, firstAt) {
+			out = append(out, np.pos)
 		}
 		return out
 	}
 	return nil
-}
-
-// filterFirstPositions keeps only occurrences whose marked token sits at the
-// given absolute position (the column-start pin introduced by '^').
-func filterFirstPositions(pos []int, at int) []int {
-	var out []int
-	for _, p := range pos {
-		if p == at {
-			out = append(out, p)
-		}
-	}
-	return out
-}
-
-// collectPostingPositions returns the positions of a doc's postings in a
-// column.
-func collectPostingPositions(postings []Posting, docID int64, col int) []int {
-	var out []int
-	for _, p := range postings {
-		if p.DocID == docID && p.Column == col {
-			out = append(out, p.Position)
-		}
-	}
-	return out
-}
-
-// collectPrefixPositions returns the positions of a doc's postings whose term
-// starts with the prefix, in a column.
-func collectPrefixPositions(idx *InvertedIndex, prefix string, docID int64, col int) []int {
-	var out []int
-	for term, postings := range idx.index {
-		if len(term) >= len(prefix) && term[:len(prefix)] == prefix {
-			out = append(out, collectPostingPositions(postings, docID, col)...)
-		}
-	}
-	return out
 }
 
 // tokenizeOffsets tokenizes text with the table's tokenizer, returning byte
@@ -383,6 +337,9 @@ func (t *FTS3Table) bestSnippetFragment(docID int64, col int, phrases []MatchPhr
 	any := false
 	for pi, mp := range phrases {
 		positions[pi] = phrasePositionsInCol(t.index, docID, mp, col)
+		if near, ok := mp.Scope.(*NearNode); ok {
+			positions[pi] = nearParticipatingPositions(t.index, docID, near, mp.Side, col)
+		}
 		sort.Ints(positions[pi])
 		if len(positions[pi]) > 0 {
 			seen |= uint64(1) << uint(pi%64)

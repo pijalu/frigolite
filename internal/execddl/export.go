@@ -141,12 +141,11 @@ func (e *DDLExecutor) ReloadFTSIndex(tableName string) *Result {
 	// text). The reload must NOT re-pend content rows as new documents
 	// (fts4check/fts3matchinfo hand-edit shadow rows and integrity-check the
 	// segments, so re-pending would diverge from SQLite's lazy per-row
-	// content reads). A FAILED load (a corrupt root) skips the restore: the
-	// segments are the read authority and their damage must surface
-	// (fts4record 1.5.x: the crafted root keeps every query malformed).
-	if ftsTable.LoadErr() == nil {
-		e.rebuildFTSFromContentMode(tableName, ftsTable, true)
-	}
+	// content reads). A failed segment load does NOT suppress the text restore:
+	// FTS4 deferred evaluation reads %_content even when a large segment block
+	// is damaged (fts3defer2 2.x). The load error remains recorded, so a query
+	// that genuinely reads a corrupt root still fails (fts4record 1.5.x).
+	e.rebuildFTSFromContentMode(tableName, ftsTable, true)
 	return nil
 }
 

@@ -525,24 +525,7 @@ func (e *DDLExecutor) resolveMatchQueryRHS(bop *sql.BinaryOp, found *string) {
 // Returns nil when the query fails to parse (SQLite treats an unparseable
 // MATCH as matching nothing, so matchinfo has no phrases to report).
 func (e *DDLExecutor) ftsMatchPhrases(ftsTable *fts.FTS3Table, query, colName string) []fts.MatchPhrase {
-	node, err := fts.ParseMatchQuery(query)
-	if err != nil {
-		return nil
-	}
-	if !ftsTable.IsFTS4() {
-		fts.ClearFirstFlags(node)
-	}
-	node = fts.TokenizeQueryNode(node, ftsTable.Tokenizer())
-	node = fts.ResolveQuery(node, ftsTable.ColumnNames())
-	if colName != "" {
-		for i, name := range ftsTable.ColumnNames() {
-			if strings.EqualFold(name, colName) {
-				node = fts.RestrictQueryColumn(node, i)
-				break
-			}
-		}
-	}
-	return fts.ExtractPhrases(node)
+	return ftsTable.MatchPhrases(query, colName)
 }
 
 // ftsMatchTableNameFor resolves the FTS table a MATCH expression targets,

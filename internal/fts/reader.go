@@ -666,6 +666,7 @@ func (idx *InvertedIndex) addPosting(term string, docID int64, col, pos int) {
 		Column:   col,
 		Position: pos,
 	})
+	idx.invalidateDeferredCaches()
 	// Ensure the document is registered (even with no content columns) so
 	// docid lookups and rowid scans see it. The engine's SELECT reads FTS
 	// rows through the in-memory store; for a real-SQLite FTS3 table there is
@@ -683,6 +684,7 @@ func (idx *InvertedIndex) addPosting(term string, docID int64, col, pos int) {
 // postings anywhere in the index it is removed from the document map too, so
 // rowid scans and MATCH don't see a deleted document.
 func (idx *InvertedIndex) deleteDocFromTerm(term string, docID int64) {
+	defer idx.invalidateDeferredCaches()
 	postings := idx.index[term]
 	filtered := postings[:0]
 	for _, p := range postings {

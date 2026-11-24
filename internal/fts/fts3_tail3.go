@@ -52,20 +52,12 @@ func (t *FTS3Table) MatchInfoX(phrase, scope QueryNode, side int, gate QueryNode
 	defer t.mu.Unlock()
 	nCol := len(t.columnNames)
 	out := make([]uint32, nCol*3)
-	// Local hits are only reported when the phrase's gate (the innermost
-	// enclosing AND/NEAR, or the phrase itself when no gate) matches the
-	// current row (fts3_snippet.c fts3ExprLocalHitsCb: the position list
-	// is NULL for a row the phrase's evaluation did not reach).
-	gateMatches := true
-	if gate != nil {
-		gateMatches = gate.MatchDoc(t.index, docID)
-	}
-	var local []int
-	if gateMatches {
-		local = phraseCountsFor(t.index, docID, phrase, scope, side, nCol)
-	} else {
-		local = make([]int, nCol)
-	}
+	// Local hits come from the phrase's own position list for the current row
+	// (sqlite3Fts3EvalPhrasePoslist). An AND sibling's truth does not erase
+	// them: a row can be returned by another OR branch while this phrase still
+	// has its own occurrence in the row. NEAR participation is applied by
+	// phraseCountsFor through scope.
+	local := phraseCountsFor(t.index, docID, phrase, scope, side, nCol)
 	globalOcc, globalRows := t.globalPhraseStats(phrase, scope, side, nCol, docID, gate)
 	for i := 0; i < nCol; i++ {
 		out[i*3+0] = uint32(local[i])
@@ -90,11 +82,11 @@ func (t *FTS3Table) globalPhraseStats(phrase, scope QueryNode, side, nCol int, d
 	if kind == phraseDeferSome {
 		// A phrase mixing deferred and loaded tokens is counted through
 		// its loaded tokens only (fts3.c:5968).
-		phraseNode = phraseTermsNode(terms)
+		phraseNode = phraseTermsNode(terms, t.tokenizer)
 		scopeNode = phraseNode
 	}
 	addRow := func(d int64) {
-		c := phraseCountsFor(t.index, d, phraseNode, scope, side, nCol)
+		c := phraseCountsFor(t.index, d, phraseNode, scopeNode, side, nCol)
 		if globalOcc == nil {
 			globalOcc = make([]int, nCol)
 			globalRows = make([]int, nCol)
@@ -137,8 +129,9 @@ func deferredNDocStats(docIDs []int64, nCol int) (globalOcc, globalRows []int) {
 // phraseTerm is one token of a MATCH phrase (a prefix wildcard matches a
 // family of index terms).
 type phraseTerm struct {
-	text   string
-	prefix bool
+	text     string
+	prefix   bool
+	deferred bool
 }
 
 type deferredPhraseKind int
@@ -155,7 +148,7 @@ const (
 // AND/NEAR there is nothing to defer against, and a NEAR parent keeps the
 // gather-stats path because its global hits are trimmed by the NEAR distance.
 func (t *FTS3Table) phraseDeferral(phrase, gate QueryNode) (deferredPhraseKind, []phraseTerm) {
-	if _, ok := gate.(*AndNode); !ok {
+	if _, ok := gate.(*NearNode); ok {
 		return phraseDeferNone, nil
 	}
 	if !strings.EqualFold(t.moduleName, "fts4") || t.contentTable != "" {
@@ -168,7 +161,7 @@ func (t *FTS3Table) phraseDeferral(phrase, gate QueryNode) (deferredPhraseKind, 
 	loaded := make([]phraseTerm, 0, len(terms))
 	deferred := 0
 	for _, term := range terms {
-		if t.termDoclistOverflows(term) {
+		if term.deferred {
 			deferred++
 		} else {
 			loaded = append(loaded, term)
@@ -184,18 +177,21 @@ func (t *FTS3Table) phraseDeferral(phrase, gate QueryNode) (deferredPhraseKind, 
 }
 
 // phraseTermsNode rebuilds the non-deferred tokens as a query node so the
-// ordinary phrase-count path can count their potential occurrences.
-func phraseTermsNode(terms []phraseTerm) QueryNode {
+// ordinary phrase-count path can count their potential occurrences. Those
+// tokens are counted from content: their segment postings may have been lost
+// with the same damaged block that made the partner token overflow-sized.
+func phraseTermsNode(terms []phraseTerm, tok Tokenizer) QueryNode {
 	if len(terms) == 1 {
 		if terms[0].prefix {
-			return &PrefixNode{Prefix: terms[0].text}
+			return &PrefixNode{Prefix: terms[0].text, Deferred: true, Tokenizer: tok}
 		}
-		return &TermNode{Term: terms[0].text}
+		return &TermNode{Term: terms[0].text, Deferred: true, Tokenizer: tok}
 	}
-	n := &PhraseNode{Terms: make([]string, 0, len(terms)), Prefixes: make([]bool, 0, len(terms))}
+	n := &PhraseNode{Terms: make([]string, 0, len(terms)), Prefixes: make([]bool, 0, len(terms)), Deferred: make([]bool, 0, len(terms)), Tokenizer: tok, FirstAt: -1}
 	for _, term := range terms {
 		n.Terms = append(n.Terms, term.text)
 		n.Prefixes = append(n.Prefixes, term.prefix)
+		n.Deferred = append(n.Deferred, true)
 	}
 	return n
 }
@@ -208,13 +204,17 @@ func collectPhraseTerms(node QueryNode) []phraseTerm {
 	}
 	switch n := node.(type) {
 	case *TermNode:
-		return []phraseTerm{{text: n.Term}}
+		return []phraseTerm{{text: n.Term, deferred: n.Deferred}}
 	case *PrefixNode:
-		return []phraseTerm{{text: n.Prefix, prefix: true}}
+		return []phraseTerm{{text: n.Prefix, prefix: true, deferred: n.Deferred}}
 	case *PhraseNode:
 		out := make([]phraseTerm, 0, len(n.Terms))
 		for i, term := range n.Terms {
-			out = append(out, phraseTerm{text: term, prefix: i < len(n.Prefixes) && n.Prefixes[i]})
+			out = append(out, phraseTerm{
+				text:     term,
+				prefix:   i < len(n.Prefixes) && n.Prefixes[i],
+				deferred: i < len(n.Deferred) && n.Deferred[i],
+			})
 		}
 		return out
 	}
@@ -226,6 +226,22 @@ func collectPhraseTerms(node QueryNode) []phraseTerm {
 const ftsDeferredDoclistBytes = 4096
 
 func (t *FTS3Table) termDoclistOverflows(term phraseTerm) bool {
+	key := contentDoclistKey{term: term.text, prefix: term.prefix}
+	if overflow, ok := t.index.deferredDoclistOverflows[key]; ok {
+		return overflow
+	}
+	overflow := t.estimateTermDoclistOverflows(term)
+	if t.index.deferredDoclistOverflows == nil {
+		t.index.deferredDoclistOverflows = make(map[contentDoclistKey]bool)
+	}
+	t.index.deferredDoclistOverflows[key] = overflow
+	return overflow
+}
+
+// estimateTermDoclistOverflows computes the packed FTS3 doclist size of one
+// token: a delta varint per docid, a column byte, and a position varint per
+// posting.
+func (t *FTS3Table) estimateTermDoclistOverflows(term phraseTerm) bool {
 	size := 0
 	for name, postings := range t.index.index {
 		if term.prefix {
@@ -240,7 +256,11 @@ func (t *FTS3Table) termDoclistOverflows(term phraseTerm) bool {
 			return true
 		}
 	}
-	return false
+	// Postings may be missing or partial after a segment load failed; recover
+	// the overflow decision from stored content. The estimate is cached on the
+	// index so MATCH, which prepares the query once per row, rescans each term
+	// at most once until the index changes.
+	return termDoclistSizeFromContent(t.index, t.tokenizer, term) >= ftsDeferredDoclistBytes
 }
 
 func packedDoclistBytes(postings []Posting) int {
@@ -266,17 +286,14 @@ func fts3VarintLen(v uint64) int {
 }
 
 // MatchInfoY computes the 'y' format values for one phrase: the per-column
-// local hit counts for the current row (fts3_snippet.c fts3ExprLHits). The
-// counts are zero when the phrase's gate (innermost enclosing AND/NEAR) does
-// not match the current row.
+// local hit counts for the current row (fts3_snippet.c fts3ExprLHits). Like
+// 'x', the counts come from the phrase's own position list; an AND sibling's
+// truth does not erase them.
 func (t *FTS3Table) MatchInfoY(phrase, scope QueryNode, side int, gate QueryNode, docID int64) []uint32 {
 	t.mu.Lock()
 	defer t.mu.Unlock()
 	nCol := len(t.columnNames)
 	out := make([]uint32, nCol)
-	if gate != nil && !gate.MatchDoc(t.index, docID) {
-		return out
-	}
 	c := phraseCountsFor(t.index, docID, phrase, scope, side, nCol)
 	for i := 0; i < nCol; i++ {
 		out[i] = uint32(c[i])
@@ -860,11 +877,10 @@ func (t *FTS3Table) Clear() {
 	t.statDirty = true
 }
 
-// MatchDocIDs returns docids matching a MATCH query.
-func (t *FTS3Table) MatchDocIDs(query string) ([]int64, error) {
-	t.mu.Lock()
-	defer t.mu.Unlock()
-
+// prepareQueryLocked parses, tokenizes, resolves and marks a MATCH query.
+// The caller must hold t.mu. The returned tree is shared by row filtering and
+// every auxiliary function for one query so deferral decisions agree.
+func (t *FTS3Table) prepareQueryLocked(query, columnName string, langid int64) (QueryNode, error) {
 	node, err := ParseMatchQuery(query)
 	if err != nil {
 		return nil, err
@@ -872,9 +888,41 @@ func (t *FTS3Table) MatchDocIDs(query string) ([]int64, error) {
 	if !strings.EqualFold(t.moduleName, "fts4") {
 		ClearFirstFlags(node)
 	}
-
-	node = tokenizeQueryNode(node, t.tokenizer)
+	node = tokenizeQueryNodeLangid(node, t.tokenizer, langid)
 	node = ResolveQuery(node, t.columnNames)
+	if columnName != "" {
+		for i, name := range t.columnNames {
+			if strings.EqualFold(name, columnName) {
+				node = restrictQueryColumn(node, i)
+				break
+			}
+		}
+	}
+	t.markDeferredTokens(node)
+	return node, nil
+}
+
+// MatchPhrases returns the phrase leaves of a MATCH query prepared with the
+// same tokenizer, column restriction and deferral marks as row filtering.
+func (t *FTS3Table) MatchPhrases(query, columnName string) []MatchPhrase {
+	t.mu.Lock()
+	defer t.mu.Unlock()
+	node, err := t.prepareQueryLocked(query, columnName, 0)
+	if err != nil {
+		return nil
+	}
+	return ExtractPhrases(node)
+}
+
+// MatchDocIDs returns docids matching a MATCH query.
+func (t *FTS3Table) MatchDocIDs(query string) ([]int64, error) {
+	t.mu.Lock()
+	defer t.mu.Unlock()
+
+	node, err := t.prepareQueryLocked(query, "", 0)
+	if err != nil {
+		return nil, err
+	}
 	allIDs := t.index.AllDocIDs()
 	var matched []int64
 	for _, docID := range allIDs {
@@ -906,23 +954,9 @@ func (t *FTS3Table) MatchQueryColumn(docID int64, query, columnName string, lang
 		qLangid = langid[0]
 	}
 
-	node, err := ParseMatchQuery(query)
+	node, err := t.prepareQueryLocked(query, columnName, qLangid)
 	if err != nil {
 		return false, err
-	}
-	if !strings.EqualFold(t.moduleName, "fts4") {
-		ClearFirstFlags(node)
-	}
-
-	node = tokenizeQueryNodeLangid(node, t.tokenizer, qLangid)
-	node = ResolveQuery(node, t.columnNames)
-	if columnName != "" {
-		for i, name := range t.columnNames {
-			if strings.EqualFold(name, columnName) {
-				node = restrictQueryColumn(node, i)
-				break
-			}
-		}
 	}
 	if queryReferencesCorruptTerm(node, t.index) {
 		// The query reads a term whose segment doclist is corrupt: SQLite
@@ -991,15 +1025,15 @@ func TokenizeQueryNode(node QueryNode, tok Tokenizer) QueryNode {
 func tokenizeQueryLeaf(node QueryNode, stem func(string) string) QueryNode {
 	switch n := node.(type) {
 	case *TermNode:
-		return &TermNode{Term: stem(n.Term), First: n.First}
+		return &TermNode{Term: stem(n.Term), First: n.First, Deferred: n.Deferred, Tokenizer: n.Tokenizer}
 	case *PrefixNode:
-		return &PrefixNode{Prefix: stem(n.Prefix), First: n.First}
+		return &PrefixNode{Prefix: stem(n.Prefix), First: n.First, Deferred: n.Deferred, Tokenizer: n.Tokenizer}
 	case *PhraseNode:
 		terms := make([]string, len(n.Terms))
 		for i, t := range n.Terms {
 			terms[i] = stem(t)
 		}
-		return &PhraseNode{Terms: terms, Prefixes: n.Prefixes, First: n.First, FirstAt: n.FirstAt}
+		return &PhraseNode{Terms: terms, Prefixes: n.Prefixes, Deferred: n.Deferred, Tokenizer: n.Tokenizer, First: n.First, FirstAt: n.FirstAt}
 	}
 	return nil
 }
