@@ -2516,3 +2516,27 @@ everywhere; go vet + go build clean.
   misses `row N missing from index` / imprecise-float diagnostics, and
   NOT-INDEXED existence probes return no rows. Treat it as a DML/index unit,
   not a fixture reset.
+- **Expression-index WHERE support needs BOTH planner and executor key
+  matching**: compare canonical SQL (whitespace/identifier-case-insensitive,
+  quotes preserved) against the index key after dropping its top-level
+  COLLATE, then check the term's effective collation against the index key's
+  declared collation. An expression key is seekable only when the planner's
+  allowed `(canonical key, op)` set and the executor's term use the same
+  canonical text.
+- **An expression-index seek bound needs the expression's affinity**: C's
+  sqlite3ExprAffinity gives CAST its target type and passes COLLATE/+ and a
+  function's first argument through. `CAST(b AS TEXT)=123` must probe the TEXT
+  key with '123', not integer 123 (indexexpr2-6.2.2's regression guard).
+- **CREATE INDEX key lists must be split with balanced parentheses and quote
+  awareness**. The naive `strings.Split(..., ",")` in execdml's
+  `parseIndexColumns` ate the second half of expression keys and corrupted
+  star-schema join metadata; fixing it alone closed starschema1-1.3..1.9 with
+  no indexexpr2 change (verified at the pre-unit commit).
+- **Correlated aggregate context follows sqlite3ReferencesSrcList, not just
+  outer references**: an aggregate whose argument references ANY column of
+  the subquery's own FROM stays in the inner context even if it also
+  references an outer column (indexexpr2-11.0's `sum(-a0.a=b)`); only an
+  outer-only argument is the WHERE misuse (`sum(-a0.a)`).
+- **The documented temptable2-4.1.1 randomblob flake can appear in one full
+  gate and not another**: confirm with a focused sweep before counting it as
+  a NEW regression; 9.1.x stress leaves are similarly load-dependent.

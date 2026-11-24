@@ -1,14 +1,15 @@
 # TODO — the live restart index
 
-> Details live in **[portplan/HANDOFF_2026-11-04_WAL_RESIDUE.md](portplan/HANDOFF_2026-11-04_WAL_RESIDUE.md)** —
-> read it first. This file is the one-page index; update BOTH when checking
+> Details live in **[portplan/HANDOFF_2026-11-24_S51_INDEXEXPR2.md](portplan/HANDOFF_2026-11-24_S51_INDEXEXPR2.md)** —
+> read it first (then the older WAL-residue handoff for the durable baseline
+> methodology). This file is the one-page index; update BOTH when checking
 > items off.
 
 ## Goal
 
 `close all gaps with sqlite — functional first, then performance.`
 
-## State (2026-11-24, feature/perf @ a164bc943 — S43 slices 1-6 + S44-S50 landed: bestindexE, bestindexF-1.4.1, distinctagg 5→0, trigger7 6→0, misc3 1→0, gencol1 6→5, indexexpr3 2→0, e_expr 2→0, indexexpr2 5→3; FULL gate NEW=only documented temptable2/vacuum6 load flakes)
+## State (2026-11-24, feature/perf @ e3f3ed7ad — S43 slices 1-6 + S44-S51 landed: bestindexE, bestindexF-1.4.1, distinctagg 5→0, trigger7 6→0, misc3 1→0, gencol1 6→5, indexexpr3 2→0, e_expr 2→0, indexexpr2 3→0, starschema1 8→1; FULL gate NEW=only documented randomblob/load flakes)
 
 Full-suite truth **1190 failing leaves** (the s35g gate baseline
 portplan/baselines/s35g_gate_fails.txt minus the three walfault leaves
@@ -205,8 +206,8 @@ trace class), **wal3 4**, **wal6 1**, **walfault 0 + walfault2 0** (the
 whole faultsim family green), **journal2 5** (re-verified fresh), **e_wal
 0** (S35e complete), **e_walhook 0** (S35f), walsetlk_recover 2, wal-23.4,
 **where 1** (the 2.4 flake), **index9 0**, **bestindexF 17**,
-**indexexpr2 3**, distinctagg 0, trigger7 0, misc3 0, gencol1 5,
-indexexpr3 0, e_expr 0, without_rowid3 16
+**indexexpr2 0**, distinctagg 0, trigger7 0, misc3 0, gencol1 5,
+indexexpr3 0, e_expr 0, starschema1 1 (1.2), without_rowid3 16
 + without_rowid7 4, tkt 14, rtree 126, the fts3* residue, expr residue.
 (The old census's grouped counts — e_wal 14, tkt 33, without_rowid 27 —
 mixed substring filters; the per-leaf truth is
@@ -267,11 +268,16 @@ portplan/baselines/s35g_gate_fails.txt.)
    version drift). S49 slice 1 DELIVERED — e_expr-26.1.6 1→0 via the
    callback-counter reset step (converter already emits it; checked-in
    fixture predated it). e_expr family now 0. S50 slice 1 DELIVERED —
-   indexexpr2-4.120/4.130 2→0 via the `cnt` reset steps. Family now 3
-   (1.2 collation, 3.4.5eqp EQP, 11.0 aggregate misuse).
+   indexexpr2-4.120/4.130 2→0 via the `cnt` reset steps.
+   S51 slice 2 DELIVERED — indexexpr2 3→0: expression-index WHERE seeks
+   (canonical key + declared collation + expression affinity), expression-
+   index ORDER BY matching, and C's correlated-aggregate context rule
+   (argument with an inner-column reference stays inner). The balanced
+   CREATE INDEX key parser also fixed starschema1-1.3..1.9 (8→1).
    NEXT: expridx1 / A2 / A9 / fts3* residue.
-4. **Carded converter classes**: expridx1 fossil 10,
-   A2/A9 engine slices, the fts3* residue ~53.
+4. **Engine residue cards**: expridx1 10 (expression-index maintenance —
+   stale entries after UPDATE/DELETE + integrity_check diagnostics), A2/A9
+   engine slices, fts3* residue ~53; `binary format`/`binary scan` + file-write
 5. **The performance phase** (F1c/F3 lanes in
    GAP_CLOSURE_PLAN_2026-10-31.md) after functional gaps close.
 
@@ -337,10 +343,10 @@ portplan/baselines/s35g_gate_fails.txt.)
    global push/pull, %N% xFilter substitution, vtab IN-constraint loop,
    bestindexF 2.3.0/2.4.0/2.5.0 eDistinct handshake + xBestIndex
    globals).
-4. **Carded converter classes**: expridx1 fossil 10,
-   A2/A9 engine slices, fts3* residue
-   ~53; `binary format`/`binary scan` + file-write (43 files — the
-   format-c piece landed in S35d), the interleaved row-callback step.
+4. **Engine residue cards**: expridx1 10 (S51 triage — expression-index
+   maintenance + integrity_check), A2/A9 engine slices, fts3* residue ~53;
+   `binary format`/`binary scan` + file-write (43 files — the format-c piece
+   landed in S35d), the interleaved row-callback step.
 5. **Engine residue cards**: pager1 4.4.2 directory-hierarchy machinery,
    S34's two journal cards, temptable2-9.1.x/9.2.x (pre-existing
    small-cache stress dithers, watchlist), where2-2.4 random() flake,
