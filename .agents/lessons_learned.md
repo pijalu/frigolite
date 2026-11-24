@@ -2573,3 +2573,29 @@ everywhere; go vet + go build clean.
 - **The documented temptable2-4.1.1 randomblob flake can appear in one full
   gate and not another**: confirm with a focused sweep before counting it as
   a NEW regression; 9.1.x stress leaves are similarly load-dependent.
+- **FTS4 deferral must be cached per index revision**: MATCH prepares/tokenizes
+  the query once per candidate row. Recomputing `packedDoclistBytes` over a
+  409k-posting term, or re-tokenizing every stored row to estimate a doclist,
+  inside that path turns `fts3defer-4.2` (16k rows × 19 terms) into a 30m
+  timeout. Cache both the final overflow decision and the content estimate on
+  `InvertedIndex`, and invalidate on every mutation (`insertDoc`, `Delete`,
+  `RestoreDocRow`, `addPosting`, `deleteDocFromTerm`, `Restore`).
+- **A healthy index's small doclist is not evidence of segment loss**: gating
+  the content fallback only on `LoadErr` broke the no-optimize corruption pin
+  (`2/2` vs expected `4/4`). Keep the fallback for missing/partial postings;
+  fix the cost with caching, not by narrowing the behavior.
+- **Text restore after a corrupt segment load is load-bearing**: `%_content`
+  rows must be restored even when the load recorded `LoadErr`; a missing doc
+  row must be created with its `DocSizeInfo` but no postings. Skipping either
+  drops global matchinfo doc counts and rows.
+- **`PhraseNode.FirstAt` defaults to 0**: rebuilding a phrase without
+  `FirstAt: -1` pins its first token to column start and corrupts partial-defer
+  stats (`1/1` instead of `4/4`). Preserve the mark or set it explicitly.
+- **OR-arm matchinfo local hits come from the phrase's own positions**: do not
+  suppress them when the enclosing AND/NEAR gate is false; that erased the
+  second `g` local hit in `g OR (g z)`. NEAR still needs distance-trimmed
+  participation for both matchinfo and snippet highlighting.
+- **Quality gate complexity findings after a correctness refactor are real
+  work**: splitting hit-column collection from count accumulation kept
+  `PhraseColumnCounts` at the clean-HEAD gocognit/gocyclo baseline; dead
+  helpers must be removed before the comparison is meaningful.

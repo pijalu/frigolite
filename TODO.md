@@ -9,7 +9,7 @@
 
 `close all gaps with sqlite — functional first, then performance.`
 
-## State (2026-11-24, feature/perf @ fb00dedc7 — S43 slices 1-6 + S44-S53 landed: bestindexE, bestindexF-1.4.1, distinctagg 5→0, trigger7 6→0, misc3 1→0, gencol1 6→5, indexexpr3 2→0, e_expr 2→0, indexexpr2 3→0, starschema1 8→1, expridx1 11→0, TCL binary-scan UDFs 8→0, FTS4 deferred matchinfo 6→0; FULL gate NEW=0 vs the durable t10 baseline; only documented flakes)
+## State (2026-11-24, feature/perf @ 9b58d6b0c — S43 slices 1-6 + S44-S53 landed: bestindexE, bestindexF-1.4.1, distinctagg 5→0, trigger7 6→0, misc3 1→0, gencol1 6→5, indexexpr3 2→0, e_expr 2→0, indexexpr2 3→0, starschema1 8→1, expridx1 11→0, TCL binary-scan UDFs 8→0, FTS4 deferred matchinfo 6→0, deferred MATCH 14→0; FULL gate NEW=0 vs the durable t10 baseline; only documented flakes)
 
 Full-suite truth **1190 failing leaves** (the s35g gate baseline
 portplan/baselines/s35g_gate_fails.txt minus the three walfault leaves
@@ -274,8 +274,7 @@ portplan/baselines/s35g_gate_fails.txt.)
    index ORDER BY matching, and C's correlated-aggregate context rule
    (argument with an inner-column reference stays inner). The balanced
    CREATE INDEX key parser also fixed starschema1-1.3..1.9 (8→1).
-   NEXT: fts3defer2's remaining deferred MATCH evaluation (corrupt-segment
-   NEAR queries, OR-arm local hits) and t3 matchinfo leaves.
+   The fts3defer2 deferred MATCH residue was closed in 3f below.
 3c. **S52 slice 1 DELIVERED — expridx1 11→0**: imposter rootpage rewrite in
    the converter/fixture, canonical expression seeks with correlated outer
    bounds, WITHOUT ROWID secondary autoindex maintenance + covering seeks,
@@ -291,9 +290,18 @@ portplan/baselines/s35g_gate_fails.txt.)
    phrase in an AND cluster reports nDoc for global occurrences/rows; a mixed
    phrase counts through its non-deferred tokens. Full gate NEW=0 vs t10,
    GONE=6 fts3defer2 leaves; pure-Go pin added.
-4. **Engine residue cards**: fts3* residue ~39 (fts3defer2 MATCH evaluation
-   first); `binary format`/file-write substrate (the format-c and binary-scan
-   i*/I* pieces landed in S35d/S53), the interleaved row-callback step.
+3f. **S53 slice 3 DELIVERED — deferred MATCH 14→0**: one prepared,
+   deferred-marked query tree now drives row filtering, matchinfo, offsets and
+   snippet; deferred tokens rescan stored `%_content` positions after segment
+   loss, with text-only document restore (no postings) on reload. Defer
+   decisions and content-size estimates are cached per index revision and
+   invalidated on every index mutation, so MATCH preparing once per row stays
+   linear. FULL gate `/tmp/t14_full2.log` (1171.345s, 1311 leaves): NEW=0 vs
+   t10, GONE=40; fts3defer2 focused 0 leaves; pins and quality clean.
+4. **Engine residue cards**: fts3* residue ~39 (fts3defer2 MATCH now 0;
+   fts3query/fts4umlaut/fts3malloc/fts3defer 5.2 next); `binary format`/
+   file-write substrate (the format-c and binary-scan i*/I* pieces landed in
+   S35d/S53), the interleaved row-callback step.
 5. **The performance phase** (F1c/F3 lanes in
    GAP_CLOSURE_PLAN_2026-10-31.md) after functional gaps close.
 

@@ -1,49 +1,50 @@
-# Session handoff — S53 slice 2: FTS4 deferred matchinfo (2026-11-24, fb00dedc7)
+# Session handoff — S53 slice 3: FTS4 deferred MATCH (2026-11-25, 9b58d6b0c)
 
 Restart point for the goal "close all gaps with sqlite — functional first,
-then performance". Engine slice committed at `fb00dedc7`; this docs commit
-records the remaining mid-unit state.
+then performance". Engine slice committed at `9b58d6b0c`; this docs commit
+records the verified state and the next unit.
 
 ## Landed
 
-- `fb00dedc7` — deferred-token matchinfo stats for FTS4: overflow-sized
-  tokens in an AND cluster report nDoc for an all-deferred phrase and use the
-  non-deferred tokens for a mixed phrase. Pure-Go pins cover both. Full gate
-  `/tmp/t13_full.log` (1172.342s, 1326 leaves): raw-byte diff vs durable
-  `/tmp/t10_full2.log` = NEW=0, GONE=25; vs `/tmp/t12_full.log` GONE=6
-  fts3defer2 leaves, NEW=1 documented `temptable2-4.1.1` flake (present in
-  t10). No new complexity findings in touched functions.
+- `9b58d6b0c` — deferred MATCH evaluation for FTS4. A prepared query tree now
+  carries deferral marks on term/prefix/phrase nodes and is shared by row
+  filtering, matchinfo, offsets and snippet. Deferred tokens rescan stored
+  `%_content` positions after segment loss; reload restores text/doc-size rows
+  without adding postings. Defer decisions and content-size estimates are
+  cached on `InvertedIndex` and invalidated on every index mutation.
+- `frigolite_fts3defer2_t14_pin_test.go` pins the t2 `g z` / `g OR (g z)` row
+  and matchinfo contract and the t3 partial-defer stats after corruption.
+- Verification: focused `fts3defer2` 0 leaves; full gate `/tmp/t14_full2.log`
+  (1171.345s, 1311 leaves) raw-byte diff vs durable `/tmp/t10_full2.log`
+  NEW=0, GONE=40; quality staticcheck/gocognit/gocyclo NEW=0 vs clean HEAD.
+  `vacuum-into-500` is a known flake, present in the durable baseline and a
+  focused re-run; it only differs from the older `head_full_t11` baseline.
 
 ## Restart point
 
-Next unit: **the remaining fts3defer2 deferred MATCH evaluation**. Focused
-`/tmp/t13_fts3defer2_3.log` still has 14 leaves:
+Next unit: remaining fts3* residue (~39 leaves), starting with
+`fts3query`/`fts4umlaut`/`fts3malloc`, or the `fts3defer-5.2.x` leaves. Current
+full-gate leaves under fts3 families:
 
-- `1.2.0/1.2.1/1.2.2/1.2.3`: `MATCH 'f (e a)'` / NEAR variants return no
-  rows after the large `t1_segments` blocks were zeroblobbed. C's deferred
-  tokens assume the large term matches and rescan the content row for its
-  positions; our query tree only reads index postings, so the corrupted
-  segment leaves it with no candidates.
-- `2.2.1.3/2.2.2.3`: `g OR (g z)` local hits for the second `g` are 0 where
-  C reports 1 — the deferred `z` makes the AND arm's gate pass in the OR
-  branch that only contains `g`.
-- `2.2.3.1-4`: after the `t2_segments` corruption, MATCH returns no rows for
-  `a b`, `g z`, `g OR (g z)`, `e "g z"` even though C still finds the rows
-  via deferred evaluation.
-- `2.4.1-3`: the same deferred/content-rescan class on `t3` for `"a b c"`.
+- `fts3auto/setup_2`, `fts3cov/fts3cov-11.1`
+- `fts3defer-5.2.1/2/3`, `fts3defer3-1.7`
+- `fts3malloc` 2.0, 3.0, 4.0, 4.2
+- `fts3query` 5.2.1, 5.3.1, 5.4.1, 7.2.*, 7.3..2, 7.3..4
+- `fts4umlaut` 1.4.3/1.4.4, 1.5.*, 1.6.*, 1.7.*
 
-The in-memory index carries the original documents (`InvertedIndex.docs`),
-so a faithful fix can recompute deferred-token positions from document text
-with the table's tokenizer instead of relying on the corrupted postings.
-C's entry points are `fts3EvalTestDeferred` / `fts3EvalDeferredDoclist`
-(fts3.c:5660+) and `fts3EvalSelectDeferred` (fts3.c:5053).
+Use the oracle and a pure-Go pin before changing the engine; most remaining
+leaves are baseline residues, not regressions from this slice.
 
 ## Risks / working rules
 
-- Do not re-apply nDoc stats under a `NearNode` gate; NEAR uses gathered,
-  distance-trimmed stats and is already correct where segments are intact.
-- Keep the deferral proxy tied to AND clusters, FTS4 and no external content
-  table; `content=` tables disable deferral in C.
+- Deferral is FTS4-only and disabled for `content=` tables; marks live on the
+  prepared query tree, never in hidden index state.
+- Text-only restore must not register postings or pending rows; a missing doc
+  row must be restored so global matchinfo counts stay correct.
+- All-deferred matchinfo shortcuts stay disabled under NEAR; NEAR local counts
+  use distance-trimmed positions, and snippet uses the same participating set.
+- MATCH prepares once per candidate row: any per-term estimate must be cached
+  and invalidated on every index mutation, or large tables time out.
 - Compare full gates by raw-byte leaf-name sets (`re.findall` on
   `--- FAIL: TestSQLiteSuite/`), never by counts or line greps. Full gates
   need `-timeout 30m` and detached execution (tool cap is 300s).
