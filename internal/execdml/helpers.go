@@ -15,19 +15,16 @@ func parseSchemaName(name string) (schema string, object string) {
 	return "", name
 }
 
-// parseIndexColumns extracts indexed column names from a CREATE INDEX SQL.
+// parseIndexColumns extracts indexed column names (or expression text) from
+// a CREATE INDEX SQL. The key list is split with balanced parentheses so a
+// function-expression key with commas stays one key.
 func parseIndexColumns(sqlStr string) []string {
-	upper := strings.ToUpper(sqlStr)
-	start := strings.Index(upper, "(")
-	if start < 0 {
-		return nil
-	}
-	end := strings.LastIndex(upper, ")")
-	if end < 0 || end <= start {
+	colText := indexColumnListText(sqlStr)
+	if colText == "" {
 		return nil
 	}
 	var cols []string
-	for _, c := range strings.Split(sqlStr[start+1:end], ",") {
+	for _, c := range splitIndexCols(colText) {
 		col := strings.TrimSpace(c)
 		if col == "" {
 			continue

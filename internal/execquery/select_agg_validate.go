@@ -605,10 +605,15 @@ func (e *SelectEngine) aggRefsOuter(expr sql.Expr, inner map[string]bool, innerT
 	return ""
 }
 
-// aggFuncRefsOuter checks if a function call is an aggregate whose arguments
-// reference outer columns. Returns the function name or "". A window function
-// (OVER clause) is not a plain aggregate — its aggregate-looking name must not
-// be treated as a correlated aggregate.
+// aggFuncRefsOuter identifies an aggregate that C binds to an OUTER
+// aggregate context (resolve.c:1329's sqlite3ReferencesSrcList loop) — the
+// misuse case in a WHERE subquery. The walk climbs name contexts while the
+// aggregate's expression references no column of that context's FROM. An
+// argument mixing an outer column with a column of the subquery's own FROM
+// therefore stays an INNER aggregate (indexexpr2-11.0's sum(-a0.a=b)); only
+// an outer-only argument (sum(-a0.a)) is the misuse. A window function (OVER
+// clause) is not a plain aggregate — its aggregate-looking name must not be
+// treated as a correlated aggregate.
 func (e *SelectEngine) aggFuncRefsOuter(fn *sql.FuncCall, inner map[string]bool, innerTables map[string]bool) string {
 	if fn.Over != nil {
 		return ""
@@ -617,15 +622,41 @@ func (e *SelectEngine) aggFuncRefsOuter(fn *sql.FuncCall, inner map[string]bool,
 	if !found || reg.Type != function.TypeAggregate {
 		return ""
 	}
-	for _, a := range fn.Args {
-		if e.exprRefsOuterCol(a, inner, innerTables) {
-			return fn.Name
+	hasOuter, hasInner := false, false
+	check := func(expr sql.Expr) {
+		if e.exprRefsOuterCol(expr, inner, innerTables) {
+			hasOuter = true
+		}
+		if e.exprRefsInnerCol(expr, inner, innerTables) {
+			hasInner = true
 		}
 	}
-	if fn.Filter != nil && e.exprRefsOuterCol(fn.Filter, inner, innerTables) {
+	for _, a := range fn.Args {
+		check(a)
+	}
+	if fn.Filter != nil {
+		check(fn.Filter)
+	}
+	if hasOuter && !hasInner {
 		return fn.Name
 	}
 	return ""
+}
+
+// exprRefsInnerCol reports whether an expression references a column of the
+// subquery's own FROM — the positive half of C's sqlite3ReferencesSrcList
+// test. Qualified outer names are never counted even when their bare column
+// name matches an inner column (indexexpr2-11.0's `a0.a` vs inner `a`).
+func (e *SelectEngine) exprRefsInnerCol(expr sql.Expr, inner map[string]bool, innerTables map[string]bool) bool {
+	if ref, ok := expr.(*sql.ColumnRef); ok {
+		return !e.colRefIsOuter(ref, inner, innerTables) && ref.Name != "*"
+	}
+	for _, child := range aggValidateChildExprs(expr) {
+		if e.exprRefsInnerCol(child, inner, innerTables) {
+			return true
+		}
+	}
+	return false
 }
 
 // exprRefsOuterCol reports whether an expression references a column outside

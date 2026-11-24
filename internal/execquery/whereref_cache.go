@@ -145,9 +145,42 @@ func whererefCensusOK(where sql.Expr) bool {
 			if v.Operator == "COLLATE" {
 				ok = false
 			}
+			if isWhrComparisonOp(v.Operator) && (!whererefSimpleOperand(v.Left) || !whererefSimpleOperand(v.Right)) {
+				// Expression-index operands (b||'x' > ?) have a rendered-SQL
+				// colName; the structural replay is set up for bare columns.
+				ok = false
+			}
+		case *sql.Between:
+			if !whererefSimpleOperand(v.Operand) {
+				ok = false
+			}
 		}
 	})
 	return ok
+}
+
+// whererefSimpleOperand reports whether an operand has the simple shape the
+// shape memo replays (a column reference, a literal, or a bound parameter).
+func whererefSimpleOperand(expr sql.Expr) bool {
+	switch v := unwrapParenExpr(expr).(type) {
+	case *sql.ColumnRef, *sql.NumericLit, *sql.StringLit, *sql.NullLit, *sql.BlobLit, *sql.ParameterExpr:
+		return true
+	case *sql.UnaryOp:
+		_, isNum := v.Operand.(*sql.NumericLit)
+		return isNum
+	}
+	return false
+}
+
+// isWhrComparisonOp names the BinaryOp operators whose operands the ref
+// collector turns into indexedRefs. Logical operators keep the memo's normal
+// recursive census; their children are checked individually.
+func isWhrComparisonOp(op string) bool {
+	switch strings.ToUpper(op) {
+	case "=", "==", "<", "<=", ">", ">=", "!=", "<>", "IS", "LIKE", "GLOB", "REGEXP", "MATCH":
+		return true
+	}
+	return false
 }
 
 // whererefTableHasPartialIndex reports whether any index on the table

@@ -415,7 +415,7 @@ func (e *SelectEngine) forEachOrderServingIndex(tableName string, terms []orderT
 			e.isRowidTailTermName(tableName, terms[len(terms)-1].col) {
 			keyTerms = terms[:len(terms)-1]
 		}
-		if len(indexCols) < len(keyTerms) || !colsPrefixMatch(indexCols, orderTermNames(keyTerms)) {
+		if !orderTermsMatchIndexCols(indexCols, keyTerms) {
 			continue
 		}
 		// The index definition's explicit per-column COLLATE; autoindex
@@ -471,6 +471,30 @@ func orderTermNames(terms []orderTermCol) []string {
 		out[i] = t.col
 	}
 	return out
+}
+
+// orderTermsMatchIndexCols reports whether the index's leading keys serve
+// every ORDER BY term, column or expression.
+func orderTermsMatchIndexCols(indexCols []string, terms []orderTermCol) bool {
+	if len(indexCols) < len(terms) {
+		return false
+	}
+	for i, term := range terms {
+		if !orderTermKeyMatches(indexCols[i], term) {
+			return false
+		}
+	}
+	return true
+}
+
+// orderTermKeyMatches reports whether an index key serves one ORDER BY
+// term: a bare column compares by name, an expression term compares by
+// canonical SQL (where.c's sqlite3ExprCompare over Index.aCol[].pExpr).
+func orderTermKeyMatches(indexKey string, term orderTermCol) bool {
+	if term.expr != "" {
+		return canonicalExprSQL(indexKey) == term.expr
+	}
+	return strings.EqualFold(indexKey, term.col)
 }
 
 // isRowidTailTermName reports whether a final ORDER BY term names the rowid
@@ -785,6 +809,14 @@ func collectBinaryRef(binop *sql.BinaryOp, tableName string, e *SelectEngine, wh
 		return collectLikeRef(binop, tableName, e, where)
 	}
 	colRef, constVal, constExpr := findColAndConstExpr(binop, e)
+	// An expression operand (b||'x' > ?) drives an expression-index seek
+	// (where.c's whereLoopAddBtree matches Index.aCol[].pExpr). Try it before
+	// the correlated-column path, which declines non-ColumnRef operands.
+	if colRef == nil {
+		if exprRef := e.collectExpressionRef(binop, tableName); len(exprRef) > 0 {
+			return exprRef
+		}
+	}
 	flip := false
 	if colRef == nil || constVal == nil && constExpr == nil {
 		// A correlated bound: the comparison's own-table column side pairs
@@ -817,6 +849,66 @@ func collectBinaryRef(binop *sql.BinaryOp, tableName string, e *SelectEngine, wh
 		return nil
 	}
 	return []indexedRef{{indexName: idxName, colName: colRef.Name, constant: constVal, constantExpr: constExpr, op: op}}
+}
+
+// collectExpressionRef resolves a comparison against an expression-index
+// key. A nil result leaves the ordinary column/correlated paths untouched.
+func (e *SelectEngine) collectExpressionRef(binop *sql.BinaryOp, tableName string) []indexedRef {
+	exprSQL, val, bound, _, flipSides := findExprAndConstExpr(binop, e)
+	if exprSQL == "" {
+		return nil
+	}
+	idx := e.findIndexOnExpr(tableName, exprSQL)
+	if idx == "" || !e.exprSeekCollationAgrees(tableName, idx, exprSQL, binop) {
+		return nil
+	}
+	op := binop.Operator
+	if flipSides {
+		op = flipComparisonOp(op)
+	}
+	return []indexedRef{{indexName: idx, colName: exprSQL, constant: val, constantExpr: bound, op: op}}
+}
+
+// findExprAndConstExpr is the expression-index counterpart of
+// findColAndConstExpr: either operand may be a non-column expression whose
+// canonical SQL matches an index key, with the other operand a constant.
+func findExprAndConstExpr(b *sql.BinaryOp, e *SelectEngine) (exprSQL string, val interface{}, constExpr sql.Expr, leftExpr, flip bool) {
+	for _, sides := range [2][2]sql.Expr{{b.Left, b.Right}, {b.Right, b.Left}} {
+		if _, isCol := sides[0].(*sql.ColumnRef); isCol {
+			continue
+		}
+		base, _ := splitCollateOperand(unwrapParenExpr(sides[0]))
+		if base == nil {
+			continue
+		}
+		text := canonicalExprSQL(sql.ExprString(base))
+		if text == "" || text == "?" {
+			continue
+		}
+		val = extractConst(sides[1])
+		if val == nil {
+			constExpr = deterministicConstExpr(sides[1], e)
+		}
+		if val == nil && constExpr == nil {
+			continue
+		}
+		return text, val, constExpr, sides[0] == b.Left, sides[0] == b.Right
+	}
+	return "", nil, nil, false, false
+}
+
+// exprSeekCollationAgrees mirrors seekCollationAgrees for an expression key:
+// an explicit COLLATE on either comparison operand must equal the index key's
+// declared collation (the expression text itself carries no column affinity).
+func (e *SelectEngine) exprSeekCollationAgrees(tableName, idxName, exprSQL string, binop *sql.BinaryOp) bool {
+	seek := collateWrapperName(binop.Left)
+	if seek == "" {
+		seek = collateWrapperName(binop.Right)
+	}
+	if seek == "" {
+		return true
+	}
+	return strings.EqualFold(seek, e.indexColumnCollation(tableName, idxName, exprSQL))
 }
 
 // seekRefSides splits a comparison into its own-table column side and its
@@ -1083,14 +1175,16 @@ func (e *SelectEngine) findIndexOnExpr(tableName, exprSQL string) string {
 }
 
 // indexKeyMatches reports whether an index's CREATE SQL contains a key
-// expression equal to exprSQL (case-insensitive, trimmed).
+// expression equal to exprSQL (case/whitespace-insensitive, trimmed). The
+// index key's top-level COLLATE is already removed by parseIndexKeyCols.
 func indexKeyMatches(indexSQL, exprSQL string) bool {
 	colText := indexColumnListText(indexSQL)
 	if colText == "" {
 		return false
 	}
+	want := canonicalExprSQL(exprSQL)
 	for _, ke := range parseIndexKeyCols(colText) {
-		if strings.EqualFold(strings.TrimSpace(ke), exprSQL) {
+		if canonicalExprSQL(ke) == want {
 			return true
 		}
 	}

@@ -480,23 +480,32 @@ func orderByCols(s *sql.SelectStmt) []string {
 // column reference with its explicit COLLATE name ("" when the term carries
 // none).
 type orderTermCol struct {
-	col  string
+	col  string // bare column name, or "" for an expression term
 	coll string
+	expr string // canonical SQL of a non-column expression term
 }
 
 // orderByTermColls returns the ORDER BY terms an index can satisfy: a bare
-// column reference, optionally wrapped in one COLLATE operator
-// (splitCollateOperand). It returns nil when any term is anything else —
-// the index walk cannot represent expressions.
+// column reference, optionally wrapped in one COLLATE operator, or a
+// non-column expression (optionally COLLATE-wrapped) that matches an
+// expression-index key. It returns nil when the term is a shape no index
+// can represent.
 func orderByTermColls(s *sql.SelectStmt) []orderTermCol {
 	var out []orderTermCol
 	for _, ob := range s.OrderBy {
 		expr, coll := splitCollateOperand(ob.Expr)
-		cr, ok := expr.(*sql.ColumnRef)
-		if !ok {
+		if cr, ok := expr.(*sql.ColumnRef); ok {
+			out = append(out, orderTermCol{col: cr.Name, coll: coll})
+			continue
+		}
+		if expr == nil {
 			return nil
 		}
-		out = append(out, orderTermCol{col: cr.Name, coll: coll})
+		text := canonicalExprSQL(sql.ExprString(expr))
+		if text == "" || text == "?" {
+			return nil
+		}
+		out = append(out, orderTermCol{coll: coll, expr: text})
 	}
 	return out
 }

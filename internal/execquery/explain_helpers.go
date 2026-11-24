@@ -10,33 +10,86 @@ import (
 )
 
 // indexSQLColumnCollation extracts an explicit COLLATE clause applied to the
-// named column in a CREATE INDEX statement (e.g. "CREATE INDEX i ON t(x
-// COLLATE nocase)"). Returns "" when the column has no explicit collation.
+// named key (column or expression) in a CREATE INDEX statement. Returns ""
+// when the key has no explicit collation. The key list is split with balanced
+// parentheses so an expression key with commas (Substr(a,-2) COLLATE nocase)
+// keeps its collation.
 func indexSQLColumnCollation(sqlStr, colName string) string {
-	upper := strings.ToUpper(sqlStr)
-	start := strings.Index(upper, "(")
-	if start < 0 {
-		return ""
-	}
-	end := strings.LastIndex(upper, ")")
-	if end < 0 || end <= start {
-		return ""
-	}
-	colsStr := sqlStr[start+1 : end]
-	for _, c := range strings.Split(colsStr, ",") {
-		col := strings.TrimSpace(c)
-		// Split "name COLLATE nocase" on the COLLATE keyword.
-		ci := strings.Index(strings.ToUpper(col), " COLLATE ")
-		if ci < 0 {
+	colls := sql.ParseIndexColumnCollations(sqlStr)
+	keys := parseIndexKeyCols(indexColumnListText(sqlStr))
+	for i, key := range keys {
+		if i >= len(colls) || colls[i] == "" {
 			continue
 		}
-		name := strings.TrimSpace(col[:ci])
-		coll := strings.TrimSpace(col[ci+len(" COLLATE "):])
-		if strings.EqualFold(name, colName) && coll != "" {
-			return strings.ToUpper(coll)
+		if strings.EqualFold(key, colName) || canonicalExprSQL(key) == canonicalExprSQL(colName) {
+			return strings.ToUpper(colls[i])
 		}
 	}
 	return ""
+}
+
+// canonicalExprSQL normalizes rendered SQL expressions for structural
+// comparison: identifiers/keywords case-fold and whitespace outside quoted
+// literals disappears. `b || 'x'` and `B||'x'` then name the same index key.
+func canonicalExprSQL(text string) string {
+	var out strings.Builder
+	var quote byte
+	for i := 0; i < len(text); i++ {
+		if quote != 0 {
+			writeQuotedCanonicalByte(&out, text, &i, &quote)
+			continue
+		}
+		c := text[i]
+		if c == '\'' || c == '"' || c == '`' || c == '[' {
+			quote = canonicalQuoteClose(c)
+			out.WriteByte(c)
+			continue
+		}
+		if isCanonicalSpace(c) {
+			continue
+		}
+		writeCanonicalPlainByte(&out, c)
+	}
+	return out.String()
+}
+
+// isCanonicalSpace reports whether a byte is whitespace dropped outside
+// quoted literals.
+func isCanonicalSpace(c byte) bool {
+	return c == ' ' || c == '\t' || c == '\n' || c == '\r'
+}
+
+// writeCanonicalPlainByte writes one unquoted expression byte, folding ASCII
+// uppercase identifiers and keywords.
+func writeCanonicalPlainByte(out *strings.Builder, c byte) {
+	if c >= 'A' && c <= 'Z' {
+		c += 'a' - 'A'
+	}
+	out.WriteByte(c)
+}
+
+// canonicalQuoteClose maps an opening SQL quote byte to its closing byte.
+func canonicalQuoteClose(open byte) byte {
+	if open == '[' {
+		return ']'
+	}
+	return open
+}
+
+// writeQuotedCanonicalByte copies one byte inside a quoted literal, handling
+// the doubled-quote escape, and closes quote at the matching delimiter.
+func writeQuotedCanonicalByte(out *strings.Builder, text string, i *int, quote *byte) {
+	c := text[*i]
+	out.WriteByte(c)
+	if c != *quote {
+		return
+	}
+	if *i+1 < len(text) && text[*i+1] == c {
+		*i++
+		out.WriteByte(c)
+		return
+	}
+	*quote = 0
 }
 
 // likeIndexCompatible reports whether an index with the given collation can

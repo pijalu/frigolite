@@ -22,6 +22,7 @@ import (
 	"strings"
 
 	"github.com/pijalu/frigolite/internal/execexpr"
+	"github.com/pijalu/frigolite/internal/parse"
 	"github.com/pijalu/frigolite/internal/schema"
 	"github.com/pijalu/frigolite/internal/sql"
 	"github.com/pijalu/frigolite/internal/util"
@@ -285,7 +286,7 @@ func (e *SelectEngine) indexSeekRefSet(s *sql.SelectStmt, tableEntry *schema.Ent
 // indexSeekRefKey keys the (column, operator) pair set case-insensitively on
 // the column (SQL identifiers compare case-insensitively).
 func indexSeekRefKey(col, op string) string {
-	return strings.ToLower(col) + "\x00" + op
+	return canonicalExprSQL(col) + "\x00" + op
 }
 
 // buildIndexSeekPlan walks the driving index's key columns and collects the
@@ -316,7 +317,7 @@ func (e *SelectEngine) buildIndexSeekPlan(s *sql.SelectStmt, tableEntry *schema.
 // constant proves the plan empty), a range term sets the bounds (and ends the
 // prefix), and a position without a usable constraint ends it too.
 func (e *SelectEngine) indexSeekPlanStep(plan *indexSeekPlan, terms []indexSeekTerm, allowed map[string]bool, colDefs []sql.ColumnDef, col string) bool {
-	if plan.lo != nil || plan.hi != nil || !isPlainIndexColumn(col) {
+	if plan.lo != nil || plan.hi != nil {
 		return false // the range column ends the seek prefix
 	}
 	if term, ok := indexSeekEqualityTerm(terms, allowed, col); ok {
@@ -343,7 +344,7 @@ func (e *SelectEngine) indexSeekPlanStep(plan *indexSeekPlan, terms []indexSeekT
 // planner collected one.
 func indexSeekEqualityTerm(terms []indexSeekTerm, allowed map[string]bool, col string) (indexSeekTerm, bool) {
 	for _, t := range terms {
-		if !strings.EqualFold(t.col, col) {
+		if canonicalExprSQL(t.col) != canonicalExprSQL(col) {
 			continue
 		}
 		if t.op != "=" && t.op != "==" {
@@ -365,7 +366,7 @@ func indexSeekEqualityTerm(terms []indexSeekTerm, allowed map[string]bool, col s
 func (e *SelectEngine) indexSeekRangeTerms(plan *indexSeekPlan, terms []indexSeekTerm, allowed map[string]bool, colDefs []sql.ColumnDef, col string) (*indexSeekBound, *indexSeekBound, bool) {
 	var lo, hi *indexSeekBound
 	for _, t := range terms {
-		if !strings.EqualFold(t.col, col) || !allowed[indexSeekRefKey(t.col, t.op)] {
+		if canonicalExprSQL(t.col) != canonicalExprSQL(col) || !allowed[indexSeekRefKey(t.col, t.op)] {
 			continue
 		}
 		lo, hi = e.extendIndexSeekRange(plan, t, lo, hi, colDefs, col)
@@ -468,6 +469,9 @@ func (e *SelectEngine) indexSeekBinaryTerm(v *sql.BinaryOp, tableEntry *schema.E
 	for _, sides := range [2][2]sql.Expr{{v.Left, v.Right}, {v.Right, v.Left}} {
 		col, ok := e.indexSeekColumnRef(sides[0], tableEntry, alias)
 		if !ok {
+			if exprTerm, exprOK := e.indexSeekExpressionTerm(sides[0], sides[1], v.Operator, tableEntry, alias, sides[0] == v.Right); exprOK {
+				return exprTerm, true
+			}
 			continue
 		}
 		val, ok := e.seekConstValue(sides[1])
@@ -488,6 +492,35 @@ func (e *SelectEngine) indexSeekBinaryTerm(v *sql.BinaryOp, tableEntry *schema.E
 		return indexSeekTerm{col: col, op: op, val: val}, true
 	}
 	return indexSeekTerm{}, false
+}
+
+// indexSeekExpressionTerm resolves a non-column comparison operand to an
+// expression-index key (the execution half of collectBinaryRef's expression
+// path). The planner's allowed set gates the term against the same canonical
+// expression text, so an unrelated expression cannot drive this seek.
+func (e *SelectEngine) indexSeekExpressionTerm(operand, bound sql.Expr, op string, tableEntry *schema.Entry, alias string, flipSides bool) (indexSeekTerm, bool) {
+	base, _ := splitCollateOperand(unwrapParenExpr(operand))
+	if base == nil {
+		return indexSeekTerm{}, false
+	}
+	if _, isCol := base.(*sql.ColumnRef); isCol {
+		return indexSeekTerm{}, false
+	}
+	text := canonicalExprSQL(sql.ExprString(base))
+	if text == "" || text == "?" || e.findIndexOnExpr(tableEntry.Name, text) == "" {
+		return indexSeekTerm{}, false
+	}
+	val, ok := e.seekConstValue(bound)
+	if !ok {
+		val, ok = e.seekOuterBoundValue(bound, tableEntry, alias)
+	}
+	if !ok {
+		return indexSeekTerm{}, false
+	}
+	if flipSides {
+		op = flipComparisonOp(op)
+	}
+	return indexSeekTerm{col: text, op: op, val: val}, true
 }
 
 // flipComparisonOp mirrors a comparison operator when the column operand is
@@ -683,13 +716,73 @@ func (e *SelectEngine) indexSeekAffinityValue(colDefs []sql.ColumnDef, col strin
 			return util.ApplyColumnAffinity(val, colDefs[i].Type)
 		}
 	}
+	if typeName := e.indexExprAffinityType(col, colDefs); typeName != "" {
+		return util.ApplyColumnAffinity(val, typeName)
+	}
 	return val
 }
 
-// isPlainIndexColumn reports whether an index key column is a plain column
-// name a WHERE reference can be matched against (no expression key, no
-// residual COLLATE/ASC/DESC text).
-func isPlainIndexColumn(col string) bool {
-	col = strings.TrimSpace(col)
-	return col != "" && !strings.ContainsAny(col, "( )")
+// indexExprAffinityType resolves an expression index key's result affinity
+// the way C's sqlite3ExprAffinity does for the shapes the planner can seek:
+// CAST carries its target type, a column carries its declared type, and a
+// COLLATE/+ wrapper passes its operand's affinity through. The seek constant
+// must be converted to that affinity before probing the stored key.
+func (e *SelectEngine) indexExprAffinityType(exprSQL string, colDefs []sql.ColumnDef) string {
+	stmts, err := parse.ParseSQL("SELECT " + exprSQL)
+	if err != nil || len(stmts) == 0 {
+		return ""
+	}
+	sel, ok := stmts[0].(*sql.SelectStmt)
+	if !ok || len(sel.Columns) == 0 {
+		return ""
+	}
+	return indexExprAffinity(sel.Columns[0].Expr, colDefs)
+}
+
+func indexExprAffinity(expr sql.Expr, colDefs []sql.ColumnDef) string {
+	if inner, ok := affinityPassThroughExpr(expr); ok {
+		return indexExprAffinity(inner, colDefs)
+	}
+	switch v := expr.(type) {
+	case *sql.CastExpr:
+		return v.AsType
+	case *sql.ColumnRef:
+		return indexColumnAffinityType(v, colDefs)
+	case *sql.FuncCall:
+		// SQLite defers a function's affinity to its first argument for
+		// the functions whose affExpr is SQLITE_AFF_DEFER.
+		if len(v.Args) > 0 {
+			return indexExprAffinity(v.Args[0], colDefs)
+		}
+	}
+	return ""
+}
+
+// affinityPassThroughExpr unwraps the expression forms C's
+// sqlite3ExprAffinity traverses (COLLATE, unary +, parentheses).
+func affinityPassThroughExpr(expr sql.Expr) (sql.Expr, bool) {
+	switch v := expr.(type) {
+	case *sql.ParenExpr:
+		return v.Expr, true
+	case *sql.UnaryOp:
+		if v.Operator == "+" {
+			return v.Operand, true
+		}
+	case *sql.BinaryOp:
+		if strings.EqualFold(v.Operator, "COLLATE") {
+			return v.Left, true
+		}
+	}
+	return nil, false
+}
+
+// indexColumnAffinityType resolves a column reference against the table's
+// declared columns participating in the index seek.
+func indexColumnAffinityType(ref *sql.ColumnRef, colDefs []sql.ColumnDef) string {
+	for i := range colDefs {
+		if strings.EqualFold(colDefs[i].Name, ref.Name) {
+			return colDefs[i].Type
+		}
+	}
+	return ""
 }

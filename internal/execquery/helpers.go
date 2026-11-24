@@ -529,12 +529,10 @@ func parseIndexKeyCols(colText string) []string {
 		name := strings.TrimSpace(part)
 		upper := strings.ToUpper(name)
 		if strings.ContainsAny(name, "()") {
-			// expression key: keep COLLATE, strip only ASC/DESC
-			if idx := strings.Index(upper, " DESC"); idx >= 0 {
-				name = strings.TrimSpace(name[:idx])
-			} else if idx := strings.Index(upper, " ASC"); idx >= 0 {
-				name = strings.TrimSpace(name[:idx])
-			}
+			// expression key: keep any COLLATE nested in the expression, strip
+			// only a top-level COLLATE suffix (it is the key's sort collation,
+			// not part of the expression value) and ASC/DESC.
+			name = stripTopLevelIndexSuffix(name)
 		} else {
 			if idx := strings.Index(upper, " COLLATE"); idx >= 0 {
 				name = strings.TrimSpace(name[:idx])
@@ -549,6 +547,65 @@ func parseIndexKeyCols(colText string) []string {
 		}
 	}
 	return cols
+}
+
+// stripTopLevelIndexSuffix removes a trailing top-level COLLATE <name>,
+// ASC, or DESC from an index key expression. Collate operators nested inside
+// the expression (e.g. (a COLLATE nocase)||b) are part of the key value and
+// stay; only the key's own sort directive is removed.
+func stripTopLevelIndexSuffix(key string) string {
+	if coll := topLevelIndexCollatePos(key); coll >= 0 {
+		key = key[:coll]
+	}
+	upper := strings.ToUpper(key)
+	if idx := strings.LastIndex(upper, " DESC"); idx >= 0 {
+		return strings.TrimSpace(key[:idx])
+	}
+	if idx := strings.LastIndex(upper, " ASC"); idx >= 0 {
+		return strings.TrimSpace(key[:idx])
+	}
+	return strings.TrimSpace(key)
+}
+
+// topLevelIndexCollatePos reports the byte offset of the last top-level
+// " COLLATE" directive in an index key, or -1 when none is present.
+func topLevelIndexCollatePos(key string) int {
+	depth, quote, last := 0, byte(0), -1
+	for i := 0; i < len(key); i++ {
+		advanceIndexKeyScan(key, &i, &depth, &quote)
+		if depth == 0 && i+8 <= len(key) && strings.EqualFold(key[i:i+8], " COLLATE") {
+			last = i
+		}
+	}
+	return last
+}
+
+// advanceIndexKeyScan advances one index-key byte, tracking top-level
+// parentheses and doubled-quote escapes.
+func advanceIndexKeyScan(key string, i *int, depth *int, quote *byte) {
+	c := key[*i]
+	if *quote != 0 {
+		if c == *quote {
+			if *i+1 < len(key) && key[*i+1] == c {
+				*i++
+			} else {
+				*quote = 0
+			}
+		}
+		return
+	}
+	switch c {
+	case '\'', '"', '`':
+		*quote = c
+	case '[':
+		*quote = ']'
+	case '(':
+		*depth++
+	case ')':
+		if *depth > 0 {
+			*depth--
+		}
+	}
 }
 
 // constraintColumnNames resolves a table-level UNIQUE/PRIMARY KEY constraint's
