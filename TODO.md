@@ -8,7 +8,7 @@
 
 `close all gaps with sqlite — functional first, then performance.`
 
-## State (2026-11-24, feature/perf @ 19bf35f6c — S43 slices 1-6 + S44 + S45 slice 1 landed: bestindexE, bestindexF-1.4.1, distinctagg 5→0, trigger7 6→0; FULL gate 1158, NEW=0 vs prior gate)
+## State (2026-11-24, feature/perf @ cfd5370fa — S43 slices 1-6 + S44 + S45 slice 1 + S46 slice 1 landed: bestindexE, bestindexF-1.4.1, distinctagg 5→0, trigger7 6→0, misc3 1→0, gencol1 6→5; FULL gate 1155, NEW=0 vs prior gate)
 
 Full-suite truth **1190 failing leaves** (the s35g gate baseline
 portplan/baselines/s35g_gate_fails.txt minus the three walfault leaves
@@ -163,8 +163,11 @@ The pager + authorizer + EXPLAIN-substrate arcs (S22-S37+S41):
   61 GONE total (44 S41 + 17 riding the S37 merge, incl. tpch01-1.1b/1.1c).
   Residual cards (the 12 NEW): distinctagg ×5 (DISTINCT-ordered-input
   optimization), trigger7-2.x ×6 (trigger sub-program rows in the
-  stream), misc3-6.11-utf8 (constant-load rows); bestindexF 2.3.0/2.4.0/
+  stream), bestindexF 2.3.0/2.4.0/
   2.5.0 vtab eDistinct handshake + xBestIndex globals carded to S43.
+  **S46 closed misc3**: runtime regexp probes over the flat EXPLAIN
+  capture + Int64/Real/default-p4/DESC-keyinfo rows; a GENERATED-column
+  index guard kept gencol1-23.3 green and made gencol1-23.4 GONE.
 The parallel-where + pager arc (S22-S34, S33):
 
 - **S22-S30** (the parallel-where phase): where census 78 → 3, fts3expr3
@@ -202,7 +205,7 @@ trace class), **wal3 4**, **wal6 1**, **walfault 0 + walfault2 0** (the
 whole faultsim family green), **journal2 5** (re-verified fresh), **e_wal
 0** (S35e complete), **e_walhook 0** (S35f), walsetlk_recover 2, wal-23.4,
 **where 1** (the 2.4 flake), **index9 0**, **bestindexF 17**,
-**indexexpr2 5**, distinctagg 5, trigger7 6, misc3 1, without_rowid3 16
+**indexexpr2 5**, distinctagg 0, trigger7 0, misc3 0, gencol1 5, without_rowid3 16
 + without_rowid7 4, tkt 14, rtree 126, the fts3* residue, expr residue.
 (The old census's grouped counts — e_wal 14, tkt 33, without_rowid 27 —
 mixed substring filters; the per-leaf truth is
@@ -254,7 +257,10 @@ portplan/baselines/s35g_gate_fails.txt.)
    (WHERE_DISTINCTBY / isDistinctRedundant parity). S45 slice 1
    DELIVERED — trigger7-2.x 6→0 via firing UPDATE OF trigger sub-program
    rows in EXPLAIN + a runtime `string match` converter/harness step.
-   NEXT: misc3-6.11-utf8.
+   S46 slice 1 DELIVERED — misc3-6.11-utf8 1→0 via runtime regexp
+   probes, Int64/Real/default-p4 rows, DESC keyinfo, and a generated-column
+   index guard (gencol1 6→5).
+   NEXT: carded converter classes.
 4. **Carded converter classes**: expridx1 fossil 10, indexexpr2/3 11,
    e_expr regen drift/callbackVars, A2/A9 engine slices, the fts3*
    residue ~53.
@@ -318,9 +324,8 @@ portplan/baselines/s35g_gate_fails.txt.)
    classes; the triage's B2 xShmLock-trace/-shm byte class (24) stays
    carded behind them).
 2. **The btree page-density unit** (the walckptnoop 1.1-1.5 card).
-3. **S42/S43**: the S41 residual surfaces (trigger7-2.x trigger
-   sub-program rows, misc3-6.11-utf8, distinctagg ×5
-   DISTINCT-ordered-input), the tcl-module completion (~34: callback
+3. **S42-S46**: the S41 residual surfaces are DELIVERED (trigger7,
+   misc3, distinctagg); the tcl-module completion (~34: callback
    global push/pull, %N% xFilter substitution, vtab IN-constraint loop,
    bestindexF 2.3.0/2.4.0/2.5.0 eDistinct handshake + xBestIndex
    globals).

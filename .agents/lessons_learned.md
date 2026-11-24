@@ -2467,3 +2467,27 @@ everywhere; go vet + go build clean.
   compiles only triggers whose column list intersects the SET clause;
   rowid-only updates match neither `OF x` nor `OF y`. The synthetic stream
   carries each body SELECT literal as a `String8` p4 value.
+- **A `set x [execsql {...}]` EXPLAIN capture is a FLAT list of every row's
+  columns** (`resultFlat` in the fixture), not the first row (`resultAll`):
+  with only the first row, regexp probes over OP_Column p4 and the later
+  `Int64`/`Real` loads see nothing (`misc3-6.11-utf8`).
+- **EXPLAIN's OP_Column p4 comes from the column's literal DEFAULT**
+  (sqlite3ExprCodeGetColumn): synthetic streams must carry it to satisfy
+  regexp probes. Resolve an unqualified ColumnRef through the SELECT's
+  FROM tables (alias-aware) — a global scan for the first same-named column
+  picked unrelated `t1(b)` over `ex1.b`; the fallback scan must include ALL
+  attached schemas because the fixture table may live in temp.
+- **Large-integer and real literals are VDBE constant-load rows**: OP_Int64
+  for integers outside the 32-bit OP_Integer range, OP_Real for floats.
+  DESC sorter terms render as `-B` in KeyInfo (`k(2,B,-B)`). Both are
+  observable by Tcl regexps over a captured EXPLAIN stream.
+- **A do_test body ending in `lappend` of several `regexp` probes over a
+  runtime capture must emit one runtime_expr step**
+  (`list [regexp ...] ...`), not stamp the booleans onto the capture step;
+  the harness command layer needs a `regexp` head word.
+- **Adding result-expression EXPLAIN rows needs a GENERATED-column guard**:
+  C omits OP_Column when an index already yields a generated column
+  (`gencol1-23.3`: `a INT AS (x)` indexed by `x2`), but still emits it for
+  a generated column the index does not carry (`gencol1-23.4`: `b`).
+  The synthetic plan node may not name the index (INDEXED BY is only on the
+  AST), so collect coverage from BOTH plan scan tails and FROM's IndexedBy.
