@@ -82,3 +82,14 @@ loop, bestindexF eDistinct handshake) remains ahead of those in the queue.
   `atof1-2.40`'s dice flake). `e_expr-26.1.6` remains the family's one
   real residual (runtime evalcount 8 vs 5).
 - Next unit: e_expr-26.1.6, then expridx1 / indexexpr2 / A2 / A9 / fts3*.
+
+## S49 slice 1 (155b10c2d): e_expr-26.1.6 1→0 (family now 0)
+
+- The converter already emits `runtime_expr` with `Variable=evalcount,
+  SQL=0` for `set ::evalcount 0`; the checked-in fixture predated that
+  emission. Added the reset step before the 26.1.6 query and pinned the
+  converter shape with `TestTrackedVarNumericResetEmitsSetStep`.
+- Full gate `/tmp/s49_full2.log` (1204.9s): **1151** leaves; vs S48 NEW=0,
+  GONE=1 (`e_expr-26.1.6`). The first S49 gate's nine temptable2-9.1.x
+  small-cache stress failures did not reproduce focused or in the rerun.
+- Next unit: expridx1 (10), indexexpr2 (5), A2/A9 engine slices, fts3*.

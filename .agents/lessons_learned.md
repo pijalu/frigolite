@@ -2502,3 +2502,8 @@ everywhere; go vet + go build clean.
   prints `9.22337203685478e+18` (15 digits). Pin the engine against the
   in-tree oracle and correct the fixture expectation; do not change the
   engine's float formatting globally for a version-specific spelling.
+- **A numeric reset of a callback-recorded Tcl global must reach the harness**:
+  `set ::evalcount 0` between e_expr-26.1.x probes becomes a `runtime_expr`
+  step with `Variable=evalcount, SQL=0`; without it the callback counter
+  accumulates across probes (26.1.6 saw 8 instead of 5). Fixtures generated
+  before that converter emission need the step added directly.
