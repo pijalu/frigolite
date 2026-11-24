@@ -2452,3 +2452,9 @@ everywhere; go vet + go build clean.
   yields 0, and bakes `SELECT 0 ; ...` into the fixture. Regenerate into /tmp
   first; when the artifact persists, correct the fixture and add a pure-Go
   pin test for the engine-visible EXPLAIN contract.
+- **Aggregate DISTINCT's EXPLAIN `OpenEphemeral` follows C's
+  `WHERE_DISTINCTBY` decision**: a rowid argument, an argument pinned to a
+  constant by WHERE, or a column delivered after the index's equality +
+  GROUP BY prefix needs no dedup b-tree. GROUP BY columns are an ORDER
+  prefix, not equality bindings — treating `GROUP BY b` as `b=const` wrongly
+  suppresses the b-tree for `count(DISTINCT a)` (distinctagg-4.2.1).

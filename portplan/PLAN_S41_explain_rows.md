@@ -350,3 +350,16 @@ TestSOLID_ ./...` + TestS22_ after every engine stage. Quality gate
   eponymousVtabColDefs). Sweeps: tabfunc01 0, with2 =baseline 6, join8
   =baseline 2, carray 0, dbstat-substring =baseline, dbpage 0, keyword1
   green, indexexpr NEW=0 GONE=4.
+
+## 2026-11-24 — S44 slice 1: distinctagg residue closed (5→0)
+
+`internal/execquery/explain_rows.go` emits the aggregate-DISTINCT
+`OpenEphemeral` opcode rows C's `resetAccumulator` adds for each
+`iDistinct>=0` aggregate. The decision mirrors `WHERE_DISTINCTBY`:
+a rowid argument, a WHERE-pinned constant, or a plain column after the
+index's equality + GROUP BY prefix needs no dedup b-tree; GROUP BY is an
+ORDER prefix, not an equality binding (distinctagg-4.2.1 caught that
+mistake). `frigolite_distinctagg_pin_test.go` pins the engine-visible
+EXPLAIN contract. Full gate `/tmp/s44_full.log`: 1164 leaves, distinctagg
+5→0, NEW=0 except the documented temptable2 flake. See
+`portplan/PLAN_S44_distinctagg_explain.md`.
