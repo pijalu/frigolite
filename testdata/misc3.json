@@ -381,7 +381,11 @@
           "type": "query_assign",
           "sql": "EXPLAIN SELECT a+123456789012, b*4.5678, c FROM ex1 ORDER BY +a, b DESC",
           "variable": "x",
-          "resultAll": true,
+          "resultFlat": true
+        },
+        {
+          "type": "runtime_expr",
+          "sql": "list [regexp { 123456789012 } $x] [regexp { 4.5678 } $x] [regexp { hello } $x] [regexp {,-B} $x]",
           "expect": "1 1 1 1"
         }
       ]

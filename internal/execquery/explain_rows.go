@@ -64,6 +64,9 @@ func (e *SelectEngine) emitExplainRows(stmt sql.Stmt) *Result {
 		for _, n := range nodes {
 			e.emitPlanNodeRows(prog, n, stmt)
 		}
+		if s, ok := stmt.(*sql.SelectStmt); ok {
+			e.emitExplainResultRows(prog, s, e.explainResultContext(s, nodes))
+		}
 	}
 	halt := int64(len(prog.rows))
 	prog.emit("Halt", 0, 0, 0, "", 0, "")
@@ -128,12 +131,12 @@ func (e *SelectEngine) emitPlanNodeRows(prog *explainProgram, n planNode, stmt s
 			e.emitPlanNodeRows(prog, c, stmt)
 		}
 	case strings.HasPrefix(detail, "USE TEMP B-TREE FOR ORDER BY"):
-		e.emitSorterRows(prog, orderSortTerms(stmt), false)
+		e.emitSorterRows(prog, stmt, orderSortTerms(stmt), false)
 		for _, c := range n.children {
 			e.emitPlanNodeRows(prog, c, stmt)
 		}
 	case strings.HasPrefix(detail, "USE TEMP B-TREE FOR GROUP BY"):
-		e.emitSorterRows(prog, groupSortTerms(stmt), true)
+		e.emitSorterRows(prog, stmt, groupSortTerms(stmt), true)
 		for _, c := range n.children {
 			e.emitPlanNodeRows(prog, c, stmt)
 		}
@@ -221,10 +224,18 @@ func (e *SelectEngine) emitScanRows(prog *explainProgram, detail string) {
 	prog.emit("Next", 1, 0, 0, "", 1, "")
 }
 
+// explainSortTerm is one sorter key input: the expression and its sort
+// direction. SQLite renders DESC key columns with a '-' prefix in KeyInfo.
+type explainSortTerm struct {
+	expr sql.Expr
+	desc bool
+}
+
 // emitSorterRows renders the ORDER BY / GROUP BY sorter machinery: the
 // sorter cursor opens first (C opens it before the scan cursors), one key
 // input row per sort term, the insert/sort/data/next loop.
-func (e *SelectEngine) emitSorterRows(prog *explainProgram, terms []sql.Expr, group bool) {
+func (e *SelectEngine) emitSorterRows(prog *explainProgram, stmt sql.Stmt, terms []explainSortTerm, group bool) {
+	tables := e.explainExplainTables(stmt)
 	if group && e.vtabExplainOrderConsumed {
 		// The GROUP BY over a consumed ORDER BY (the WHERE_GROUPBY parity):
 		// C's streaming aggregate groups through the ephemeral index — no
@@ -232,8 +243,8 @@ func (e *SelectEngine) emitSorterRows(prog *explainProgram, terms []sql.Expr, gr
 		// the want's IdxInsert = the ephemeral index's group-key insert).
 		prog.emit("OpenEphemeral", 1, 0, 0, "k(1,B)", 0, "")
 		for _, term := range terms {
-			if cr, ok := term.(*sql.ColumnRef); ok {
-				prog.emit("Column", 0, 0, 2, "", 0, "r[2]=cursor 0 column "+cr.Name)
+			if cr, ok := term.expr.(*sql.ColumnRef); ok {
+				prog.emit("Column", 0, 0, 2, e.explainColumnDefault(cr, tables), 0, "r[2]=cursor 0 column "+cr.Name)
 			}
 		}
 		prog.emit("MakeRecord", 0, 2, 6, "", 0, "r[6]=key")
@@ -241,14 +252,14 @@ func (e *SelectEngine) emitSorterRows(prog *explainProgram, terms []sql.Expr, gr
 		prog.emit("Found", 1, 0, 0, "", 0, "")
 		return
 	}
-	prog.emit("SorterOpen", 2, 5, 0, "k(1,B)", 0, "")
+	prog.emit("SorterOpen", 2, 5, 0, sorterKeyInfo(terms), 0, "")
 	for _, term := range terms {
-		if fn := sortTermFunction(term); fn != "" {
+		if fn := sortTermFunction(term.expr); fn != "" {
 			prog.emit("Function", 0, 0, 2, fn, 0, "r[2]=func()")
 			continue
 		}
-		if cr, ok := term.(*sql.ColumnRef); ok {
-			prog.emit("Column", 0, 0, 1, "", 0, "r[1]="+"cursor 0 column "+cr.Name)
+		if cr, ok := term.expr.(*sql.ColumnRef); ok {
+			prog.emit("Column", 0, 0, 1, e.explainColumnDefault(cr, tables), 0, "r[1]=cursor 0 column "+cr.Name)
 		}
 	}
 	prog.emit("SorterInsert", 2, 6, 0, "", 0, "key=r[6]")
@@ -274,11 +285,11 @@ func (e *SelectEngine) emitDistinctRows(prog *explainProgram) {
 
 // orderSortTerms returns the ORDER BY terms of a top-level SELECT (the
 // sorter's key inputs). Non-SELECT statements have no sorter terms.
-func orderSortTerms(stmt sql.Stmt) []sql.Expr {
+func orderSortTerms(stmt sql.Stmt) []explainSortTerm {
 	if s, ok := stmt.(*sql.SelectStmt); ok && s != nil {
-		out := make([]sql.Expr, 0, len(s.OrderBy))
+		out := make([]explainSortTerm, 0, len(s.OrderBy))
 		for _, ob := range s.OrderBy {
-			out = append(out, ob.Expr)
+			out = append(out, explainSortTerm{expr: ob.Expr, desc: ob.Desc})
 		}
 		return out
 	}
@@ -286,13 +297,32 @@ func orderSortTerms(stmt sql.Stmt) []sql.Expr {
 }
 
 // groupSortTerms returns the GROUP BY terms of a top-level SELECT.
-func groupSortTerms(stmt sql.Stmt) []sql.Expr {
+func groupSortTerms(stmt sql.Stmt) []explainSortTerm {
 	if s, ok := stmt.(*sql.SelectStmt); ok && s != nil {
-		out := make([]sql.Expr, 0, len(s.GroupBy))
-		out = append(out, s.GroupBy...)
+		out := make([]explainSortTerm, 0, len(s.GroupBy))
+		for _, expr := range s.GroupBy {
+			out = append(out, explainSortTerm{expr: expr})
+		}
 		return out
 	}
 	return nil
+}
+
+// sorterKeyInfo renders KeyInfo's p4 spelling, k(<n>,<collation>,...).
+// Descending terms prefix the collation letter with '-'.
+func sorterKeyInfo(terms []explainSortTerm) string {
+	colls := make([]string, 0, len(terms))
+	for _, term := range terms {
+		c := "B"
+		if term.desc {
+			c = "-" + c
+		}
+		colls = append(colls, c)
+	}
+	if len(colls) == 0 {
+		colls = append(colls, "B")
+	}
+	return fmt.Sprintf("k(%d,%s)", len(colls), strings.Join(colls, ","))
 }
 
 // sortTermFunction renders a non-column sort term's Function p4 (C renders

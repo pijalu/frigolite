@@ -1190,7 +1190,13 @@ func (i *Interp) cmdDoTest(rawWords []rawWord, localVars map[string]string) erro
 		// lappend v $msg` — the body's value is the catch code followed by
 		// the named-result rows): the expectation describes the joined list.
 		if lastCmd := bodyCommands[len(bodyCommands)-1]; len(lastCmd) >= 2 && lastCmd[0].Text == "lappend" {
-			if values, ok := i.lappendBodyValues(lastCmd[1:], localVars); ok {
+			if expr := i.runtimeRegexpListExpr(bodyCommands); expr != "" {
+				// misc3-6.11-utf8: the captured EXPLAIN text is an input to
+				// several regexp probes; the body's value is the collected
+				// booleans, evaluated at run time.
+				i.stmts = append(i.stmts, Stmt{Type: "runtime_expr", SQL: expr, Expected: expected, TestName: name})
+				bodyValueCaptured = true
+			} else if values, ok := i.lappendBodyValues(lastCmd[1:], localVars); ok {
 				i.stmts = append(i.stmts, Stmt{Type: "runtime_list", ListValues: values, Expected: expected, TestName: name})
 				bodyValueCaptured = true
 			}

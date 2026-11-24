@@ -7,6 +7,7 @@ import (
 	"math"
 	"os"
 	"path/filepath"
+	"regexp"
 	"sort"
 	"strconv"
 	"strings"
@@ -1119,6 +1120,18 @@ func evalHarnessTclCommand(words []string, vars map[string]string, resolvePath f
 			return "0", nil
 		}
 		return "", fmt.Errorf("unsupported string command: %v", words)
+	case "regexp":
+		if len(words) < 3 {
+			return "", fmt.Errorf("regexp: wrong # of arguments")
+		}
+		re, err := regexp.Compile(words[1])
+		if err != nil {
+			return "", err
+		}
+		if re.MatchString(words[2]) {
+			return "1", nil
+		}
+		return "0", nil
 	case "wal_frame_count":
 		// wal_common.tcl's wal_frame_count FILE PGSZ: the frame count a
 		// -wal file holds — (size-32)/(pgsz+24) — 0 for a missing or
@@ -1315,7 +1328,7 @@ func harnessCommandValue(out string) tclExprVal {
 var harnessRuntimeCommands = map[string]bool{
 	"lsearch": true, "lindex": true, "join": true, "list": true,
 	"array": true, "file": true, "expr": true, "string": true,
-	"wal_frame_count": true,
+	"regexp": true, "wal_frame_count": true,
 }
 
 // firstWordIsRuntimeCommand reports whether the text's leading word is one of
