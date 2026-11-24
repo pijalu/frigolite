@@ -2020,6 +2020,14 @@ everywhere; go vet + go build clean.
   error even when the engine's matchinfo blob is correct — fault the
   converter/harness layer before touching FTS. The rest of the binary class
   stays carded.
+- **FTS4 deferred-token matchinfo is a distinct contract from actual
+  postings**: C's `sqlite3Fts3EvalPhraseStats` replaces global occurrences
+  and rows with nDoc for an all-deferred phrase whose parent is not NEAR,
+  and counts a mixed phrase through its non-deferred tokens only. Deferral
+  is an AND/NEAR-cluster decision and is disabled for `content=` tables;
+  applying the nDoc shortcut under NEAR is wrong (NEAR uses gather-stats).
+  In Frigolite an overflow-sized token doclist is approximated by >4 KiB
+  of estimated packed posting bytes.
 - **NEW CARD — the btree page-density divergence**: the NOOP report shape
   is C-exact but our bulk insert's WAL holds mxFrame 451 vs C's 298
   (page_size=1024, t1(x INTEGER PRIMARY KEY, y TEXT) + i1 on y, 1000 rows
