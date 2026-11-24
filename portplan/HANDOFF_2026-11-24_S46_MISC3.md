@@ -53,3 +53,20 @@ loop, bestindexF eDistinct handshake) remains ahead of those in the queue.
   diffs; never by line counts or substring counts.
 - Keep full gates sequential and exclusive CPU; store logs under `/tmp`.
 - New files under `tools/tclconvert/` are gitignored: stage with `git add -f`.
+
+## S47 slice 1 (5194035a5): indexexpr3 2→0
+
+- `do_hasfunction_test` counts OP_Function rows in `EXPLAIN $sql` before
+  running the SELECT. The synthetic result-row pass had no Function rows;
+  scalar calls now emit OP_Function (arguments first), while aggregates
+  and COALESCE/IFNULL/NULLIF are skipped (C uses AggStep or NotNull jumps).
+- The two fixture SQL prefixes were converter artifacts (`SELECT 0;`);
+  corrected to `SELECT 2;` after the pure-Go pin confirmed the engine's
+  Function count. Pin: `TestIndexexpr3FunctionCount`.
+- Full gate `/tmp/s47_full2.log` (1257.2s): **1153** leaves; vs S46 gate
+  NEW=1 (`atof1-2.40`, documented dice), GONE=3 (`indexexpr3-1.5/1.6`
+  plus `resetdb-300`'s load flap). The first S47 gate's three
+  `temptable2-9.1.x` malformed-db failures did NOT reproduce focused or in
+  the rerun — load flakes.
+- Next unit: remaining carded converter classes (`expridx1` 10,
+  `indexexpr2` 5, `e_expr` regen drift/callbackVars, A2/A9, fts3* ~53).

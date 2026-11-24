@@ -8,7 +8,7 @@
 
 `close all gaps with sqlite — functional first, then performance.`
 
-## State (2026-11-24, feature/perf @ cfd5370fa — S43 slices 1-6 + S44 + S45 slice 1 + S46 slice 1 landed: bestindexE, bestindexF-1.4.1, distinctagg 5→0, trigger7 6→0, misc3 1→0, gencol1 6→5; FULL gate 1155, NEW=0 vs prior gate)
+## State (2026-11-24, feature/perf @ 5194035a5 — S43 slices 1-6 + S44 + S45 + S46 + S47 slice 1 landed: bestindexE, bestindexF-1.4.1, distinctagg 5→0, trigger7 6→0, misc3 1→0, gencol1 6→5, indexexpr3 2→0; FULL gate 1153, NEW=only the documented atof1 dice flake)
 
 Full-suite truth **1190 failing leaves** (the s35g gate baseline
 portplan/baselines/s35g_gate_fails.txt minus the three walfault leaves
@@ -205,7 +205,8 @@ trace class), **wal3 4**, **wal6 1**, **walfault 0 + walfault2 0** (the
 whole faultsim family green), **journal2 5** (re-verified fresh), **e_wal
 0** (S35e complete), **e_walhook 0** (S35f), walsetlk_recover 2, wal-23.4,
 **where 1** (the 2.4 flake), **index9 0**, **bestindexF 17**,
-**indexexpr2 5**, distinctagg 0, trigger7 0, misc3 0, gencol1 5, without_rowid3 16
+**indexexpr2 5**, distinctagg 0, trigger7 0, misc3 0, gencol1 5,
+indexexpr3 0, without_rowid3 16
 + without_rowid7 4, tkt 14, rtree 126, the fts3* residue, expr residue.
 (The old census's grouped counts — e_wal 14, tkt 33, without_rowid 27 —
 mixed substring filters; the per-leaf truth is
@@ -259,9 +260,11 @@ portplan/baselines/s35g_gate_fails.txt.)
    rows in EXPLAIN + a runtime `string match` converter/harness step.
    S46 slice 1 DELIVERED — misc3-6.11-utf8 1→0 via runtime regexp
    probes, Int64/Real/default-p4 rows, DESC keyinfo, and a generated-column
-   index guard (gencol1 6→5).
-   NEXT: carded converter classes.
-4. **Carded converter classes**: expridx1 fossil 10, indexexpr2/3 11,
+   index guard (gencol1 6→5). S47 slice 1 DELIVERED — indexexpr3 2→0
+   via scalar OP_Function result rows + the Function-count fixture
+   correction.
+   NEXT: remaining carded converter classes.
+4. **Carded converter classes**: expridx1 fossil 10, indexexpr2 5,
    e_expr regen drift/callbackVars, A2/A9 engine slices, the fts3*
    residue ~53.
 5. **The performance phase** (F1c/F3 lanes in
@@ -329,7 +332,7 @@ portplan/baselines/s35g_gate_fails.txt.)
    global push/pull, %N% xFilter substitution, vtab IN-constraint loop,
    bestindexF 2.3.0/2.4.0/2.5.0 eDistinct handshake + xBestIndex
    globals).
-4. **Carded converter classes**: expridx1 fossil 10, indexexpr3 2,
+4. **Carded converter classes**: expridx1 fossil 10, indexexpr2 5,
    e_expr regen drift/callbackVars, A2/A9 engine slices, fts3* residue
    ~53; `binary format`/`binary scan` + file-write (43 files — the
    format-c piece landed in S35d), the interleaved row-callback step.

@@ -2491,3 +2491,9 @@ everywhere; go vet + go build clean.
   a generated column the index does not carry (`gencol1-23.4`: `b`).
   The synthetic plan node may not name the index (INDEXED BY is only on the
   AST), so collect coverage from BOTH plan scan tails and FROM's IndexedBy.
+- **do_hasfunction_test's `nFunction` is an EXPLAIN-visible engine contract**:
+  scalar result expressions emit one OP_Function per call (arguments first),
+  while aggregates use AggStep/AggFinal and COALESCE/IFNULL/NULLIF use
+  NotNull/String8 jumps. The converter cannot run the initial `db eval
+  EXPLAIN`, so a fixture that bakes `SELECT 0;` is a converter artifact when
+  the engine really has two Function rows (indexexpr3-1.5/1.6).
