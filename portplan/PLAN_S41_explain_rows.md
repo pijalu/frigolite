@@ -363,3 +363,13 @@ mistake). `frigolite_distinctagg_pin_test.go` pins the engine-visible
 EXPLAIN contract. Full gate `/tmp/s44_full.log`: 1164 leaves, distinctagg
 5→0, NEW=0 except the documented temptable2 flake. See
 `portplan/PLAN_S44_distinctagg_explain.md`.
+
+## 2026-11-24 — S45 slice 1: trigger7-2.x closed (6→0)
+
+`internal/execquery/explain_trigger_rows.go` renders firing UPDATE OF
+trigger sub-programs into the synthetic EXPLAIN stream; the converter now
+emits a runtime `string match` assertion for a trailing do_test command
+that matches a captured `db eval` value, and the harness command layer
+dispatches `string match` through the converter's Tcl matcher. Full gate
+`/tmp/s45_full.log`: 1158 leaves, trigger7 6→0, NEW=0. See
+`portplan/PLAN_S45_trigger7_explain.md`.

@@ -8,7 +8,7 @@
 
 `close all gaps with sqlite — functional first, then performance.`
 
-## State (2026-11-24, feature/perf @ 24a7f47ff — S43 slices 1-6 + S44 slice 1 landed: bestindexE, bestindexF-1.4.1, distinctagg 5→0; FULL gate 1164, NEW=0 vs prior gate except the documented temp flake)
+## State (2026-11-24, feature/perf @ 19bf35f6c — S43 slices 1-6 + S44 + S45 slice 1 landed: bestindexE, bestindexF-1.4.1, distinctagg 5→0, trigger7 6→0; FULL gate 1158, NEW=0 vs prior gate)
 
 Full-suite truth **1190 failing leaves** (the s35g gate baseline
 portplan/baselines/s35g_gate_fails.txt minus the three walfault leaves
@@ -249,10 +249,12 @@ portplan/baselines/s35g_gate_fails.txt.)
    green). **bestindexE 6→0; bestindexF-1.4.1 GONE**; the bestindex residue
    = 7 leaves (F: 2.8.0/2.8.1/2.9.0/2.9.1/2.10.0, the converter's
    machinery-placement class + bestindex1-3.4/3.5, both carded).
-3b. **S44** (S41 residuals): slice 1 DELIVERED — distinctagg 5→0 via
-   aggregate-DISTINCT `OpenEphemeral` EXPLAIN rows (WHERE_DISTINCTBY /
-   isDistinctRedundant parity) + a native pin test. NEXT: the S41
-   residuals (trigger7-2.x sub-program rows, misc3-6.11-utf8).
+3b. **S44/S45** (S41 residuals): S44 slice 1 DELIVERED — distinctagg
+   5→0 via aggregate-DISTINCT `OpenEphemeral` EXPLAIN rows
+   (WHERE_DISTINCTBY / isDistinctRedundant parity). S45 slice 1
+   DELIVERED — trigger7-2.x 6→0 via firing UPDATE OF trigger sub-program
+   rows in EXPLAIN + a runtime `string match` converter/harness step.
+   NEXT: misc3-6.11-utf8.
 4. **Carded converter classes**: expridx1 fossil 10, indexexpr2/3 11,
    e_expr regen drift/callbackVars, A2/A9 engine slices, the fts3*
    residue ~53.

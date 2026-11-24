@@ -2458,3 +2458,12 @@ everywhere; go vet + go build clean.
   GROUP BY prefix needs no dedup b-tree. GROUP BY columns are an ORDER
   prefix, not equality bindings — treating `GROUP BY b` as `b=const` wrongly
   suppresses the b-tree for `count(DISTINCT a)` (distinctagg-4.2.1).
+- **A do_test body's trailing `string match` over a `db eval` capture is a
+  runtime assertion**: the converter must emit a `runtime_expr` step
+  (`string match <pattern> $var`), not evaluate the glob at conversion time
+  over the runtime marker. The harness command layer dispatches `string`
+  through the converter's Tcl matcher (trigger7-2.x).
+- **EXPLAIN UPDATE includes firing trigger sub-programs**: `UPDATE OF`
+  compiles only triggers whose column list intersects the SET clause;
+  rowid-only updates match neither `OF x` nor `OF y`. The synthetic stream
+  carries each body SELECT literal as a `String8` p4 value.
