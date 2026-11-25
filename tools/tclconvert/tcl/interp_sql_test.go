@@ -611,6 +611,24 @@ do_insert_tests e_insert-1.2 -error {table %s has %d columns but %d values were 
 	}
 }
 
+// TestDoSelectTestsErrorFormatOption pins fts3query's `-errorformat` option:
+// the format string is applied to the function-name field and the step is a
+// catch expectation, not an exec with the function name as its result.
+func TestDoSelectTestsErrorFormatOption(t *testing.T) {
+	i := NewInterp()
+	src := `do_select_tests 5.2 -errorformat {wrong number of arguments to function %s()} {
+  1 "SELECT matchinfo() FROM t2 WHERE t2 MATCH 'history'" matchinfo
+}`
+	if err := i.Execute(src); err != nil {
+		t.Fatal(err)
+	}
+	stmts := i.Stmts()
+	want := "1 {wrong number of arguments to function matchinfo()}"
+	if len(stmts) != 1 || stmts[0].Type != "catch" || stmts[0].Expected != want {
+		t.Fatalf("errorformat expectation = %#v, want %q", stmts, want)
+	}
+}
+
 func TestTopLevelDBEvalCapturesSetupSQL(t *testing.T) {
 	i := NewInterp()
 	src := `db eval {

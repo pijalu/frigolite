@@ -67,3 +67,27 @@ func TestExprFloatFormatting(t *testing.T) {
 		}
 	}
 }
+
+// TestExprInt64MinFromUnaryMinus pins TCL's bignum boundary: the positive
+// magnitude 9223372036854775808 overflows int64, but its negation is the
+// valid int64 minimum used by fts3query's SMALLINT rowid setup.
+func TestExprInt64MinFromUnaryMinus(t *testing.T) {
+	i := NewInterp()
+	for expr, want := range map[string]string{
+		"-9223372036854775808":     "-9223372036854775808",
+		"0 + -9223372036854775808": "-9223372036854775808",
+		"1 + -9223372036854775808": "-9223372036854775807",
+	} {
+		got, err := EvalExpr(expr, i, nil)
+		if err != nil {
+			t.Fatalf("EvalExpr(%q): %v", expr, err)
+		}
+		if got != want {
+			t.Errorf("EvalExpr(%q) = %q, want %q", expr, got, want)
+		}
+	}
+	lit, ok := exprNumericLiteral("-9223372036854775808")
+	if !ok || lit != "-9223372036854775808" {
+		t.Fatalf("exprNumericLiteral(int64 min) = %q, %v", lit, ok)
+	}
+}

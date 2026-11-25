@@ -9,6 +9,8 @@ import (
 	"unicode"
 )
 
+const minInt64Magnitude = 9223372036854775808.0
+
 // EvalExpr evaluates a TCL expression string.
 // Supports: arithmetic (+,-,*,/,%), comparison (<,>,<=,>=,==,!=),
 // logical (&&,||,!), string comparison (eq, ne), parentheses,
@@ -393,8 +395,15 @@ func (p *exprParser) parseUnary() (interface{}, error) {
 		if err != nil {
 			return nil, err
 		}
-		if iv, ok := numOperand(val).(int64); ok {
+		operand := numOperand(val)
+		if iv, ok := operand.(int64); ok {
 			return -iv, nil
+		}
+		// TCL integers are bignums; the only magnitude that overflows
+		// int64 in this parser's model is the positive half of the
+		// int64 range, which `-` turns into math.MinInt64.
+		if fv, ok := operand.(float64); ok && fv == minInt64Magnitude {
+			return int64(-1 << 63), nil
 		}
 		return -toFloat(val), nil
 	}

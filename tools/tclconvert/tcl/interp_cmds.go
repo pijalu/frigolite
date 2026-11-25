@@ -1774,10 +1774,13 @@ func commandDoSelectTests(i *Interp, rawWords []rawWord, args []string, localVar
 		case "-error":
 			errorMode = true
 			errorFormat = args[pos+1]
+		case "-errorformat":
+			errorMode = true
+			errorFormat = args[pos+1]
 		case "-repair":
 			repair = args[pos+1]
 		}
-		if args[pos] == "-query" || args[pos] == "-tclquery" || args[pos] == "-repair" || args[pos] == "-error" {
+		if args[pos] == "-query" || args[pos] == "-tclquery" || args[pos] == "-repair" || args[pos] == "-error" || args[pos] == "-errorformat" {
 			pos++
 		}
 	}

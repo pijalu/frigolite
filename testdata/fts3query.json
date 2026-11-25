@@ -4,6 +4,16 @@
   "ordered": true,
   "tests": [
     {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "runtime_expr",
+          "sql": "file dirname $argv0",
+          "variable": "testdir"
+        }
+      ]
+    },
+    {
       "name": "fts3query-1.1",
       "steps": [
         {
@@ -22,7 +32,7 @@
       ]
     },
     {
-      "name": "setup_0",
+      "name": "setup_1",
       "steps": [
         {
           "type": "set_fts3_parens",
@@ -58,7 +68,7 @@
       ]
     },
     {
-      "name": "setup_1",
+      "name": "setup_2",
       "steps": [
         {
           "type": "set_fts3_parens",
@@ -85,7 +95,7 @@
       ]
     },
     {
-      "name": "setup_2",
+      "name": "setup_3",
       "steps": [
         {
           "type": "register_function",
@@ -99,7 +109,8 @@
             "SQLITE_MAX_PAGE_SIZE": "65536",
             "SQLITE_MAX_VARIABLE_NUMBER": "32766",
             "sqlite_fts3_enable_parentheses": "0",
-            "testdir": ".",
+            "tcl_platform(byteOrder)": "littleEndian",
+            "testdir": "$testdir",
             "testprefix": "fts3query"
           },
           "callbackProcs": [
@@ -190,14 +201,14 @@
       "name": "5.2.1",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "SELECT matchinfo() FROM t2 WHERE t2 MATCH 'history'",
-          "expect": "matchinfo"
+          "expect": "1 {wrong number of arguments to function matchinfo()}"
         },
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "SELECT snippet(t2, 1, 2, 3, 4, 5, 6) FROM t2 WHERE t2 MATCH 'history'",
-          "expect": "snippet"
+          "expect": "1 {wrong number of arguments to function snippet()}"
         }
       ]
     },
@@ -205,29 +216,29 @@
       "name": "5.3.1",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "SELECT matchinfo(content) FROM t2 WHERE t2 MATCH 'history'",
-          "expect": "matchinfo"
+          "expect": "1 {illegal first argument to matchinfo}"
         },
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "SELECT offsets(content) FROM t2 WHERE t2 MATCH 'history'",
-          "expect": "offsets"
+          "expect": "1 {illegal first argument to offsets}"
         },
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "SELECT snippet(content) FROM t2 WHERE t2 MATCH 'history'",
-          "expect": "snippet"
+          "expect": "1 {illegal first argument to snippet}"
         },
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "SELECT optimize(content) FROM t2 WHERE t2 MATCH 'history'",
-          "expect": "optimize"
+          "expect": "1 {illegal first argument to optimize}"
         }
       ]
     },
     {
-      "name": "setup_3",
+      "name": "setup_4",
       "steps": [
         {
           "type": "defensive",
@@ -248,24 +259,24 @@
       "name": "5.4.1",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "SELECT matchinfo(content) FROM t2 WHERE t2 MATCH 'history'",
-          "expect": "matchinfo"
+          "expect": "1 {illegal first argument to matchinfo}"
         },
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "SELECT offsets(content) FROM t2 WHERE t2 MATCH 'history'",
-          "expect": "offsets"
+          "expect": "1 {illegal first argument to offsets}"
         },
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "SELECT snippet(content) FROM t2 WHERE t2 MATCH 'history'",
-          "expect": "snippet"
+          "expect": "1 {illegal first argument to snippet}"
         },
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "SELECT optimize(content) FROM t2 WHERE t2 MATCH 'history'",
-          "expect": "optimize"
+          "expect": "1 {illegal first argument to optimize}"
         }
       ]
     },
@@ -750,14 +761,404 @@
           "sql": "INSERT INTO ft4(rowid, x) VALUES(99, 'x y z');\n          INSERT INTO  t4(rowid, x) VALUES(99, 'x y z');"
         },
         {
-          "repeatCount": 100,
-          "repeatBody": [
-            {
-              "type": "exec",
-              "sql": "INSERT INTO ft4(rowid, x) VALUES(-9.223372036854776e+18, 'x y z');\n          INSERT INTO  t4(rowid, x) VALUES(-9.223372036854776e+18, 'x y z');"
-            }
-          ],
-          "type": "repeat"
+          "type": "exec",
+          "sql": "INSERT INTO ft4(rowid, x) VALUES(-9223372036854775808, 'x y z');\n          INSERT INTO  t4(rowid, x) VALUES(-9223372036854775808, 'x y z');"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft4(rowid, x) VALUES(-9223372036854775807, 'x y z');\n          INSERT INTO  t4(rowid, x) VALUES(-9223372036854775807, 'x y z');"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft4(rowid, x) VALUES(-9223372036854775806, 'x y z');\n          INSERT INTO  t4(rowid, x) VALUES(-9223372036854775806, 'x y z');"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft4(rowid, x) VALUES(-9223372036854775805, 'x y z');\n          INSERT INTO  t4(rowid, x) VALUES(-9223372036854775805, 'x y z');"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft4(rowid, x) VALUES(-9223372036854775804, 'x y z');\n          INSERT INTO  t4(rowid, x) VALUES(-9223372036854775804, 'x y z');"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft4(rowid, x) VALUES(-9223372036854775803, 'x y z');\n          INSERT INTO  t4(rowid, x) VALUES(-9223372036854775803, 'x y z');"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft4(rowid, x) VALUES(-9223372036854775802, 'x y z');\n          INSERT INTO  t4(rowid, x) VALUES(-9223372036854775802, 'x y z');"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft4(rowid, x) VALUES(-9223372036854775801, 'x y z');\n          INSERT INTO  t4(rowid, x) VALUES(-9223372036854775801, 'x y z');"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft4(rowid, x) VALUES(-9223372036854775800, 'x y z');\n          INSERT INTO  t4(rowid, x) VALUES(-9223372036854775800, 'x y z');"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft4(rowid, x) VALUES(-9223372036854775799, 'x y z');\n          INSERT INTO  t4(rowid, x) VALUES(-9223372036854775799, 'x y z');"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft4(rowid, x) VALUES(-9223372036854775798, 'x y z');\n          INSERT INTO  t4(rowid, x) VALUES(-9223372036854775798, 'x y z');"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft4(rowid, x) VALUES(-9223372036854775797, 'x y z');\n          INSERT INTO  t4(rowid, x) VALUES(-9223372036854775797, 'x y z');"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft4(rowid, x) VALUES(-9223372036854775796, 'x y z');\n          INSERT INTO  t4(rowid, x) VALUES(-9223372036854775796, 'x y z');"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft4(rowid, x) VALUES(-9223372036854775795, 'x y z');\n          INSERT INTO  t4(rowid, x) VALUES(-9223372036854775795, 'x y z');"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft4(rowid, x) VALUES(-9223372036854775794, 'x y z');\n          INSERT INTO  t4(rowid, x) VALUES(-9223372036854775794, 'x y z');"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft4(rowid, x) VALUES(-9223372036854775793, 'x y z');\n          INSERT INTO  t4(rowid, x) VALUES(-9223372036854775793, 'x y z');"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft4(rowid, x) VALUES(-9223372036854775792, 'x y z');\n          INSERT INTO  t4(rowid, x) VALUES(-9223372036854775792, 'x y z');"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft4(rowid, x) VALUES(-9223372036854775791, 'x y z');\n          INSERT INTO  t4(rowid, x) VALUES(-9223372036854775791, 'x y z');"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft4(rowid, x) VALUES(-9223372036854775790, 'x y z');\n          INSERT INTO  t4(rowid, x) VALUES(-9223372036854775790, 'x y z');"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft4(rowid, x) VALUES(-9223372036854775789, 'x y z');\n          INSERT INTO  t4(rowid, x) VALUES(-9223372036854775789, 'x y z');"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft4(rowid, x) VALUES(-9223372036854775788, 'x y z');\n          INSERT INTO  t4(rowid, x) VALUES(-9223372036854775788, 'x y z');"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft4(rowid, x) VALUES(-9223372036854775787, 'x y z');\n          INSERT INTO  t4(rowid, x) VALUES(-9223372036854775787, 'x y z');"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft4(rowid, x) VALUES(-9223372036854775786, 'x y z');\n          INSERT INTO  t4(rowid, x) VALUES(-9223372036854775786, 'x y z');"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft4(rowid, x) VALUES(-9223372036854775785, 'x y z');\n          INSERT INTO  t4(rowid, x) VALUES(-9223372036854775785, 'x y z');"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft4(rowid, x) VALUES(-9223372036854775784, 'x y z');\n          INSERT INTO  t4(rowid, x) VALUES(-9223372036854775784, 'x y z');"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft4(rowid, x) VALUES(-9223372036854775783, 'x y z');\n          INSERT INTO  t4(rowid, x) VALUES(-9223372036854775783, 'x y z');"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft4(rowid, x) VALUES(-9223372036854775782, 'x y z');\n          INSERT INTO  t4(rowid, x) VALUES(-9223372036854775782, 'x y z');"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft4(rowid, x) VALUES(-9223372036854775781, 'x y z');\n          INSERT INTO  t4(rowid, x) VALUES(-9223372036854775781, 'x y z');"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft4(rowid, x) VALUES(-9223372036854775780, 'x y z');\n          INSERT INTO  t4(rowid, x) VALUES(-9223372036854775780, 'x y z');"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft4(rowid, x) VALUES(-9223372036854775779, 'x y z');\n          INSERT INTO  t4(rowid, x) VALUES(-9223372036854775779, 'x y z');"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft4(rowid, x) VALUES(-9223372036854775778, 'x y z');\n          INSERT INTO  t4(rowid, x) VALUES(-9223372036854775778, 'x y z');"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft4(rowid, x) VALUES(-9223372036854775777, 'x y z');\n          INSERT INTO  t4(rowid, x) VALUES(-9223372036854775777, 'x y z');"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft4(rowid, x) VALUES(-9223372036854775776, 'x y z');\n          INSERT INTO  t4(rowid, x) VALUES(-9223372036854775776, 'x y z');"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft4(rowid, x) VALUES(-9223372036854775775, 'x y z');\n          INSERT INTO  t4(rowid, x) VALUES(-9223372036854775775, 'x y z');"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft4(rowid, x) VALUES(-9223372036854775774, 'x y z');\n          INSERT INTO  t4(rowid, x) VALUES(-9223372036854775774, 'x y z');"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft4(rowid, x) VALUES(-9223372036854775773, 'x y z');\n          INSERT INTO  t4(rowid, x) VALUES(-9223372036854775773, 'x y z');"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft4(rowid, x) VALUES(-9223372036854775772, 'x y z');\n          INSERT INTO  t4(rowid, x) VALUES(-9223372036854775772, 'x y z');"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft4(rowid, x) VALUES(-9223372036854775771, 'x y z');\n          INSERT INTO  t4(rowid, x) VALUES(-9223372036854775771, 'x y z');"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft4(rowid, x) VALUES(-9223372036854775770, 'x y z');\n          INSERT INTO  t4(rowid, x) VALUES(-9223372036854775770, 'x y z');"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft4(rowid, x) VALUES(-9223372036854775769, 'x y z');\n          INSERT INTO  t4(rowid, x) VALUES(-9223372036854775769, 'x y z');"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft4(rowid, x) VALUES(-9223372036854775768, 'x y z');\n          INSERT INTO  t4(rowid, x) VALUES(-9223372036854775768, 'x y z');"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft4(rowid, x) VALUES(-9223372036854775767, 'x y z');\n          INSERT INTO  t4(rowid, x) VALUES(-9223372036854775767, 'x y z');"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft4(rowid, x) VALUES(-9223372036854775766, 'x y z');\n          INSERT INTO  t4(rowid, x) VALUES(-9223372036854775766, 'x y z');"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft4(rowid, x) VALUES(-9223372036854775765, 'x y z');\n          INSERT INTO  t4(rowid, x) VALUES(-9223372036854775765, 'x y z');"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft4(rowid, x) VALUES(-9223372036854775764, 'x y z');\n          INSERT INTO  t4(rowid, x) VALUES(-9223372036854775764, 'x y z');"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft4(rowid, x) VALUES(-9223372036854775763, 'x y z');\n          INSERT INTO  t4(rowid, x) VALUES(-9223372036854775763, 'x y z');"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft4(rowid, x) VALUES(-9223372036854775762, 'x y z');\n          INSERT INTO  t4(rowid, x) VALUES(-9223372036854775762, 'x y z');"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft4(rowid, x) VALUES(-9223372036854775761, 'x y z');\n          INSERT INTO  t4(rowid, x) VALUES(-9223372036854775761, 'x y z');"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft4(rowid, x) VALUES(-9223372036854775760, 'x y z');\n          INSERT INTO  t4(rowid, x) VALUES(-9223372036854775760, 'x y z');"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft4(rowid, x) VALUES(-9223372036854775759, 'x y z');\n          INSERT INTO  t4(rowid, x) VALUES(-9223372036854775759, 'x y z');"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft4(rowid, x) VALUES(-9223372036854775758, 'x y z');\n          INSERT INTO  t4(rowid, x) VALUES(-9223372036854775758, 'x y z');"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft4(rowid, x) VALUES(-9223372036854775757, 'x y z');\n          INSERT INTO  t4(rowid, x) VALUES(-9223372036854775757, 'x y z');"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft4(rowid, x) VALUES(-9223372036854775756, 'x y z');\n          INSERT INTO  t4(rowid, x) VALUES(-9223372036854775756, 'x y z');"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft4(rowid, x) VALUES(-9223372036854775755, 'x y z');\n          INSERT INTO  t4(rowid, x) VALUES(-9223372036854775755, 'x y z');"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft4(rowid, x) VALUES(-9223372036854775754, 'x y z');\n          INSERT INTO  t4(rowid, x) VALUES(-9223372036854775754, 'x y z');"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft4(rowid, x) VALUES(-9223372036854775753, 'x y z');\n          INSERT INTO  t4(rowid, x) VALUES(-9223372036854775753, 'x y z');"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft4(rowid, x) VALUES(-9223372036854775752, 'x y z');\n          INSERT INTO  t4(rowid, x) VALUES(-9223372036854775752, 'x y z');"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft4(rowid, x) VALUES(-9223372036854775751, 'x y z');\n          INSERT INTO  t4(rowid, x) VALUES(-9223372036854775751, 'x y z');"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft4(rowid, x) VALUES(-9223372036854775750, 'x y z');\n          INSERT INTO  t4(rowid, x) VALUES(-9223372036854775750, 'x y z');"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft4(rowid, x) VALUES(-9223372036854775749, 'x y z');\n          INSERT INTO  t4(rowid, x) VALUES(-9223372036854775749, 'x y z');"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft4(rowid, x) VALUES(-9223372036854775748, 'x y z');\n          INSERT INTO  t4(rowid, x) VALUES(-9223372036854775748, 'x y z');"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft4(rowid, x) VALUES(-9223372036854775747, 'x y z');\n          INSERT INTO  t4(rowid, x) VALUES(-9223372036854775747, 'x y z');"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft4(rowid, x) VALUES(-9223372036854775746, 'x y z');\n          INSERT INTO  t4(rowid, x) VALUES(-9223372036854775746, 'x y z');"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft4(rowid, x) VALUES(-9223372036854775745, 'x y z');\n          INSERT INTO  t4(rowid, x) VALUES(-9223372036854775745, 'x y z');"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft4(rowid, x) VALUES(-9223372036854775744, 'x y z');\n          INSERT INTO  t4(rowid, x) VALUES(-9223372036854775744, 'x y z');"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft4(rowid, x) VALUES(-9223372036854775743, 'x y z');\n          INSERT INTO  t4(rowid, x) VALUES(-9223372036854775743, 'x y z');"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft4(rowid, x) VALUES(-9223372036854775742, 'x y z');\n          INSERT INTO  t4(rowid, x) VALUES(-9223372036854775742, 'x y z');"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft4(rowid, x) VALUES(-9223372036854775741, 'x y z');\n          INSERT INTO  t4(rowid, x) VALUES(-9223372036854775741, 'x y z');"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft4(rowid, x) VALUES(-9223372036854775740, 'x y z');\n          INSERT INTO  t4(rowid, x) VALUES(-9223372036854775740, 'x y z');"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft4(rowid, x) VALUES(-9223372036854775739, 'x y z');\n          INSERT INTO  t4(rowid, x) VALUES(-9223372036854775739, 'x y z');"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft4(rowid, x) VALUES(-9223372036854775738, 'x y z');\n          INSERT INTO  t4(rowid, x) VALUES(-9223372036854775738, 'x y z');"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft4(rowid, x) VALUES(-9223372036854775737, 'x y z');\n          INSERT INTO  t4(rowid, x) VALUES(-9223372036854775737, 'x y z');"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft4(rowid, x) VALUES(-9223372036854775736, 'x y z');\n          INSERT INTO  t4(rowid, x) VALUES(-9223372036854775736, 'x y z');"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft4(rowid, x) VALUES(-9223372036854775735, 'x y z');\n          INSERT INTO  t4(rowid, x) VALUES(-9223372036854775735, 'x y z');"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft4(rowid, x) VALUES(-9223372036854775734, 'x y z');\n          INSERT INTO  t4(rowid, x) VALUES(-9223372036854775734, 'x y z');"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft4(rowid, x) VALUES(-9223372036854775733, 'x y z');\n          INSERT INTO  t4(rowid, x) VALUES(-9223372036854775733, 'x y z');"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft4(rowid, x) VALUES(-9223372036854775732, 'x y z');\n          INSERT INTO  t4(rowid, x) VALUES(-9223372036854775732, 'x y z');"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft4(rowid, x) VALUES(-9223372036854775731, 'x y z');\n          INSERT INTO  t4(rowid, x) VALUES(-9223372036854775731, 'x y z');"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft4(rowid, x) VALUES(-9223372036854775730, 'x y z');\n          INSERT INTO  t4(rowid, x) VALUES(-9223372036854775730, 'x y z');"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft4(rowid, x) VALUES(-9223372036854775729, 'x y z');\n          INSERT INTO  t4(rowid, x) VALUES(-9223372036854775729, 'x y z');"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft4(rowid, x) VALUES(-9223372036854775728, 'x y z');\n          INSERT INTO  t4(rowid, x) VALUES(-9223372036854775728, 'x y z');"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft4(rowid, x) VALUES(-9223372036854775727, 'x y z');\n          INSERT INTO  t4(rowid, x) VALUES(-9223372036854775727, 'x y z');"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft4(rowid, x) VALUES(-9223372036854775726, 'x y z');\n          INSERT INTO  t4(rowid, x) VALUES(-9223372036854775726, 'x y z');"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft4(rowid, x) VALUES(-9223372036854775725, 'x y z');\n          INSERT INTO  t4(rowid, x) VALUES(-9223372036854775725, 'x y z');"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft4(rowid, x) VALUES(-9223372036854775724, 'x y z');\n          INSERT INTO  t4(rowid, x) VALUES(-9223372036854775724, 'x y z');"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft4(rowid, x) VALUES(-9223372036854775723, 'x y z');\n          INSERT INTO  t4(rowid, x) VALUES(-9223372036854775723, 'x y z');"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft4(rowid, x) VALUES(-9223372036854775722, 'x y z');\n          INSERT INTO  t4(rowid, x) VALUES(-9223372036854775722, 'x y z');"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft4(rowid, x) VALUES(-9223372036854775721, 'x y z');\n          INSERT INTO  t4(rowid, x) VALUES(-9223372036854775721, 'x y z');"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft4(rowid, x) VALUES(-9223372036854775720, 'x y z');\n          INSERT INTO  t4(rowid, x) VALUES(-9223372036854775720, 'x y z');"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft4(rowid, x) VALUES(-9223372036854775719, 'x y z');\n          INSERT INTO  t4(rowid, x) VALUES(-9223372036854775719, 'x y z');"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft4(rowid, x) VALUES(-9223372036854775718, 'x y z');\n          INSERT INTO  t4(rowid, x) VALUES(-9223372036854775718, 'x y z');"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft4(rowid, x) VALUES(-9223372036854775717, 'x y z');\n          INSERT INTO  t4(rowid, x) VALUES(-9223372036854775717, 'x y z');"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft4(rowid, x) VALUES(-9223372036854775716, 'x y z');\n          INSERT INTO  t4(rowid, x) VALUES(-9223372036854775716, 'x y z');"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft4(rowid, x) VALUES(-9223372036854775715, 'x y z');\n          INSERT INTO  t4(rowid, x) VALUES(-9223372036854775715, 'x y z');"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft4(rowid, x) VALUES(-9223372036854775714, 'x y z');\n          INSERT INTO  t4(rowid, x) VALUES(-9223372036854775714, 'x y z');"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft4(rowid, x) VALUES(-9223372036854775713, 'x y z');\n          INSERT INTO  t4(rowid, x) VALUES(-9223372036854775713, 'x y z');"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft4(rowid, x) VALUES(-9223372036854775712, 'x y z');\n          INSERT INTO  t4(rowid, x) VALUES(-9223372036854775712, 'x y z');"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft4(rowid, x) VALUES(-9223372036854775711, 'x y z');\n          INSERT INTO  t4(rowid, x) VALUES(-9223372036854775711, 'x y z');"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft4(rowid, x) VALUES(-9223372036854775710, 'x y z');\n          INSERT INTO  t4(rowid, x) VALUES(-9223372036854775710, 'x y z');"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft4(rowid, x) VALUES(-9223372036854775709, 'x y z');\n          INSERT INTO  t4(rowid, x) VALUES(-9223372036854775709, 'x y z');"
         },
         {
           "type": "exec",
@@ -1162,13 +1563,13 @@
       ]
     },
     {
-      "name": "setup_4",
+      "name": "setup_5",
       "steps": [
         {
           "type": "query_assign",
           "sql": "SELECT rowid FROM t4 WHERE rowid BETWEEN 5 AND 10",
           "variable": "res",
-          "resultAll": true
+          "resultFlat": true
         }
       ]
     },
@@ -1183,13 +1584,13 @@
       ]
     },
     {
-      "name": "setup_5",
+      "name": "setup_6",
       "steps": [
         {
           "type": "query_assign",
           "sql": "SELECT rowid FROM t4 WHERE rowid BETWEEN 5 AND 10 \n     ORDER BY +rowid DESC",
           "variable": "res",
-          "resultAll": true
+          "resultFlat": true
         }
       ]
     },
@@ -1204,13 +1605,13 @@
       ]
     },
     {
-      "name": "setup_6",
+      "name": "setup_7",
       "steps": [
         {
           "type": "query_assign",
-          "sql": "SELECT rowid FROM t4 WHERE rowid BETWEEN -9223372036854775808 AND -9.223372036854776e+18",
+          "sql": "SELECT rowid FROM t4 WHERE rowid BETWEEN -9223372036854775808 AND -9223372036854775803",
           "variable": "res",
-          "resultAll": true
+          "resultFlat": true
         }
       ]
     },
@@ -1219,28 +1620,7 @@
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT rowid FROM ft4 WHERE rowid BETWEEN -9223372036854775808 AND -9.223372036854776e+18",
-          "expectedExpr": "$res"
-        }
-      ]
-    },
-    {
-      "name": "setup_7",
-      "steps": [
-        {
-          "type": "query_assign",
-          "sql": "SELECT rowid FROM t4 WHERE rowid BETWEEN -9223372036854775808 AND -9.223372036854776e+18 \n     ORDER BY +rowid DESC",
-          "variable": "res",
-          "resultAll": true
-        }
-      ]
-    },
-    {
-      "name": "fts3query-7.2.2.2.1",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT rowid FROM ft4 WHERE rowid BETWEEN -9223372036854775808 AND -9.223372036854776e+18\n    ORDER BY rowid DESC",
+          "sql": "SELECT rowid FROM ft4 WHERE rowid BETWEEN -9223372036854775808 AND -9223372036854775803",
           "expectedExpr": "$res"
         }
       ]
@@ -1250,18 +1630,18 @@
       "steps": [
         {
           "type": "query_assign",
-          "sql": "SELECT rowid FROM t4 WHERE rowid BETWEEN -9223372036854775808 AND -9.223372036854776e+18",
+          "sql": "SELECT rowid FROM t4 WHERE rowid BETWEEN -9223372036854775808 AND -9223372036854775803 \n     ORDER BY +rowid DESC",
           "variable": "res",
-          "resultAll": true
+          "resultFlat": true
         }
       ]
     },
     {
-      "name": "fts3query-7.2.3.1.1",
+      "name": "fts3query-7.2.2.2.1",
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT rowid FROM ft4 WHERE rowid BETWEEN -9223372036854775808 AND -9.223372036854776e+18",
+          "sql": "SELECT rowid FROM ft4 WHERE rowid BETWEEN -9223372036854775808 AND -9223372036854775803\n    ORDER BY rowid DESC",
           "expectedExpr": "$res"
         }
       ]
@@ -1271,18 +1651,18 @@
       "steps": [
         {
           "type": "query_assign",
-          "sql": "SELECT rowid FROM t4 WHERE rowid BETWEEN -9223372036854775808 AND -9.223372036854776e+18 \n     ORDER BY +rowid DESC",
+          "sql": "SELECT rowid FROM t4 WHERE rowid BETWEEN -9223372036854775808 AND -9223372036854775758",
           "variable": "res",
-          "resultAll": true
+          "resultFlat": true
         }
       ]
     },
     {
-      "name": "fts3query-7.2.3.2.1",
+      "name": "fts3query-7.2.3.1.1",
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT rowid FROM ft4 WHERE rowid BETWEEN -9223372036854775808 AND -9.223372036854776e+18\n    ORDER BY rowid DESC",
+          "sql": "SELECT rowid FROM ft4 WHERE rowid BETWEEN -9223372036854775808 AND -9223372036854775758",
           "expectedExpr": "$res"
         }
       ]
@@ -1292,9 +1672,30 @@
       "steps": [
         {
           "type": "query_assign",
+          "sql": "SELECT rowid FROM t4 WHERE rowid BETWEEN -9223372036854775808 AND -9223372036854775758 \n     ORDER BY +rowid DESC",
+          "variable": "res",
+          "resultFlat": true
+        }
+      ]
+    },
+    {
+      "name": "fts3query-7.2.3.2.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT rowid FROM ft4 WHERE rowid BETWEEN -9223372036854775808 AND -9223372036854775758\n    ORDER BY rowid DESC",
+          "expectedExpr": "$res"
+        }
+      ]
+    },
+    {
+      "name": "setup_11",
+      "steps": [
+        {
+          "type": "query_assign",
           "sql": "SELECT rowid FROM t4 WHERE rowid BETWEEN 9223372036854775802 AND 9223372036854775807",
           "variable": "res",
-          "resultAll": true
+          "resultFlat": true
         }
       ]
     },
@@ -1309,13 +1710,13 @@
       ]
     },
     {
-      "name": "setup_11",
+      "name": "setup_12",
       "steps": [
         {
           "type": "query_assign",
           "sql": "SELECT rowid FROM t4 WHERE rowid BETWEEN 9223372036854775802 AND 9223372036854775807 \n     ORDER BY +rowid DESC",
           "variable": "res",
-          "resultAll": true
+          "resultFlat": true
         }
       ]
     },
@@ -1330,13 +1731,13 @@
       ]
     },
     {
-      "name": "setup_12",
+      "name": "setup_13",
       "steps": [
         {
           "type": "query_assign",
           "sql": "SELECT rowid FROM t4 WHERE rowid BETWEEN 9223372036854775807 AND 9223372036854775807",
           "variable": "res",
-          "resultAll": true
+          "resultFlat": true
         }
       ]
     },
@@ -1351,13 +1752,13 @@
       ]
     },
     {
-      "name": "setup_13",
+      "name": "setup_14",
       "steps": [
         {
           "type": "query_assign",
           "sql": "SELECT rowid FROM t4 WHERE rowid BETWEEN 9223372036854775807 AND 9223372036854775807 \n     ORDER BY +rowid DESC",
           "variable": "res",
-          "resultAll": true
+          "resultFlat": true
         }
       ]
     },
@@ -1372,13 +1773,13 @@
       ]
     },
     {
-      "name": "setup_14",
+      "name": "setup_15",
       "steps": [
         {
           "type": "query_assign",
           "sql": "SELECT rowid FROM t4 WHERE rowid BETWEEN -9223372036854775808 AND 9223372036854775807",
           "variable": "res",
-          "resultAll": true
+          "resultFlat": true
         }
       ]
     },
@@ -1393,13 +1794,13 @@
       ]
     },
     {
-      "name": "setup_15",
+      "name": "setup_16",
       "steps": [
         {
           "type": "query_assign",
           "sql": "SELECT rowid FROM t4 WHERE rowid BETWEEN -9223372036854775808 AND 9223372036854775807 \n     ORDER BY +rowid DESC",
           "variable": "res",
-          "resultAll": true
+          "resultFlat": true
         }
       ]
     },
@@ -1414,13 +1815,13 @@
       ]
     },
     {
-      "name": "setup_16",
+      "name": "setup_17",
       "steps": [
         {
           "type": "query_assign",
           "sql": "SELECT rowid FROM t4 WHERE rowid BETWEEN -9223372036854775808 AND -9223372036854775808",
           "variable": "res",
-          "resultAll": true
+          "resultFlat": true
         }
       ]
     },
@@ -1435,13 +1836,13 @@
       ]
     },
     {
-      "name": "setup_17",
+      "name": "setup_18",
       "steps": [
         {
           "type": "query_assign",
           "sql": "SELECT rowid FROM t4 WHERE rowid BETWEEN -9223372036854775808 AND -9223372036854775808 \n     ORDER BY +rowid DESC",
           "variable": "res",
-          "resultAll": true
+          "resultFlat": true
         }
       ]
     },
@@ -1456,13 +1857,13 @@
       ]
     },
     {
-      "name": "setup_18",
+      "name": "setup_19",
       "steps": [
         {
           "type": "query_assign",
           "sql": "SELECT rowid FROM t4 WHERE rowid BETWEEN 9223372036854775807 AND -9223372036854775808",
           "variable": "res",
-          "resultAll": true
+          "resultFlat": true
         }
       ]
     },
@@ -1477,13 +1878,13 @@
       ]
     },
     {
-      "name": "setup_19",
+      "name": "setup_20",
       "steps": [
         {
           "type": "query_assign",
           "sql": "SELECT rowid FROM t4 WHERE rowid BETWEEN 9223372036854775807 AND -9223372036854775808 \n     ORDER BY +rowid DESC",
           "variable": "res",
-          "resultAll": true
+          "resultFlat": true
         }
       ]
     },
@@ -1498,7 +1899,7 @@
       ]
     },
     {
-      "name": "setup_20",
+      "name": "setup_21",
       "steps": [
         {
           "repeatCount": 2,
@@ -1514,25 +1915,25 @@
           "type": "query_assign",
           "sql": "SELECT rowid FROM t4 WHERE rowid \u003e ''",
           "variable": "res1",
-          "resultAll": true
+          "resultFlat": true
         },
         {
           "type": "query_assign",
           "sql": "SELECT rowid FROM t4 WHERE rowid \u003c ''",
           "variable": "res2",
-          "resultAll": true
+          "resultFlat": true
         },
         {
           "type": "query_assign",
           "sql": "SELECT rowid FROM t4 WHERE rowid \u003e '' ORDER BY +rowid DESC",
           "variable": "res1s",
-          "resultAll": true
+          "resultFlat": true
         },
         {
           "type": "query_assign",
           "sql": "SELECT rowid FROM t4 WHERE rowid \u003c '' ORDER BY +rowid DESC",
           "variable": "res2s",
-          "resultAll": true
+          "resultFlat": true
         }
       ]
     },

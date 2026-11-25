@@ -232,11 +232,15 @@ func (c *exprClone) insertValue(expr sql.Expr) (sql.Expr, interface{}, error) {
 		// Non-value expression — keep original
 		return expr, nil, nil
 	}
+	lit, numericSlot := expr.(*sql.NumericLit)
 	if c.idx >= len(c.values) {
 		return nil, nil, fmt.Errorf("template cache: not enough values (need %d, have %d)", len(c.values), c.idx+1)
 	}
 	val := c.values[c.idx]
 	c.idx++
+	if numericSlot && !numericSlotValueAllowed(lit.Value, val) {
+		return nil, nil, fmt.Errorf("template clone: numeric slot shape refused")
+	}
 	switch v := val.(type) {
 	case int64:
 		return sql.NewIntLit(v), nil, nil
@@ -250,6 +254,20 @@ func (c *exprClone) insertValue(expr sql.Expr) (sql.Expr, interface{}, error) {
 		return &sql.StringLit{Value: v}, nil, nil
 	}
 	return expr, nil, nil // keep original
+}
+
+// numericSlotValueAllowed reports whether a normalized value can be written
+// into a NumericLit slot without changing the shape a fresh parse would
+// produce. Signed/hex slot text loses information in normalizeScan's unsigned
+// extraction; the exact 2^63 double is ambiguous with a folded minint literal.
+func numericSlotValueAllowed(spelling string, val interface{}) bool {
+	if !numericSlotShapeOK(spelling) {
+		return false
+	}
+	if f, ok := val.(float64); ok {
+		return !isAmbiguousReal(f)
+	}
+	return true
 }
 
 // Prepare parses and caches a SQL statement. Repeated calls with the same SQL

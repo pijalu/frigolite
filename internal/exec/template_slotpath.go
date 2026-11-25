@@ -456,15 +456,33 @@ func (sc *slotCollector) collectInsertTuples(values [][]sql.Expr) bool {
 			return false
 		}
 		for vi, expr := range tuple {
-			switch expr.(type) {
-			case *sql.NumericLit, *sql.StringLit:
-				sc.slotTuple(ti, vi, slotInsAny)
-			default:
-				if exprHasLiteral(expr) {
-					sc.ok = false
-					return false
-				}
+			if !sc.collectInsertTupleItem(ti, vi, expr) {
+				return false
 			}
+		}
+	}
+	return true
+}
+
+// collectInsertTupleItem records one direct VALUES item when its spelling is
+// substitutable. Folded signed and hex numeric literals keep the template
+// COW-only: normalizeScan extracts only an unsigned magnitude, so the same
+// normalized shape also serves an unfolded unary minus and substitution into
+// the folded slot would erase the sign (rowid boundary INSERTs).
+func (sc *slotCollector) collectInsertTupleItem(ti, vi int, expr sql.Expr) bool {
+	switch v := expr.(type) {
+	case *sql.NumericLit:
+		if !numericSlotShapeOK(v.Value) {
+			sc.ok = false
+			return false
+		}
+		sc.slotTuple(ti, vi, slotInsAny)
+	case *sql.StringLit:
+		sc.slotTuple(ti, vi, slotInsAny)
+	default:
+		if exprHasLiteral(expr) {
+			sc.ok = false
+			return false
 		}
 	}
 	return true
@@ -560,13 +578,22 @@ func (sc *slotCollector) expr(e sql.Expr) {
 // every value (the COW numeric() gate), keeping the template COW-only.
 func (sc *slotCollector) numericSlot(v *sql.NumericLit) {
 	switch {
-	case isDecimalSlot(v.Value):
-		sc.slot(slotInt)
-	case isRealSlot(v.Value):
-		sc.slot(slotReal)
+	case numericSlotShapeOK(v.Value):
+		if isDecimalSlot(v.Value) {
+			sc.slot(slotInt)
+		} else {
+			sc.slot(slotReal)
+		}
 	default:
 		sc.ok = false
 	}
+}
+
+// numericSlotShapeOK reports whether a NumericLit spelling can serve as a
+// substitutable slot. Signed (parser-folded) and hex literals lose information
+// in normalizeScan's unsigned extraction, so they must take the COW path.
+func numericSlotShapeOK(text string) bool {
+	return isDecimalSlot(text) || isRealSlot(text)
 }
 
 // funcCallSlots walks a function call's arguments, FILTER and ORDER BY (the

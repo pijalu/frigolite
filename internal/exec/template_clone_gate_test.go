@@ -127,6 +127,27 @@ func TestTemplateCloneGateRefusals(t *testing.T) {
 	}
 }
 
+// TestTemplateInsertFoldedSlotRefused pins that a parser-folded negative
+// INSERT tuple literal is not a substitutable template slot. normalizeScan
+// extracts only the unsigned magnitude, so the same normalized shape also
+// serves an unfolded unary minus; substituting into the folded slot would
+// erase the sign and store a positive rowid.
+func TestTemplateInsertFoldedSlotRefused(t *testing.T) {
+	const template = `INSERT INTO t(rowid, x) VALUES(-9223372036854775808, 'a')`
+	const stmt = `INSERT INTO t(rowid, x) VALUES(-9223372036854775807, 'b')`
+	values := parseGateTemplate(t, template, stmt)
+	stmts, err := parse.ParseSQL(template)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if slots := collectTemplateSlots(stmts); slots != nil {
+		t.Fatalf("folded tuple slot collected %d paths, want COW-only", len(slots.paths))
+	}
+	if _, ok := cloneStmtsWithValues(stmts, values); ok {
+		t.Fatalf("clone accepted values %v (folded slot must force fresh parse)", values)
+	}
+}
+
 // TestTemplateCloneGateFloatSlotText pins floatSlotText's REAL-kind
 // preservation and the twoPow63 constant.
 func TestTemplateCloneGateFloatSlotText(t *testing.T) {
