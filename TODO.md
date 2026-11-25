@@ -1,6 +1,6 @@
 # TODO — the live restart index
 
-> Details live in **[portplan/HANDOFF_2026-11-25_S54_FTS3COV.md](portplan/HANDOFF_2026-11-25_S54_FTS3COV.md)** —
+> Details live in **[portplan/HANDOFF_2026-11-25_S55_FTS3QUERY.md](portplan/HANDOFF_2026-11-25_S55_FTS3QUERY.md)** —
 > read it first (then the older WAL-residue handoff for the durable baseline
 > methodology). This file is the one-page index; update BOTH when checking
 > items off.
@@ -9,7 +9,7 @@
 
 `close all gaps with sqlite — functional first, then performance.`
 
-## State (2026-11-25, feature/perf @ b140ccfa7 — S43 slices 1-6 + S44-S54 landed: bestindexE, bestindexF-1.4.1, distinctagg 5→0, trigger7 6→0, misc3 1→0, gencol1 6→5, indexexpr3 2→0, e_expr 2→0, indexexpr2 3→0, starschema1 8→1, expridx1 11→0, TCL binary-scan UDFs 8→0, FTS4 deferred matchinfo 6→0, deferred MATCH 14→0, ICU leaves 3→0, fts4umlaut 12→0, fts3malloc 5→0, fts3cov 2→0; FULL gate only documented flakes vs t10; all other NEW=0)
+## State (2026-11-25, feature/perf @ c02ff098a — S43 slices 1-6 + S44-S55 landed: bestindexE, bestindexF-1.4.1, distinctagg 5→0, trigger7 6→0, misc3 1→0, gencol1 6→5, indexexpr3 2→0, e_expr 2→0, indexexpr2 3→0, starschema1 8→1, expridx1 11→0, TCL binary-scan UDFs 8→0, FTS4 deferred matchinfo 6→0, deferred MATCH 14→0, ICU leaves 3→0, fts4umlaut 12→0, fts3malloc 5→0, fts3cov 2→0, fts3query 11→0; FULL gate NEW=0 vs t10; all other NEW=0)
 
 Full-suite truth **1190 failing leaves** (the s35g gate baseline
 portplan/baselines/s35g_gate_fails.txt minus the three walfault leaves
@@ -325,10 +325,18 @@ portplan/baselines/s35g_gate_fails.txt.)
    (1172.895s, 1286 leaves): GONE=2 vs t17 for fts3cov; the only NEW leaves
    vs t10 are the documented `atof1-2.40` random-dice flake (focused run
    green). Converter failure-name set unchanged vs HEAD; quality NEW=0.
-4. **Engine residue cards**: fts3* residue ~15 (fts3defer2/ICU/fts4umlaut/
-   fts3malloc/fts3cov now 0; fts3query/fts3defer3/fts3auto next); `binary
-   format`/file-write substrate (the format-c and binary-scan i*/I* pieces
-   landed in S35d/S53), the interleaved row-callback step.
+3k. **S55 slice 1 DELIVERED — fts3query 11→0**: `do_select_tests -errorformat`
+   now emits catch expectations and TCL `expr` folds the int64-min boundary.
+   Regenerating the fixture exposed a real template-cache bug: a folded
+   `-9223372036854775808` slot served a positive magnitude on the next
+   same-shape INSERT, flipping boundary rowids. Signed/hex numeric slots now
+   refuse template substitution and force a fresh parse. FULL gate
+   `/tmp/t19_full2.log` (1273 leaves): NEW=0 vs t18 and durable t10; 11
+   fts3query leaves GONE. Converter failure-name set NEW=0; quality NEW=0.
+4. **Engine residue cards**: fts3* residue ~12 (fts3query/fts3defer2/ICU/
+   fts4umlaut/fts3malloc/fts3cov now 0; e_fts3 8, fts3auto 1, fts3defer3 1
+   next); `binary format`/file-write substrate (the format-c and binary-scan
+   i*/I* pieces landed in S35d/S53), the interleaved row-callback step.
 5. **The performance phase** (F1c/F3 lanes in
    GAP_CLOSURE_PLAN_2026-10-31.md) after functional gaps close.
 

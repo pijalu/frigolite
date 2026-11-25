@@ -2636,3 +2636,24 @@ everywhere; go vet + go build clean.
   `read_fts3varint` to `harnessRuntimeCommands` without dispatch (or vice
   versa) leaves expressions unevaluated. `string range` includes the command
   name in its word count (5, not 4).
+- **`do_select_tests -errorformat` is a catch expectation, not a result**: the
+  formatter applies `%s` to the function-name field of each test triple and
+  the harness expects `1 {message}`; treating the field as an exec result hid
+  three fts3query leaves even though Frigolite already returned the right
+  errors.
+- **TCL `expr` has a signed int64 boundary**: `0 + -9223372036854775808` must
+  stay INTEGER MinInt64. Parsing the magnitude first overflows int64 and
+  falls back to float; the unary-minus parser must detect the exact
+  `9223372036854775808` magnitude before that fallback.
+- **Template normalization can erase a structural unary minus**: it extracts
+  only the unsigned digit run, so a parser-folded `-9223372036854775808`
+  `NumericLit` and an unfolded `-9223372036854775807` `UnaryOp` share one
+  normalized shape. Substituting the positive magnitude into the folded slot
+  stored a positive rowid. Signed/hex numeric slots are not substitutable;
+  refuse the clone and full-parse instead of patching rowid handling
+  downstream.
+- **Template slot collectors must not record non-literal tuple items**: NULL
+  and ColumnRef tuple items are not slots. A refactor that moved slot
+  recording after the type switch registered every item, shifted
+  `InsLitVals`, and panicked `stashValues`; changed-package tests must run
+  before a full gate because harness leaves may not cover that shape.
