@@ -988,6 +988,14 @@ func (e *Engine) execEntry(stmt sql.Stmt) *Result {
 	// database" on a connection opened read-only; reads are unaffected
 	// (openv2-1.4/2.2, rdonly).
 	if e.pager != nil && e.pager.ReadOnly() && e.stmtWritesDatabase(stmt) {
+		// C's lockBtree validates the header (magic, payload fractions,
+		// page size) before the open-mode read-only write check: a file
+		// whose junk bytes happen to put byte 18 > 1 is still NOTADB, not
+		// READONLY. The per-statement file checks run later in Exec, so
+		// surface the header error here ahead of this gate.
+		if verr := e.pager.ValidateHeader(); verr != nil {
+			return &Result{Error: verr}
+		}
 		return &Result{Error: fmt.Errorf("attempt to write a readonly database")}
 	}
 	// Cross-connection pager lock matrix (src/pager.c + os_unix.c): another

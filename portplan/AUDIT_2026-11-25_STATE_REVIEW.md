@@ -127,7 +127,7 @@ Evidence keys: `shard-N.log:L` = line in the fresh run dir above; `frigolite_har
 - **C7** (`triggerC-3.3.1`): sqlite3 3.54 also reports `no such table: t3b`; the converted case never creates `t3b`. Converter artifact.
 
 **Fixed**: C4-adjacent `e_select-1.7.4b.1/.2/.3` (derived-table name + collation, commit `5d87ce273`) and F1 (`dbstat` declared column types).
-**Open**: F2 (eager `Open` schema prime vs SQLite's lazy first-statement error), F3 (cross-engine matrix breadth), F4 (WAL residue), P1/P2 perf, Q1/Q2 quality debt.
+**Fixed later**: F2 (junk-header file now reports `file is not a database` on writes, ahead of the READONLY gate; `Open` stays lazy) and F3 (four-shape cross-engine matrix added, both read directions). **F4 reclassified**: the `wal2` residue is dominated by `:6162 runtime variable mismatch` — the converted TCL test expects C `xShmLock` traces (`{4 1 lock exclusive}` …) that Frigolite's in-process VFS does not emit; `wal2-10.1.4/10.2.3` expect `unable to open database file` from a VFS that denies xShm, another harness/VFS observable rather than a SQL result divergence. No SQL row-set/error mismatch was found in the sampled leaves. **Out of scope for this goal**: P1/P2 perf (next queued goal) and Q1/Q2 quality debt.
 
 ## 6. Scope note for follow-up goals
 

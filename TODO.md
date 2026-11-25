@@ -92,6 +92,13 @@ a regression from `ec5683fc4`/`a06dba606`. Result-affecting items come first.
    `eponymousVtabColDefs` copy `ColumnTypeInfo` types into rendered
    `ColumnDef`s. Native pin plus `stat-0.0`/`stat-0.1b` green; full-harness
    result and handoff in `portplan/HANDOFF_2026-11-25_DBSTAT_TYPES.md`.
+1. **DONE — NOTADB write gate + cross-engine matrix**: a junk-header file
+   reported `attempt to write a readonly database` on CREATE/INSERT where
+   sqlite3 reports `file is not a database`; `execEntry` now validates the
+   header ahead of the READONLY gate (`misc5-4.1#01` green, native pin
+   added). Added a four-shape cross-engine file matrix (rowid+overflow,
+   WITHOUT ROWID, indexed, auto_vacuum) with both read directions. Detail:
+   `portplan/HANDOFF_2026-11-25_NOTADB_CROSS_ENGINE.md`.
 1. **DONE — converter unit-test drift**: all 9 `tools/tclconvert` /
    `tools/tclconvert/tcl` failures re-baselined: `runtime_expr` steps
    (collation counter setup, query-assigned handle/value aliases, file-level

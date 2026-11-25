@@ -2983,3 +2983,16 @@ Details: `portplan/HANDOFF_2026-11-25_DERIVED_COLLATION.md`.
   empty type strings where C's `sqlite3_declare_vtab` declares TEXT/INTEGER.
   Keep the type list in the module (mirroring its C schema string) and apply
   it in `eponymousVtabColDefs`.
+
+## Header validation precedes the read-only write gate (2026-11-25)
+
+- C's `lockBtree` validates the header before applying the open-mode
+  read-only write check. Frigolite marked a junk-header file read-only
+  (byte 18 > 1) and returned `attempt to write a readonly database` for
+  CREATE TABLE where SQLite returns `file is not a database`. Call
+  `Pager.ValidateHeader()` ahead of the READONLY gate in `execEntry`.
+- **Lazy open is a file-format contract**: `Open` must succeed on a
+  non-database file; the error belongs to the first statement that needs
+  the schema. Cross-engine coverage should be a matrix (rowid+overflow,
+  WITHOUT ROWID, indexed, auto_vacuum) with both read directions, not one
+  shape. Details: `portplan/HANDOFF_2026-11-25_NOTADB_CROSS_ENGINE.md`.
