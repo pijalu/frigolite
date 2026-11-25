@@ -2974,3 +2974,12 @@ the inherited collation, not just affinity.
 text in sqlite3 3.54 (or lack setup steps in the converted fixture); they
 are converter artifacts, not engine bugs. Compare native + oracle first.
 Details: `portplan/HANDOFF_2026-11-25_DERIVED_COLLATION.md`.
+
+## Virtual-table declared types reach PRAGMA table_info (2026-11-25)
+
+- A vtab that implements `ColumnTypeInfo` is not enough: the `PRAGMA
+  table_info` materializer must copy those declared types into the
+  `ColumnDef`s it renders. Eponymous modules (dbstat) previously exposed
+  empty type strings where C's `sqlite3_declare_vtab` declares TEXT/INTEGER.
+  Keep the type list in the module (mirroring its C schema string) and apply
+  it in `eponymousVtabColDefs`.

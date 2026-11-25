@@ -269,6 +269,18 @@ func (e *Engine) eponymousVtabColDefs(tableName string) (colDefs []sql.ColumnDef
 		}
 		colDefs = append(colDefs, cd)
 	}
+	// An eponymous module's sqlite3_declare_vtab types are the PRAGMA
+	// table_info column types (dbstat.c zDbstatSchema: TEXT/INTEGER,
+	// hidden schema TEXT and aggregate BOOLEAN). Without this the types
+	// render as empty strings where SQLite reports the declarations.
+	if ti, ok := vt.(vtab.ColumnTypeInfo); ok {
+		types := ti.ColumnTypes()
+		for i := range colDefs {
+			if i < len(types) {
+				colDefs[i].Type = types[i]
+			}
+		}
+	}
 	return colDefs, true, nil
 }
 

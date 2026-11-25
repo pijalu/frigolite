@@ -58,6 +58,15 @@ func (v *dbStatVTab) Columns() []string {
 		"unused", "mx_payload", "pgoffset", "pgsize", "schema", "aggregate"}
 }
 
+// ColumnTypes implements ColumnTypeInfo with the declared types from
+// dbstat.c's zDbstatSchema (TEXT/INTEGER columns, hidden schema TEXT and
+// aggregate BOOLEAN). PRAGMA table_info exposes the types of the ten
+// visible columns; SQLite omits the two hidden ones.
+func (v *dbStatVTab) ColumnTypes() []string {
+	return []string{"TEXT", "TEXT", "INTEGER", "TEXT", "INTEGER", "INTEGER",
+		"INTEGER", "INTEGER", "INTEGER", "INTEGER", "TEXT", "BOOLEAN"}
+}
+
 // HiddenColumns implements HiddenColumnInfo: schema (10) and aggregate (11).
 func (v *dbStatVTab) HiddenColumns() map[int]bool {
 	return map[int]bool{10: true, 11: true}

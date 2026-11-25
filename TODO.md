@@ -86,6 +86,12 @@ a regression from `ec5683fc4`/`a06dba606`. Result-affecting items come first.
    values with that collation. Native pin plus three focused harness leaves
    green; full-harness result and handoff recorded in
    `portplan/HANDOFF_2026-11-25_DERIVED_COLLATION.md`.
+1. **DONE — dbstat declared column types**: `PRAGMA table_info(dbstat)`
+   returned empty types where sqlite3 3.54 reports the `zDbstatSchema`
+   TEXT/INTEGER declarations. Added `dbStatVTab.ColumnTypes()` and made
+   `eponymousVtabColDefs` copy `ColumnTypeInfo` types into rendered
+   `ColumnDef`s. Native pin plus `stat-0.0`/`stat-0.1b` green; full-harness
+   result and handoff in `portplan/HANDOFF_2026-11-25_DBSTAT_TYPES.md`.
 1. **DONE — converter unit-test drift**: all 9 `tools/tclconvert` /
    `tools/tclconvert/tcl` failures re-baselined: `runtime_expr` steps
    (collation counter setup, query-assigned handle/value aliases, file-level

@@ -117,7 +117,19 @@ Evidence keys: `shard-N.log:L` = line in the fresh run dir above; `frigolite_har
 | Q1 | `tools/quality_gate.sh` exits 1: 10 staticcheck findings, 220 functions over gocognit 15, 202 over gocyclo 12, 18 files over the 1000-line hard limit. Worst: `tools/tclconvert/tcl/interp_sql.go` gocognit 121, 1699 lines; `internal/execddl/alter_rename.go` gocognit 104, 1335 lines. | `/tmp/audit_quality_gate.log`; `TODO.md:105-108` | `bash tools/quality_gate.sh` |
 | Q2 | `go test ./...` cannot finish under 20m in one process because `TestSQLiteSuite` runs unsharded; normal `go test ./...` is therefore red without `-timeout` + sharding. | `/tmp/audit_native_all.log` | `go test ./...` |
 
-## 5. Scope note for follow-up goals
+## 5. Triage outcomes (post-audit investigations)
+
+- **C1** (`e_blobopen-3.2.5`): the converted fixture dropped the incremental-blob write of `xxx`; both engines return the stored blob bytes. Converter artifact.
+- **C2** (`fkey1-8.3`): fixture has only `REINDEX;` and no corrupt-database setup; sqlite3 3.54 also succeeds. Converter artifact.
+- **C3** (`join3-3.1`): fixture's expected join-limit text lost its runtime number; sqlite3 3.54 with the fixture's missing `t1` reports `no such table: t1`, same as Frigolite. Converter artifact.
+- **C5** (`vtab1-4.1`): row values match (`2 5`); only the harness TCL `sortMarker` differs (`sort` vs `nosort`), not a SQL result divergence.
+- **C6** (`normalize-350` + 45 siblings): `SELECT x'abc'` errors identically in both engines; fixture `prepare_stmt` stores `code` while `stmt_finalize` names `stmt_4`/`stmt_10`. Converter variable mismatch.
+- **C7** (`triggerC-3.3.1`): sqlite3 3.54 also reports `no such table: t3b`; the converted case never creates `t3b`. Converter artifact.
+
+**Fixed**: C4-adjacent `e_select-1.7.4b.1/.2/.3` (derived-table name + collation, commit `5d87ce273`) and F1 (`dbstat` declared column types).
+**Open**: F2 (eager `Open` schema prime vs SQLite's lazy first-statement error), F3 (cross-engine matrix breadth), F4 (WAL residue), P1/P2 perf, Q1/Q2 quality debt.
+
+## 6. Scope note for follow-up goals
 
 - "NEW=0 vs t30" is a *no-regression* gate, not a parity gate. Closing the two hard requirements needs the 1,022 failing leaves driven down (after separating genuine engine divergences from harness/fixture artifacts) and a substantially broader cross-engine file matrix.
 - The follow-up goals consume this inventory: correctness + file-compat fixes first, then profiled performance remediation. No engine code was changed by this review.
