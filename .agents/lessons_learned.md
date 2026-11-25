@@ -2926,3 +2926,13 @@ everywhere; go vet + go build clean.
   `pager.c:5432-5438`; the statement-level attach is the faithful place to
   surface it, while the open-time swallow stays (C's `sqlite3_open` is lazy
   and our next-statement retry is the equivalent point).
+
+## TCL whole-reference expansion (2026-11-25)
+
+- **Adjacent `$a$b` expansion is a converter artifact, not a general Tcl rule**:
+  `$` is a valid SQL identifier byte, so `scanTCLParamRef` reads `$t$tcl` as
+  ONE parameter. S32's prefix split must fire only when every resolved
+  segment is a bare token; a quoted value (`tcl = "'abc'"`) marks the run as
+  genuine SQL and the whole reference stays verbatim. This keeps both the
+  whole-reference pins and the `$as$bs` expectation pin green. Details:
+  `portplan/HANDOFF_2026-11-25_TCL_WHOLE_REF.md`.

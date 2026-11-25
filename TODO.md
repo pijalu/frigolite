@@ -59,10 +59,14 @@ a regression from `ec5683fc4`/`a06dba606`. Result-affecting items come first.
    (first run's 15 `temptable2-9.2.*` leaves were unseeded-randomblob flakes,
    absent in the focused rerun and the second full run); SOLID green. Detail:
    `portplan/HANDOFF_2026-11-25_W6_LOCKING_MODE.md`.
-1. **MEDIUM — harness variable expansion**: `TestExpandTCLRuntimeVarsWholeReferences`
-   (`frigolite_harness_expand_test.go:24`) expands `$t$tcl` into
-   `null'abc'`, corrupting generated SQL for e_expr-12.3.13.1-class fixtures.
-   Whole-reference rule must leave `$tcl` untouched. Harness-only, not engine.
+1. **DONE — harness variable expansion**: the S32 adjacent-placeholder split
+   expanded `$t$tcl` into `null'abc'` because it ignored the quoted `tcl`
+   value. `expandTCLVarRefs` now splits an adjacent run only when every
+   resolved segment is a bare SQL token; a quoted segment keeps the whole
+   reference intact. Both `TestExpandTCLRuntimeVars*` pins and the S32
+   adjacent-placeholder pin pass; focused `FRIGOLITE_TEST=e_expr` harness
+   NEW=0 vs `/tmp/t30_baseline_leaves_clean.txt`; SOLID green. Detail:
+   `portplan/HANDOFF_2026-11-25_TCL_WHOLE_REF.md`.
 1. **LOW — invalid pending-byte test premise**: `TestNativePendingBytePageNeverAllocated`
    (`frigolite_autovacuum_native_test.go:130`) calls `pager.ReadPage(65)`,
    which `internal/pager/pagerpage.go:244-246` intentionally rejects with

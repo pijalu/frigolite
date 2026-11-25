@@ -2397,15 +2397,21 @@ func expandTCLVarRefs(sql string, values map[string]string, render func(string) 
 			}
 		}
 		// The converter emits "$name" placeholders for runtime values. Two
-		// adjacent placeholders ("$as$bs", from `[list "${as}${bs}"]`) are one
-		// parameter reference under Tcl's rules, because '$' is a valid
-		// identifier character. Split at the inner '$' (it sits AT idx — the
+		// adjacent placeholders ("$as$bs", from `[list "${as}${bs}"]`) scan as
+		// one parameter reference under the SQL tokenizer, because '$' is a
+		// valid identifier byte. Split at the inner '$' (it sits AT idx — the
 		// remainder key[idx+1:] never starts with another '$') and expand the
 		// first segment; the scan resumes at the inner '$', so chains
 		// ("$a$b$c") split iteratively. A single reference ("$tcl") never
 		// enters this branch: its key contains no '$'.
+		//
+		// The split is only a converter artifact for runs whose resolved
+		// segments are bare runtime tokens. A resolved segment carrying SQL
+		// quoting (e.g. `tcl` = "'abc'") marks the text as a genuine SQL
+		// parameter name: `$t$tcl` must stay whole instead of splicing the
+		// quoted value into that name.
 		if idx := strings.IndexByte(key, '$'); idx > 0 {
-			if v, ok := values[key[:idx]]; ok {
+			if v, ok := values[key[:idx]]; ok && isAdjacentTCLRefBare(key, values) {
 				b.WriteString(render(v))
 				i += 1 + idx
 				continue
@@ -2415,6 +2421,26 @@ func expandTCLVarRefs(sql string, values map[string]string, render func(string) 
 		i = end
 	}
 	return b.String()
+}
+
+// isAdjacentTCLRefBare reports whether every resolved segment of an adjacent
+// `$a$b` reference holds a bare SQL token. Unknown segments are left verbatim
+// by expandTCLVarRefs and do not block the split; a resolved segment whose
+// value carries SQL quoting marks the whole run as one parameter name.
+func isAdjacentTCLRefBare(key string, values map[string]string) bool {
+	for _, segment := range strings.Split(key, "$") {
+		if segment == "" {
+			continue
+		}
+		v, ok := values[segment]
+		if !ok {
+			continue
+		}
+		if !isBareSQLToken(v) {
+			return false
+		}
+	}
+	return true
 }
 
 // runtimeValueTypeKey is the runtime-variables side key carrying the Tcl
