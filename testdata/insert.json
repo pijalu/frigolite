@@ -443,7 +443,7 @@
           "type": "query_assign",
           "sql": "EXPLAIN INSERT INTO t4 SELECT x+2 FROM t4;",
           "variable": "x",
-          "resultAll": true
+          "resultFlat": true
         },
         {
           "type": "runtime_expr",

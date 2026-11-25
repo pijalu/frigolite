@@ -74,10 +74,17 @@ a regression from `ec5683fc4`/`a06dba606`. Result-affecting items come first.
    `TestExecSQLResultAssignmentIsCapturedAsRuntimeStep`, `TestDBStatusBareStyleAndSearchCount`)
    expect pre-S65 step streams; S65 added `runtime_expr` capture. Re-baseline
    against the oracle, do not delete assertions wholesale.
-1. **MEDIUM — DML parity residue**: `insert-17.15` reports `UNIQUE constraint
-   failed: t3.a` where sqlite reports `t3.d`; `insert-5.3` misses an
-   `OpenEphemeral` EXPLAIN opcode. Result-visible error text, not row loss;
-   fix with oracle checks.
+1. **DONE — DML parity residue**: `insert-17.15` now reports `UNIQUE
+    constraint failed: t3.d` (sqlite3 3.54 oracle), fixed by keeping an
+    already-affinity-wrapped trigger row value instead of nesting a second
+    wrapper that corrupted the `t3bpi` partial-index predicate; `insert-5.3`
+    now emits `OpenEphemeral` in EXPLAIN for INSERT SELECT reading its own
+    target (C `insert.c:1151-1189`) and the fixture captures TCL `execsql`'s
+    flat `db eval` list. Native pins pass; focused `insert` harness green;
+    full 12-shard leaf diff vs `/tmp/t30_full_gate.log` NEW=0, GONE=7 (both
+    targets + resetdb-100/300, tempting2-4.1.4/5.1.2, vacuum-into-500);
+    SOLID and internal packages green. Detail:
+    `portplan/HANDOFF_2026-11-25_INSERT_DML_RESIDUE.md`.
 1. **PERF — secondary-index paths**: R14 measured rowid CRUD at parity but
    index SELECT/UPDATE/DELETE 3–5× slower and indexed UPDATE 2700× slower on a
    fresh table. Quick paired rerun (5000 rows, 200 point ops): INSERT 122.8k vs

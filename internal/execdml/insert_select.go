@@ -750,6 +750,18 @@ func (e *DMLExecutor) scanTableForMatch(tableEntry *schema.Entry, match func(rec
 // collation so comparisons and affinity-reporting functions see them, matching
 // how scanned table rows are wrapped.
 func wrapValueForRowMap(v interface{}, cd sql.ColumnDef) interface{} {
+	// A value arriving from a trigger OLD/NEW row (or a scan cursor) is
+	// already ColumnValue/collation-wrapped. Wrapping it again produces a
+	// nested ColumnValue whose affinity layer evaluates comparisons against
+	// the wrapper instead of the scalar — e.g. the partial-index predicate
+	// c<=d reported TRUE for c=3,d=2 (insert-17.15's t3bpi), causing a
+	// spurious REPLACE delete cascade. Keep the existing wrapper.
+	if _, ok := v.(*util.ColumnValue); ok {
+		return v
+	}
+	if _, ok := v.(*collatedValue); ok {
+		return v
+	}
 	// Wrap the value with its column's affinity so comparisons and
 	// affinity-reporting functions (affinity()) see the declared affinity,
 	// matching how scanned table rows are wrapped. Only wrap when the column

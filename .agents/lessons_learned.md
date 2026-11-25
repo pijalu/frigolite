@@ -2884,9 +2884,21 @@ everywhere; go vet + go build clean.
   expansion, pending-byte test's invalid ReadPage premise) and nine tclconvert
   unit fails at `5b5472021` as well as at the S66 commits. Logged in TODO.md
   as OPEN items, classified HIGH/MEDIUM/LOW; none is an S66 regression.
-  Full-harness DML residue sampled: `insert-17.15` reports the wrong UNIQUE
-  column and `insert-5.3` misses an EXPLAIN opcode — result-visible error text,
-  not row loss.
+  Full-harness DML residue is FIXED: `insert-17.15` now reports `t3.d` and
+  `insert-5.3` emits `OpenEphemeral`; both leaves GONE with full-gate NEW=0
+  (see `portplan/HANDOFF_2026-11-25_INSERT_DML_RESIDUE.md`).
+- **Partial-index predicates compare the underlying scalar, not a nested
+  affinity wrapper**: `buildTriggerRowMap` called `wrapValueForRowMap` on
+  values that were already `*util.ColumnValue`/`*collatedValue`. Rewrapping
+  made the `t3bpi` predicate `c<=d` TRUE for `c=3,d=2`, so REPLACE cascaded
+  through the wrong index and reported `t3.a` instead of the real `t3d`
+  conflict. Keep the existing wrapper; wrap raw scalars only.
+- **TCL `execsql` is a flat `db eval` list**: testfixture's proc is
+  `uplevel [list $db eval $sql]` (`tester.tcl:1445-1448`), so a harness
+  `query_assign` for `set x [execsql {...}]` must use `resultFlat`, not
+  `resultAll`, when the body probes with `lsearch $x <token>` (insert-5.3).
+  C also emits `OP_OpenEphemeral` for `INSERT ... SELECT` that reads its own
+  destination (`insert.c:1151-1189`); EXPLAIN opcode-set pins must include it.
 - **Instrument before blaming the WAL gates**: the concurrent-DML CANTOPEN
   came from `errCantOpenJournal` (hot-journal probe saw a journal that a
   committing writer had already unlinked by reopen time), not from

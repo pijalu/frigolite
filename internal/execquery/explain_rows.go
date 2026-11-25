@@ -602,6 +602,19 @@ func (e *SelectEngine) emitInsertRows(prog *explainProgram, s *sql.InsertStmt) {
 				e.emitPlanNodeRows(prog, n, s.Select)
 			}
 		}
+		// insert.c:1151-1189 uses a temp table (OP_OpenEphemeral) when the
+		// SELECT reads the INSERT target — the source rows are spooled before
+		// the destination is written. insert-5.3 probes for this opcode via
+		// `lsearch $x OpenEphemeral` on the EXPLAIN row stream.
+		srcTables := map[string]bool{}
+		collectFromTableNames(s.Select, srcTables)
+		if srcTables[strings.ToLower(s.Table)] {
+			ncol := len(s.Select.Columns)
+			if ncol == 0 {
+				ncol = 1
+			}
+			prog.emit("OpenEphemeral", 1, int64(ncol), 0, "", 0, fmt.Sprintf("nColumn=%d", ncol))
+		}
 	}
 	e.emitTableWriteOpen(prog, s.Table)
 	for _, idx := range e.tableIndexNames(s.Table) {
