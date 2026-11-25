@@ -654,13 +654,10 @@ func (i *Interp) substitute(s string, localVars map[string]string) string {
 	return result.String()
 }
 
-// escapeChar maps a backslash escape sequence to its character.
+// decodeBackslashEscape decodes the TCL backslash escape at pos.
 func decodeBackslashEscape(s string, pos int) (string, int) {
-	if pos+1 < len(s) && s[pos+1] == 'u' && pos+6 <= len(s) {
-		code, err := strconv.ParseUint(s[pos+2:pos+6], 16, 16)
-		if err == nil {
-			return string(rune(code)), pos + 6
-		}
+	if decoded, next, ok := decodeUnicodeEscape(s, pos); ok {
+		return decoded, next
 	}
 	// \ddd: 1-3 octal digits produce the raw byte (TCL's backslash
 	// substitution — "\000" is a NUL byte, walfault-12's shm seed).
@@ -674,6 +671,28 @@ func decodeBackslashEscape(s string, pos int) (string, int) {
 		}
 	}
 	return string(escapeChar(s[pos+1])), pos + 2
+}
+
+// decodeUnicodeEscape decodes TCL's \uHHHH form with 1 to 4 hex digits,
+// stopping at the first non-hex byte. unhex.test uses both \u0E01 and \uE01
+// for U+0E01. The helper keeps decodeBackslashEscape's branch count at its
+// SQLite-faithful baseline.
+func decodeUnicodeEscape(s string, pos int) (string, int, bool) {
+	if pos+2 >= len(s) || s[pos+1] != 'u' {
+		return "", 0, false
+	}
+	end := pos + 2
+	for end < len(s) && end < pos+6 && isHexDigit(s[end]) {
+		end++
+	}
+	if end == pos+2 {
+		return "", 0, false
+	}
+	code, err := strconv.ParseUint(s[pos+2:end], 16, 16)
+	if err != nil {
+		return "", 0, false
+	}
+	return string(rune(code)), end, true
 }
 
 func escapeChar(next byte) byte {

@@ -843,10 +843,25 @@ func (i *Interp) appendNamedParam(b *strings.Builder, sql string, pos, j int, lo
 // idiom (e.g. `WHERE i<$nrow` with nrow=10 must render as `WHERE i<10`, not
 // `i<'10'`, or the recursive CTE never terminates).
 func tclSQLLiteral(v string) string {
-	if s := strings.TrimSpace(v); decimalNumber.MatchString(s) {
+	if s := strings.TrimSpace(v); canonicalDecimalLiteral(s) {
 		return s
 	}
 	return "'" + strings.ReplaceAll(v, "'", "''") + "'"
+}
+
+// canonicalDecimalLiteral reports whether s is a decimal spelling that TCL
+// also renders as a numeric SQL literal. Leading-zero spellings such as
+// "0000" stay TEXT when tclsqlite.c binds a TCL variable (Tcl_GetStringFromObj),
+// so they must be quoted instead of becoming integer 0 in SQL.
+func canonicalDecimalLiteral(s string) bool {
+	if !decimalNumber.MatchString(s) {
+		return false
+	}
+	mantissa := strings.TrimLeft(s, "+-")
+	if i := strings.IndexAny(mantissa, ".eE"); i >= 0 {
+		mantissa = mantissa[:i]
+	}
+	return mantissa == "" || mantissa == "0" || mantissa[0] != '0'
 }
 
 // decimalNumber matches a bare SQLite decimal integer or real literal: an

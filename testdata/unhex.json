@@ -4,11 +4,21 @@
   "ordered": true,
   "tests": [
     {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "runtime_expr",
+          "sql": "file dirname $argv0",
+          "variable": "testdir"
+        }
+      ]
+    },
+    {
       "name": "unhex-1.1.1",
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT hex( unhex( 0000 ) );",
+          "sql": "SELECT hex( unhex( '0000' ) );",
           "expect": "0000"
         }
       ]
@@ -18,7 +28,7 @@
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT hex( unhex( lower( 0000 ) ) );",
+          "sql": "SELECT hex( unhex( lower( '0000' ) ) );",
           "expect": "0000"
         }
       ]
@@ -218,7 +228,7 @@
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT hex( unhex('กABCDข', 'uE01uE02') )",
+          "sql": "SELECT hex( unhex('กABCDข', 'กข') )",
           "expect": "ABCD"
         }
       ]
@@ -228,7 +238,7 @@
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT typeof( unhex('กABCDข', 'uE03uE02') )",
+          "sql": "SELECT typeof( unhex('กABCDข', 'ฃข') )",
           "expect": "null"
         }
       ]
@@ -238,7 +248,7 @@
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT hex( unhex('กAB CDuE02uE01', 'uE01 uE02') )",
+          "sql": "SELECT hex( unhex('กAB CDขก', 'ก ข') )",
           "expect": "ABCD"
         }
       ]
