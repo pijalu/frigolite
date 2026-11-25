@@ -219,17 +219,20 @@ do_test where7-2.2.1 { count_steps_sort {SELECT a FROM t1} } {1 2 3 scan 0 sort 
 		t.Fatal(err)
 	}
 	stmts := i.Stmts()
-	if len(stmts) != 3 {
-		t.Fatalf("captured %d statements, want 3: %#v", len(stmts), stmts)
+	if len(stmts) != 4 {
+		t.Fatalf("captured %d statements, want 4: %#v", len(stmts), stmts)
 	}
 	if !stmts[0].StmtStatus || stmts[0].StatusStyle != "bare" || stmts[0].SearchCount {
 		t.Fatalf("execsql_status = %#v, want bare style without the search counter", stmts[0])
 	}
-	if !stmts[1].StmtStatus || stmts[1].StatusStyle != "bare" || !stmts[1].SearchCount {
-		t.Fatalf("execsql_status2 = %#v, want bare style with the search counter", stmts[1])
+	if s := stmts[1]; s.Type != "runtime_expr" || s.Variable != "sqlite_search_count" || s.SQL != "0" {
+		t.Fatalf("search counter reset = %#v, want runtime_expr sqlite_search_count=0", s)
 	}
-	if !stmts[2].StmtStatus || stmts[2].StatusStyle != "" || stmts[2].SearchCount {
-		t.Fatalf("count_steps_sort = %#v, want the default labeled style", stmts[2])
+	if !stmts[2].StmtStatus || stmts[2].StatusStyle != "bare" || !stmts[2].SearchCount {
+		t.Fatalf("execsql_status2 = %#v, want bare style with the search counter", stmts[2])
+	}
+	if !stmts[3].StmtStatus || stmts[3].StatusStyle != "" || stmts[3].SearchCount {
+		t.Fatalf("count_steps_sort = %#v, want the default labeled style", stmts[3])
 	}
 }
 

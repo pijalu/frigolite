@@ -153,15 +153,28 @@ do_test collation-2 { sqlite_delete_collation db CASELESS; set ::caseless_del } 
 		t.Fatal(err)
 	}
 	data := convertToJSON("collate7", stmts, "", 0, false)
-	if len(data.Tests) != 2 || len(data.Tests[0].Steps) != 2 || len(data.Tests[1].Steps) != 2 {
+	// The file-level `set ::caseless_del 0` seeds the harness's runtime
+	// variable before the destructor callback can increment it. It appears
+	// as a setup test ahead of the two do_test cases.
+	if len(data.Tests) != 3 || len(data.Tests[0].Steps) != 1 || len(data.Tests[1].Steps) != 2 || len(data.Tests[2].Steps) != 2 {
 		t.Fatalf("collation lifecycle steps = %#v", data.Tests)
 	}
-	register, remove := data.Tests[0].Steps[0], data.Tests[1].Steps[0]
+	setup := data.Tests[0].Steps[0]
+	if setup.Type != "runtime_expr" || setup.Variable != "caseless_del" || setup.SQL != "0" {
+		t.Fatalf("destructor counter setup = %#v, want runtime_expr caseless_del=0", setup)
+	}
+	register, remove := data.Tests[1].Steps[0], data.Tests[2].Steps[0]
 	if register.Type != "register_collation" || register.Database != "db" || register.CollationName != "CASELESS" || register.CollationProc != "caseless_cmp" || !strings.Contains(register.CollationBody, "string compare -nocase") || register.DestructorBody != "incr ::caseless_del" {
 		t.Fatalf("registration marker = %#v", register)
 	}
 	if remove.Type != "delete_collation" || remove.Database != "db" || remove.CollationName != "CASELESS" {
 		t.Fatalf("deletion marker = %#v", remove)
+	}
+	if probe := data.Tests[1].Steps[1]; probe.Type != "runtime_var" || probe.Variable != "caseless_del" || probe.Expect != "0" {
+		t.Fatalf("registration counter probe = %#v, want caseless_del=0", probe)
+	}
+	if probe := data.Tests[2].Steps[1]; probe.Type != "runtime_var" || probe.Variable != "caseless_del" || probe.Expect != "1" {
+		t.Fatalf("deletion counter probe = %#v, want caseless_del=1", probe)
 	}
 }
 

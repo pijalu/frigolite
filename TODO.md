@@ -6,7 +6,7 @@
 > current mid-unit handoff:
 > **[portplan/HANDOFF_2026-11-27_S66_INDEX_BALANCE.md](portplan/HANDOFF_2026-11-27_S66_INDEX_BALANCE.md)**.
 > last completed handoff:
-> **[portplan/HANDOFF_2026-11-26_S65_EXPR_FIXTURE.md](portplan/HANDOFF_2026-11-26_S65_EXPR_FIXTURE.md)**.
+> **[portplan/HANDOFF_2026-11-25_TCLCONVERT_UNIT_REBASE.md](portplan/HANDOFF_2026-11-25_TCLCONVERT_UNIT_REBASE.md)**.
 > Read the older WAL-residue handoff for the durable baseline methodology.
 > This file is the one-page index; update BOTH when checking items off.
 >
@@ -73,11 +73,14 @@ a regression from `ec5683fc4`/`a06dba606`. Result-affecting items come first.
    ErrCorruptPage for the lock-byte page. Rewrite the assertion to read raw
    file bytes at the reserved page offset; verify the engine guarantee without
    bypassing the pager corruption guard.
-1. **MEDIUM — converter unit-test drift**: 9 failures in
-   `tools/tclconvert` / `tools/tclconvert/tcl` (e.g. `TestConvertPreservesCustomCollationLifecycle`,
-   `TestExecSQLResultAssignmentIsCapturedAsRuntimeStep`, `TestDBStatusBareStyleAndSearchCount`)
-   expect pre-S65 step streams; S65 added `runtime_expr` capture. Re-baseline
-   against the oracle, do not delete assertions wholesale.
+1. **DONE — converter unit-test drift**: all 9 `tools/tclconvert` /
+   `tools/tclconvert/tcl` failures re-baselined: `runtime_expr` steps
+   (collation counter setup, query-assigned handle/value aliases, file-level
+   array/global seeds, search-counter reset) are now asserted alongside the
+   original marker/SQL/status checks, not filtered out. Converter and
+   `testdata/` untouched (no fixture regen, harness leaves unchanged vs t30);
+   verify command green. Detail:
+   `portplan/HANDOFF_2026-11-25_TCLCONVERT_UNIT_REBASE.md`.
 1. **DONE — DML parity residue**: `insert-17.15` now reports `UNIQUE
     constraint failed: t3.d` (sqlite3 3.54 oracle), fixed by keeping an
     already-affinity-wrapped trigger row value instead of nesting a second

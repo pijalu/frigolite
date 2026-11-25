@@ -100,8 +100,10 @@ func TestExecSQLResultAssignmentIsCapturedAsRuntimeStep(t *testing.T) {
 		t.Fatal(err)
 	}
 	stmts := i.Stmts()
-	if len(stmts) != 3 || stmts[0].SQL != "CREATE TABLE abc(a)" || stmts[1].Type != "query_assign" || stmts[1].SQL != "SELECT max(oid) FROM sqlite_master" || stmts[1].Variable != "oid" || stmts[2].Type != "exec" || stmts[2].SQL != "SELECT sql FROM sqlite_master WHERE oid = $::oid" {
-		t.Fatalf("result assignment statements = %#v, want ordered CREATE, assignment query, dynamic SQL", stmts)
+	// The global set of a query-captured value also publishes the runtime
+	// alias used by the dynamic SQL below.
+	if len(stmts) != 4 || stmts[0].SQL != "CREATE TABLE abc(a)" || stmts[1].Type != "query_assign" || stmts[1].SQL != "SELECT max(oid) FROM sqlite_master" || stmts[1].Variable != "oid" || stmts[2].Type != "runtime_expr" || stmts[2].Variable != "oid" || !strings.HasPrefix(stmts[2].SQL, runtimeValuePrefix) || stmts[3].Type != "exec" || stmts[3].SQL != "SELECT sql FROM sqlite_master WHERE oid = $::oid" {
+		t.Fatalf("result assignment statements = %#v, want ordered CREATE, assignment query, runtime oid alias, dynamic SQL", stmts)
 	}
 }
 
@@ -260,9 +262,14 @@ sqlite3_finalize $::stmt`); err != nil {
 	for _, s := range i.Stmts() {
 		got = append(got, s.Type)
 	}
-	want := []string{"prepare_stmt", "stmt_step", "stmt_reset", "runtime_assert", "stmt_finalize"}
+	want := []string{"prepare_stmt", "runtime_expr", "stmt_step", "stmt_reset", "runtime_assert", "stmt_finalize"}
 	if strings.Join(got, ",") != strings.Join(want, ",") {
 		t.Fatalf("events = %v, want %v", got, want)
+	}
+	// `set ::stmt [sqlite3_prepare_v2 ...]` publishes the generated handle
+	// name so the do_test body's `$::stmt` resolves at run time.
+	if s := i.Stmts()[1]; s.Type != "runtime_expr" || s.Variable != "stmt" || s.SQL != "stmt_1" {
+		t.Fatalf("handle alias step = %#v, want runtime_expr stmt=stmt_1", s)
 	}
 }
 
@@ -787,8 +794,10 @@ func TestNestedArrayVariableSubstitution(t *testing.T) {
 		t.Fatal(err)
 	}
 	stmts := i.Stmts()
-	if len(stmts) != 1 || stmts[0].SQL != "INSERT INTO t VALUES('value')" {
-		t.Fatalf("nested array substitution captured %#v, want value", stmts)
+	// File-level array-element sets seed the harness runtime scope before
+	// the SQL referencing the substituted result runs.
+	if len(stmts) != 3 || stmts[0].Type != "runtime_expr" || stmts[0].Variable != "C(column)" || stmts[0].SQL != `"1"` || stmts[1].Type != "runtime_expr" || stmts[1].Variable != "cols(1)" || stmts[1].SQL != `"value"` || stmts[2].SQL != "INSERT INTO t VALUES('value')" {
+		t.Fatalf("nested array substitution captured %#v, want array seeds then value insert", stmts)
 	}
 }
 
@@ -1018,8 +1027,8 @@ func TestExecSQLSubstitutesGlobalVariableByBareName(t *testing.T) {
 		t.Fatal(err)
 	}
 	got := i.Stmts()
-	if len(got) != 1 || got[0].SQL != "CREATE TABLE T(a)" {
-		t.Fatalf("captured global-variable SQL = %#v, want CREATE TABLE T(a)", got)
+	if len(got) != 2 || got[0].Type != "runtime_expr" || got[0].Variable != "table_name" || got[0].SQL != "T" || got[1].SQL != "CREATE TABLE T(a)" {
+		t.Fatalf("captured global-variable SQL = %#v, want runtime table_name=T then CREATE TABLE T(a)", got)
 	}
 }
 
@@ -1029,8 +1038,8 @@ func TestExecSQLSubstitutesGlobalVariableInQuotedSQL(t *testing.T) {
 		t.Fatal(err)
 	}
 	got := i.Stmts()
-	if len(got) != 1 || got[0].SQL != "CREATE TABLE T(a)" {
-		t.Fatalf("captured global-variable SQL = %#v, want CREATE TABLE T(a)", got)
+	if len(got) != 2 || got[0].Type != "runtime_expr" || got[0].Variable != "table_name" || got[0].SQL != "T" || got[1].SQL != "CREATE TABLE T(a)" {
+		t.Fatalf("captured global-variable SQL = %#v, want runtime table_name=T then CREATE TABLE T(a)", got)
 	}
 }
 
@@ -1054,8 +1063,8 @@ func TestEchoIgnoreUsableSetIsCaptured(t *testing.T) {
 		t.Fatal(err)
 	}
 	got := i.Stmts()
-	if len(got) != 1 || got[0].Type != "echo_ignore_usable" || got[0].SQL != "1" {
-		t.Fatalf("captured echo setting = %#v, want echo_ignore_usable=1", got)
+	if len(got) != 2 || got[0].Type != "echo_ignore_usable" || got[0].SQL != "1" || got[1].Type != "runtime_expr" || got[1].Variable != "echo_module_ignore_usable" || got[1].SQL != "1" {
+		t.Fatalf("captured echo setting = %#v, want echo_ignore_usable marker then runtime_expr=1", got)
 	}
 }
 

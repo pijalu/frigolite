@@ -62,6 +62,12 @@ appending.
   establish engine-visible behavior natively before converter changes.
   Use SQLite as behavioral ground truth; probe intermediate state when
   final output hides divergence.
+- `tools/tclconvert` unit failures after the S65-era runtime captures are
+  usually expectation drift, not engine regressions: file-level `set ::NAME
+  <literal>`, array-element sets, query-assigned globals, and
+  `sqlite3_prepare_v2` handles emit `runtime_expr` steps that seed harness
+  runtime variables. Re-baseline counts/types AND assert the new steps;
+  never filter them away just to restore old expected lengths.
 - Parallel agents + long validation runs: never edit the engine while a
   batch/suite is running; a verify-install batch must treat a BUILD
   FAILURE as "no result", never "0 failures" (it once installed 13
