@@ -12403,6 +12403,11 @@
     {
      "type": "close_named_db",
      "database": "db2"
+    },
+    {
+     "type": "delete_vfs",
+     "sql": "tv",
+     "database": "tv"
     }
    ]
   },
@@ -12434,6 +12439,11 @@
     {
      "type": "close_named_db",
      "database": "db2"
+    },
+    {
+     "type": "delete_vfs",
+     "sql": "tv",
+     "database": "tv"
     }
    ]
   },

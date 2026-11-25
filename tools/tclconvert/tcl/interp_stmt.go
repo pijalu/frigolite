@@ -478,8 +478,10 @@ func backupHandleArity(method string) (int, bool) {
 // (false = the option is not recognized here).
 func testvfsOptionArity(opt string) (int, bool) {
 	switch opt {
-	case "script", "filter", "devchar", "sectorsize", "ioerr", "fullerr", "cantopenerr", "shm", "delete":
+	case "script", "filter", "devchar", "sectorsize", "ioerr", "fullerr", "cantopenerr", "shm":
 		return 1, true
+	case "delete":
+		return 0, true
 	}
 	return 0, false
 }
@@ -526,6 +528,20 @@ func commandRegisterBoxGeom(i *Interp, _ []rawWord, args []string, _ map[string]
 }
 
 func commandTestVFSConfig(i *Interp, args []string, cmd string) error {
+	if len(args) < 1 {
+		return nil
+	}
+	// test_vfs.c CMD_DELETE deletes the Tcl command (the VFS object); any
+	// trailing argument is ignored. pager1-21's `tv delete` must unregister
+	// the noShm wrapper before the next reopen, or the default VFS keeps
+	// refusing WAL (pager1-35).
+	if args[0] == "delete" {
+		if i.testvfsNames != nil {
+			delete(i.testvfsNames, cmd)
+		}
+		i.stmts = append(i.stmts, Stmt{Type: "delete_vfs", SQL: cmd, Database: cmd, TestName: i.curTest})
+		return nil
+	}
 	if len(args) < 2 {
 		return nil
 	}

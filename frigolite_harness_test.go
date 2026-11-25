@@ -3908,7 +3908,7 @@ func TestSQLiteSuite(t *testing.T) {
 							continue
 						}
 						execDB := db
-						if step.Database != "" && step.Database != "db" && step.Type != "testvfs_config" {
+						if step.Database != "" && step.Database != "db" && step.Type != "testvfs_config" && step.Type != "delete_vfs" {
 							execDB = namedDBs[step.Database]
 							if execDB == nil {
 								t.Fatalf("named database %q is not open", step.Database)
@@ -5081,6 +5081,14 @@ func TestSQLiteSuite(t *testing.T) {
 								// The -default fixture governs the connection
 								// already open at registration too.
 								installDefaultVFS(t, testvfsFixtures, testvfsDefault, db, namedDBs, runtimeVars, fixtureDBDir)
+							}
+						case "delete_vfs":
+							// test_vfs.c CMD_DELETE unregisters the named VFS object.
+							// Future opens (including reopen_db) must not inherit its
+							// -noshm/-iversion marker or its callbacks.
+							delete(testvfsFixtures, step.Database)
+							if testvfsDefault == step.Database {
+								testvfsDefault = ""
 							}
 						case "register_rtgeom":
 							// test_rtree.c's register_circle_geom /
@@ -7815,6 +7823,14 @@ func runFaultsimStep(t *testing.T, dbp **DB, namedDBs map[string]*DB, prepared m
 			if step.SQL == "default" && defaultVFS != nil {
 				*defaultVFS = step.Variable
 			}
+		}
+		return 0, "", true
+	case "delete_vfs":
+		if fixtures != nil {
+			delete(fixtures, step.Database)
+		}
+		if defaultVFS != nil && *defaultVFS == step.Database {
+			*defaultVFS = ""
 		}
 		return 0, "", true
 	case "testvfs_config":
