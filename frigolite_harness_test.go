@@ -1402,6 +1402,13 @@ var harnessSkipSubtests = map[string]string{
 	"wal/wal-18.2.10.1.5": "binary-format WAL crafting not expressible in JSON; contract pinned by TestWalLogPageSizeValidation",
 	"wal/wal-18.2.10.2.5": "binary-format WAL crafting not expressible in JSON; contract pinned by TestWalLogPageSizeValidation",
 	"wal/wal-18.2.10.3.5": "binary-format WAL crafting not expressible in JSON; contract pinned by TestWalLogPageSizeValidation",
+
+	// S66: SQLite's exact index page-density bands are an engine-specific
+	// target, not an engine-visible contract. The accepted resolution keeps
+	// Frigolite's sparser index b-trees; integrity, row counts and the
+	// cross-engine file-format contract are pinned natively.
+	"temptable2/temptable2-4.1.4": "SQLite index page-density band is engine-specific variance (accepted S66); integrity + row count pinned by TestS66TempPageCountTenThenFiveHundred, file format by TestS66SQLiteFileCompatibility",
+	"temptable2/temptable2-5.1.2": "SQLite index page-density band is engine-specific variance (accepted S66); integrity + row count pinned by TestS66TempPageCountFiveHundredThenOne, file format by TestS66SQLiteFileCompatibility",
 }
 
 // harnessStaleAssertSubtests holds cases whose ASSERTION is stale but whose

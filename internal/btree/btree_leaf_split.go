@@ -172,7 +172,18 @@ func (t *BTree) splitLeafMulti(pg *pager.Page, page *storage.BTreePage, parentPg
 	st := acquireSplitStaging()
 	defer releaseSplitStaging(st)
 
-	placed, err := t.spillIndexLeafPrelude(pg, page, parentPgno, newCell, newCellData, bulk)
+	placed, results, err := t.balanceIndexLeafSplit(pg, page, parentPgno, newCell, newCellData, bulk)
+	if err != nil {
+		return nil, err
+	}
+	if placed {
+		return nil, nil
+	}
+	if len(results) > 0 {
+		return results, nil
+	}
+
+	placed, err = t.spillIndexLeafPrelude(pg, page, parentPgno, newCell, newCellData, bulk)
 	if err != nil {
 		return nil, err
 	}
