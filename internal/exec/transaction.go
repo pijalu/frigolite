@@ -485,8 +485,8 @@ func (e *Engine) beginLockCheck(stmt sql.Stmt, exclusive bool) (err error, invok
 		if ctx == nil || ctx.Pager == nil || !ctx.Pager.WALMode() {
 			continue
 		}
-		if err := ctx.Pager.WALWriterProbe(); err != nil {
-			return fmt.Errorf("database is locked"), false
+		if err := ctx.Pager.WALWriterProbe(e.hasPinnedReadLock()); err != nil {
+			return err, false
 		}
 	}
 	for _, k := range e.allLockKeys() {
@@ -507,6 +507,19 @@ func (e *Engine) beginLockCheck(stmt sql.Stmt, exclusive bool) (err error, invok
 		}
 	}
 	return nil, false
+}
+
+// hasPinnedReadLock reports whether this connection already owns a read
+// transaction on one of the attached databases. WAL writers may start while
+// other readers are active, but a connection cannot upgrade past its own
+// snapshot (wal.c's sqlite3WalBeginWriteTransaction read-mark check).
+func (e *Engine) hasPinnedReadLock() bool {
+	for _, k := range e.allLockKeys() {
+		if lockreg.Global.ReadTxByConn(k, e.connID) {
+			return true
+		}
+	}
+	return false
 }
 
 // --- ROLLBACK ---
@@ -893,4 +906,3 @@ func (e *Engine) BeginInternalWrites() (end func()) {
 	e.tx.internalWrites++
 	return func() { e.tx.internalWrites-- }
 }
-

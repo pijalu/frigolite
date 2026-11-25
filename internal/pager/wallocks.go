@@ -76,6 +76,11 @@ var (
 	errWalRetry = errors.New("wal retry")
 )
 
+// ErrWalBusySnapshot is the exported SQLITE_BUSY_SNAPSHOT sentinel. It has
+// SQLite's primary error text ("database is locked") but lets error-code
+// classification retain the extended code.
+var ErrWalBusySnapshot = errWalBusySnapshot
+
 // walRetryProtocolLimit is WAL_RETRY_PROTOCOL_LIMIT (wal.c L486): the number
 // of read-retry rounds before the protocol error.
 const walRetryProtocolLimit = 100
@@ -386,7 +391,7 @@ func (p *Pager) WALMode() bool { return p.walRef() }
 // IMMEDIATE/EXCLUSIVE gate calls it (sqlite3BtreeBeginTrans parity: C's
 // BEGIN takes the WRITER byte at begin; frigolite's write path re-acquires
 // it at the first dirty page).
-func (p *Pager) WALWriterProbe() error {
+func (p *Pager) WALWriterProbe(checkSnapshot bool) error {
 	p.mu.Lock()
 	defer p.mu.Unlock()
 	if p.wal == nil || p.wal.writeLock {
@@ -395,8 +400,15 @@ func (p *Pager) WALWriterProbe() error {
 	if err := p.wal.walBusyLockExclusive(walLockWrite, 1); err != nil {
 		return err
 	}
-	p.wal.walUnlockExclusive(walLockWrite, 1)
-	return nil
+	defer p.wal.walUnlockExclusive(walLockWrite, 1)
+	if !checkSnapshot {
+		return nil
+	}
+	// C's BEGIN IMMEDIATE/EXCLUSIVE opens a write transaction, so it also
+	// compares the live wal-index header with this connection's pin: a
+	// reader that saw an older snapshot cannot upgrade once another writer
+	// has committed (wal6-5.2's BEGIN EXCLUSIVE → SQLITE_BUSY_SNAPSHOT).
+	return p.wal.wi.WriterSection(p.wal.checkWriteSnapshot)
 }
 
 // SetWALExclusiveRequested records the PRAGMA locking_mode request

@@ -482,6 +482,14 @@ func (i *Interp) InvokeProcedure(name string, args ...string) (string, error) {
 // SetVariable sets a Tcl global variable for callback execution.
 func (i *Interp) SetVariable(name, value string) { i.setVar(name, value, nil) }
 
+// Result returns the value of the last command executed by Execute.
+func (i *Interp) Result() string {
+	if i == nil {
+		return ""
+	}
+	return i.vars[""]
+}
+
 // ArrayKeys enumerates the key parts of a flat-key array variable: the "key"
 // of every vars entry of the shape "name(key)" (array names parity for the
 // harness's explain_rows pull, which copies a callback's written array
@@ -557,6 +565,21 @@ func (i *Interp) Execute(src string) error {
 				return err
 			}
 			// Skip the offending command and continue with the next one.
+		}
+	}
+	return nil
+}
+
+// ExecuteStrict runs a Tcl script and propagates ordinary command errors.
+// Execute deliberately skips failing top-level commands during conversion;
+// runtime callback scripts (catch bodies) need Tcl's abort semantics.
+func (i *Interp) ExecuteStrict(src string) error {
+	for _, cmd := range parseCommands(src) {
+		if len(cmd) == 0 {
+			continue
+		}
+		if err := i.execCommand(cmd, nil); err != nil {
+			return err
 		}
 	}
 	return nil

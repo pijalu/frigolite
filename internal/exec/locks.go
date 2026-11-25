@@ -595,6 +595,14 @@ func (e *Engine) WriteBlockedByPreparedRead(stmt sql.Stmt) bool {
 		if !lockreg.Global.ForeignMarks(e.connID) {
 			return false
 		}
+		// WAL readers never block writers (pager.c's WRITER shm lock is the
+		// only writer serialization). A stale WAL snapshot is rejected by the
+		// pager's writer lock instead; wal6-5.2's db2 INSERT must proceed
+		// while db's prepared SELECT still holds its read mark.
+		_, schemaName := lockAccessForStmt(stmt)
+		if e.stmtWALMode(stmt, schemaName) {
+			return false
+		}
 		return e.ReadLockedByOther("main")
 	default:
 		return false

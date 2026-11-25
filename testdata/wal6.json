@@ -7,6 +7,11 @@
       "name": "setup_0",
       "steps": [
         {
+          "type": "runtime_expr",
+          "sql": "file dirname $argv0",
+          "variable": "testdir"
+        },
+        {
           "type": "close_db"
         }
       ]
@@ -493,7 +498,8 @@
             "SQLITE_MAX_VARIABLE_NUMBER": "32766",
             "all_journal_modes": "delete persist truncate memory off",
             "jmode": "off",
-            "testdir": ".",
+            "tcl_platform(byteOrder)": "littleEndian",
+            "testdir": "$testdir",
             "testprefix": "wal6"
           },
           "callbackProcs": [
@@ -630,7 +636,8 @@
             "SQLITE_MAX_VARIABLE_NUMBER": "32766",
             "all_journal_modes": "delete persist truncate memory off",
             "jmode": "off",
-            "testdir": ".",
+            "tcl_platform(byteOrder)": "littleEndian",
+            "testdir": "$testdir",
             "testprefix": "wal6"
           },
           "callbackProcs": [
@@ -700,7 +707,8 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "INSERT INTO t1 VALUES(1, 2)"
+          "sql": "INSERT INTO t1 VALUES(1, 2)",
+          "expect": "1080"
         }
       ]
     },
@@ -805,8 +813,8 @@
       "name": "wal6-5.2",
       "steps": [
         {
-          "type": "query",
-          "sql": "SELECT * FROM t1",
+          "type": "row_callback",
+          "sql": "set res [list]\n  db eval {\n    SELECT * FROM t1\n  } {\n    if {$x==1} {\n      db2 eval { INSERT INTO t1 VALUES(5, 6) }\n    } \n    if {$x==3} {\n      set res [catchsql {BEGIN EXCLUSIVE}]\n      lappend res [sqlite3_extended_errcode db]\n    } \n  }\n  set res",
           "expect": "1 {database is locked} SQLITE_BUSY_SNAPSHOT"
         }
       ]

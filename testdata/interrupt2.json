@@ -7,6 +7,11 @@
       "name": "setup_0",
       "steps": [
         {
+          "type": "runtime_expr",
+          "sql": "file dirname $argv0",
+          "variable": "testdir"
+        },
+        {
           "type": "close_db"
         },
         {
@@ -31,7 +36,7 @@
                 "method",
                 "args"
               ],
-              "Body": "\n  set filename [lindex $args 0]\n  if {[file tail $filename]==\"test.db\" \u0026\u0026 $::trigger_interrupt} {\n    if {$::trigger_interrupt} {\n      incr ::trigger_interrupt -1\n      if {$::trigger_interrupt==0} { sqlite3_interrupt db }\n    }\n  }\n  return 0\n",
+              "Body": "\n  set filename [lindex $args 0]\n  if {[file tail $filename]==\"test.db\" \u0026\u0026 $::trigger_interrupt} {\n    if {$::trigger_interrupt} {\n      incr ::trigger_interrupt -1\n      if {$::trigger_interrupt==0} { \n        if {$::dbpointer!=\"\"} {\n          sqlite3_interrupt $::dbpointer \n        } else {\n          sqlite3_interrupt db \n        }\n      }\n    }\n  }\n  return 0\n",
               "Defaults": null
             }
           ],
@@ -356,11 +361,8 @@
       "name": "interrupt2-2.1",
       "steps": [
         {
-          "type": "query",
-          "sql": "SELECT * FROM z1",
-          "variable": "__catchrc_msg",
-          "catchResult": true,
-          "catchMessage": "msg",
+          "type": "row_callback",
+          "sql": "set i 10\n  set res [list [catch {\n    set i 10\n    db eval {SELECT * FROM z1} {\n      incr i -1\n      if {$i==0} {\n        set ::trigger_interrupt 10\n        set cres [catch { sqlite3_wal_checkpoint_v2 db truncate } msg] \n        lappend cres $msg\n      }\n    }\n  } msg] $msg]\n\n  list $cres $res",
           "expect": "{1 {SQLITE_INTERRUPT - interrupted}} {1 interrupted}"
         }
       ]

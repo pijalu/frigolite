@@ -6,6 +6,8 @@ package frigolite
 import (
 	"errors"
 	"strings"
+
+	"github.com/pijalu/frigolite/internal/pager"
 )
 
 // ErrorCodeFor returns the SQLITE_* result code string the connection
@@ -30,6 +32,9 @@ func (db *DB) ErrorCodeFor(err error) string {
 // SQLITE_DONE"); the wrapped original classifies to the specific code on the
 // finalize path (stmt.go stepHaltError).
 func (db *DB) specialErrorCode(err error) (string, bool) {
+	if errors.Is(err, pager.ErrWalBusySnapshot) {
+		return "SQLITE_BUSY_SNAPSHOT", true
+	}
 	if code, ok := lockFamilyErrorCode(err.Error()); ok {
 		return code, true
 	}

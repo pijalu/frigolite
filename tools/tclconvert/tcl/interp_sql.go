@@ -639,6 +639,27 @@ func isExplainQuery(sql string) bool {
 	return strings.HasPrefix(strings.ToUpper(strings.TrimSpace(sql)), "EXPLAIN")
 }
 
+// hasInterleavedRowCallback reports whether a do_test body contains a
+// `db eval SQL BODY` whose callback is more than the already-supported
+// first-column collection. Such bodies must run during row stepping.
+func hasInterleavedRowCallback(script string) bool {
+	for pos := 0; ; {
+		at := strings.Index(script[pos:], "db eval")
+		if at < 0 {
+			return false
+		}
+		at += pos
+		cmd := parseCommands(script[at:])
+		if len(cmd) > 0 && len(cmd[0]) >= 4 &&
+			strings.EqualFold(cmd[0][0].Text, "db") &&
+			strings.EqualFold(cmd[0][1].Text, "eval") && cmd[0][3].Braced &&
+			!collectsFirstColumn(cmd[0][3].Text) {
+			return true
+		}
+		pos = at + len("db eval")
+	}
+}
+
 // collectsFirstColumn reports whether a `db eval` callback script only
 // appends the row's first column to a list (`lappend res $x`), which is the
 // shape the harness can reproduce without a Tcl interpreter.
@@ -1074,6 +1095,19 @@ func (i *Interp) cmdDoCatchSQL(rawWords []rawWord, localVars map[string]string) 
 	return nil
 }
 
+// isRuntimeCapturedVar reports whether a bare body value is owned by a
+// runtime query assignment or a callback-written global.
+func (i *Interp) isRuntimeCapturedVar(name string) bool {
+	return i.dynamicVars[name] || i.trackedVars[name]
+}
+
+// finishStepResetResult appends the runtime assertion for a C-API lifecycle
+// do_test body whose value is not a promoted query marker.
+func (i *Interp) finishStepResetResult(bodyValue, expected, name string) {
+	i.stmts = append(i.stmts, Stmt{Type: "runtime_assert", SQL: bodyValue, Expected: expected, TestName: name})
+	i.curTest = ""
+}
+
 // cmdDoTest handles do_test name { body } { expected }
 // The body may contain execsql, db eval, or other TCL code.
 func (i *Interp) cmdDoTest(rawWords []rawWord, localVars map[string]string) error {
@@ -1115,6 +1149,17 @@ func (i *Interp) cmdDoTest(rawWords []rawWord, localVars map[string]string) erro
 	}
 
 	i.curTest = name
+	if hasInterleavedRowCallback(bodyWord.Text) {
+		i.stmts = append(i.stmts, Stmt{
+			Type:         "row_callback",
+			SQL:          bodyWord.Text,
+			Expected:     expected,
+			ExpectedExpr: expectedExpr,
+			TestName:     name,
+		})
+		i.curTest = ""
+		return nil
+	}
 
 	// Fresh per-test status state: the `db status` substitutions and the
 	// ::sqlite_search_count reset only describe THIS body's flagged query.
@@ -1128,12 +1173,11 @@ func (i *Interp) cmdDoTest(rawWords []rawWord, localVars map[string]string) erro
 	// targets pre-register FIRST: a `set unlocked 0` reset can precede the
 	// registration in the same body (notify1-6.2.1).
 	i.preRegisterNotifyTargets(bodyWord.Text)
-	if bodyWord.Braced {
-		i.execScript(bodyWord.Text, localVars)
-	} else {
-		body, _ := i.evalWord(bodyWord, localVars)
-		i.execScript(body, localVars)
+	body := bodyWord.Text
+	if !bodyWord.Braced {
+		body, _ = i.evalWord(bodyWord, localVars)
 	}
+	i.execScript(body, localVars)
 
 	// where8.test's execsql_status / execsql_status2 shapes: the body value's
 	// counter markers decide how the harness renders the flagged statement's
@@ -1157,8 +1201,7 @@ func (i *Interp) cmdDoTest(rawWords []rawWord, localVars map[string]string) erro
 			i.curTest = ""
 			return nil
 		}
-		i.stmts = append(i.stmts, Stmt{Type: "runtime_assert", SQL: i.vars[""], Expected: expected, TestName: name})
-		i.curTest = ""
+		i.finishStepResetResult(i.vars[""], expected, name)
 		return nil
 	}
 	// vfs_set_readmark's do_test form (walvfs-5.2's four mark stores): the
@@ -1214,7 +1257,7 @@ func (i *Interp) cmdDoTest(rawWords []rawWord, localVars map[string]string) erro
 		// owns the value (a query_assign target or a global written by a
 		// registered callback such as e_expr's `set likeargs`).
 		if varName != "" && !strings.ContainsAny(varName, " \t\r\n") &&
-			(strings.HasPrefix(rawText, "::") || i.dynamicVars[varName] || i.trackedVars[varName]) {
+			(strings.HasPrefix(rawText, "::") || i.isRuntimeCapturedVar(varName)) {
 			i.stmts = append(i.stmts, Stmt{Type: "runtime_var", Variable: varName, Expected: expected, TestName: name})
 			bodyValueCaptured = true
 			// The variable's value is compared at run time, so it must

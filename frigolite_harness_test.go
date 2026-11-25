@@ -5241,6 +5241,16 @@ func TestSQLiteSuite(t *testing.T) {
 							if step.CatchResult && step.Variable != "" {
 								runtimeVars[step.Variable] = "0"
 							}
+						case "row_callback":
+							got, cbErr := evalInterleavedRowCallback(step.SQL, db, namedDBs, fixtureDBDir)
+							if cbErr != nil {
+								t.Errorf("row_callback: %v", cbErr)
+								continue
+							}
+							got = canonicalRowCallbackResult(got, step.Expect)
+							if step.Expect != "" && matchExpectation(got, step.Expect) != "" {
+								t.Errorf("row_callback got %q want %q", got, step.Expect)
+							}
 						case "eval_script":
 							// `eval $var` over a runtime script (notify1-1.5's
 							// zScript, stored by the unlock-notify callback):
