@@ -2663,3 +2663,25 @@ everywhere; go vet + go build clean.
   with the CREATE/write steps. Regenerate one family with `-only` before
   chasing an engine bug when the missing object is created by a sourced TCL
   helper.
+- **`sqlite3_column_name` is valid before `sqlite3_step`**: SQLite fixes VDBE
+  result-column names at prepare. A `Stmt.Columns()` implementation that
+  waits for execution returns empty; snapshot the SELECT naming pass at
+  `Prepare`, dropping hidden virtual-table aliases (`docid`, FTS table-name
+  alias) just as `SELECT *` does.
+- **Zero-length first term in an FTS leaf is corruption**: `fts3_write.c`
+  rejects `nSuffix<=0`. Treating it as an empty term turns an all-zero
+  zeroblobbed segment into a silent empty doclist instead of SQLITE_CORRUPT.
+- **Corrupt doclists must be attributed to a query term, not just a failed
+  segment load**: record the failed interior child's boundary term. SQLite's
+  deferral is an AND/NEAR-cluster decision (`nToken<2` never defers), so
+  deferred tokens may skip the corrupt-doclist check while direct single-term
+  queries still fail.
+- **Full regeneration is not always safe**: `fts3auto` regeneration exposed
+  unrelated proc-argument `lindex $args` capture. Keep the durable fixture
+  and apply the smallest contract-preserving patch, with a pure-Go pin and
+  converter unit test covering the new behavior.
+- **`db incrblob` zero writes are SQL-visible corruption**: `puts -nonewline
+  $fd [string repeat "\00" N]` through `db incrblob T C ROWID` is equivalent
+  to `UPDATE T SET C = zeroblob(length(C)) WHERE rowid = ROWID` for the
+  harness; validate the captured bytes are all NUL instead of emitting a
+  generic write marker.
