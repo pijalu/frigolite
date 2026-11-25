@@ -175,6 +175,27 @@ func (e *Engine) registerWriteTx(on bool) {
 	e.syncDotfileSentinel()
 }
 
+// acquireAutocommitWriteTx takes the cross-connection write-transaction marks
+// for an outermost autocommit statement in one registry transaction. C's
+// rollback-journal write acquires RESERVED on the affected files at its first
+// page write and holds it until the implicit commit; a competing connection
+// gets SQLITE_BUSY instead of sharing the journal path. WAL writes are exempt:
+// C serializes them through the -shm WRITER byte, not a database-file RESERVED
+// lock (wal.c walTryBeginWrite). The all-or-nothing registry call closes the
+// check-then-set window between two writers that both passed
+// CrossConnLockError before either had a mark.
+func (e *Engine) acquireAutocommitWriteTx(stmt sql.Stmt) (marked, ok bool) {
+	_, schemaName := lockAccessForStmt(stmt)
+	if e.stmtWALMode(stmt, schemaName) {
+		return false, true
+	}
+	if !lockreg.Global.TrySetWriteTx(e.allLockKeys(), e.connID) {
+		return false, false
+	}
+	e.syncDotfileSentinel()
+	return true, true
+}
+
 // BeginExclusive marks every database file of this connection as exclusively
 // locked (BEGIN EXCLUSIVE). Other connections' backup steps on those files
 // return SQLITE_BUSY until COMMIT/ROLLBACK clears the mark.

@@ -25,12 +25,12 @@
 Every native failure below reproduces identically at HEAD `5b5472021`; none is
 a regression from `ec5683fc4`/`a06dba606`. Result-affecting items come first.
 
-1. **HIGH — concurrent DML can fail**: `TestNativeThreadConcurrentWritersSerialize`
-   (`frigolite_thread_concurrency_native_test.go:62`) reports `unable to open
-   database file` on INSERT; `TestNativeThreadReaderDuringWrites` (:108,:136)
-   reports `attempt to write a readonly database` and a reader failure. Binary
-   connections on one file must serialize or fail cleanly with `database is
-   locked`, never CANTOPEN. Fix engine, keep integrity_check=ok and exact counts.
+1. **DONE — concurrent DML can fail**: fixed the hot-journal reopen race
+   (`errCantOpenJournal` when a live journal vanished between probe and
+   reopen) and added C-style RESERVED-equivalent statement marks for
+   autocommit rollback-journal writes; WAL writes stay exempt. Both native
+   tests pass (`-count=20`); 12-shard harness diff NEW=0; SOLID green. Detail:
+   `portplan/HANDOFF_2026-11-25_CONCURRENT_DML.md`.
 1. **HIGH — WAL exclusive-mode visibility**: `TestWalMVCCExclusiveModeVisibility`
    (`frigolite_walmvcc_test.go:45`) gets `database is locked` for
    `SELECT count(*) FROM t1` after another connection commits; rows must be

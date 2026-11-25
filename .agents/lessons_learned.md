@@ -2871,3 +2871,19 @@ everywhere; go vet + go build clean.
   Full-harness DML residue sampled: `insert-17.15` reports the wrong UNIQUE
   column and `insert-5.3` misses an EXPLAIN opcode — result-visible error text,
   not row loss.
+- **Instrument before blaming the WAL gates**: the concurrent-DML CANTOPEN
+  came from `errCantOpenJournal` (hot-journal probe saw a journal that a
+  committing writer had already unlinked by reopen time), not from
+  `walOpenRefused`, `WALAttachRefusal`, or `SetShmUnavailable`. The writer's
+  READONLY error was only test-cleanup fallout after the reader aborted and
+  TempDir cleanup removed the file. Stack-gated probes settle the source fast.
+- **C's ticket #3883 race is a hot-journal false-positive**: when the journal
+  vanishes between existence probe and read/write reopen, skip playback and
+  return OK — the committed on-disk image is the winner. Keep CANTOPEN for
+  genuine open failures (pager1-4.7.2's unreadable journal).
+- **Autocommit writes need a RESERVED-equivalent lock mark**: Frigolite only
+  registered explicit transactions, so two autocommit writers shared one
+  rollback-journal path. An atomic `TrySetWriteTx` check-and-set at statement
+  start closes the race and gives clean SQLITE_BUSY. WAL writes must be
+  exempt: C serializes them through the -shm WRITER byte, so reusing the
+  rollback RESERVED mark broke `TestWalLockWriterSerialization`.

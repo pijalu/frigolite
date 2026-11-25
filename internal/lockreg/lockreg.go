@@ -192,6 +192,54 @@ func (r *Registry) SetWriteTx(path string, connID int64, on bool) {
 	}
 }
 
+// TrySetWriteTx atomically records connID as holding an open write
+// transaction on every path, returning false without changing any state when
+// another connection already holds a write or exclusive lock on one of them.
+// It implements the check-and-set an autocommit write needs when it acquires
+// SQLite's RESERVED lock: two connections racing past the lock matrix must
+// not both believe they own the same rollback-journal file.
+func (r *Registry) TrySetWriteTx(paths []string, connID int64) bool {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	if !r.writePathsFreeLocked(paths, connID) {
+		return false
+	}
+	for _, path := range paths {
+		r.addWritePathLocked(path, connID)
+	}
+	return true
+}
+
+// writePathsFreeLocked checks the all-or-nothing precondition for
+// TrySetWriteTx. The caller holds r.mu.
+func (r *Registry) writePathsFreeLocked(paths []string, connID int64) bool {
+	for _, path := range paths {
+		if holder, ok := r.exclusive[path]; ok && holder != connID {
+			return false
+		}
+		for id := range r.writeTx[path] {
+			if id != connID {
+				return false
+			}
+		}
+	}
+	return true
+}
+
+// addWritePathLocked records one write-transaction mark. The caller holds
+// r.mu and has already checked that no other connection holds the path.
+func (r *Registry) addWritePathLocked(path string, connID int64) {
+	set := r.writeTx[path]
+	if set == nil {
+		set = make(map[int64]bool)
+		r.writeTx[path] = set
+	}
+	if !set[connID] {
+		set[connID] = true
+		r.markOn(connID)
+	}
+}
+
 // AddBackupLock increments the backup lock count for path.
 func (r *Registry) AddBackupLock(path string) {
 	r.mu.Lock()

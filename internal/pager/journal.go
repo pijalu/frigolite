@@ -164,6 +164,16 @@ func (p *Pager) RecoverHotJournalIfNeeded() error {
 		// SQLITE_CANTOPEN and the statement reports "unable to open database
 		// file"; the journal stays for the next (privileged) process.
 		if fd, oerr := os.OpenFile(jpath, os.O_RDWR, 0); oerr != nil {
+			// C's hasHotJournal treats a journal that vanished between the
+			// existence probe and the read/write reopen as a false-positive
+			// (pager.c ticket #3883): another connection committed and
+			// unlinked the journal under the race. There is nothing left to
+			// play back — the on-disk image is the winner's committed state.
+			// A genuine open failure (pager1-4.7.2's unreadable journal) is
+			// still SQLITE_CANTOPEN.
+			if os.IsNotExist(oerr) {
+				return nil
+			}
 			return errCantOpenJournal
 		} else {
 			fd.Close()

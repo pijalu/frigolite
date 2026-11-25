@@ -802,6 +802,22 @@ func (e *Engine) Exec(stmt sql.Stmt) *Result {
 	// shared-cache table locks and fire the blocked connections' unlock-notify
 	// callbacks (explicit transactions release in releaseTransactionLocks).
 	defer e.sharedCacheStatementEnd()
+	// An autocommit write holds RESERVED from its first page write until the
+	// implicit transaction commits at statement end (pager.c pager_write /
+	// sqlite3PagerCommitPhaseOne). Acquire the registry's write-transaction
+	// mark atomically here: two connections must not both own the same
+	// rollback-journal path, and a reader must skip a live journal. The
+	// busy-handler loop in CrossConnLockError has already run, so a lost
+	// race is reported as SQLITE_BUSY without partial write marks.
+	if e.tx.execDepth == 1 && !e.tx.inTransaction && e.stmtWritesDatabase(stmt) {
+		marked, ok := e.acquireAutocommitWriteTx(stmt)
+		if !ok {
+			return &Result{Error: fmt.Errorf("database is locked")}
+		}
+		if marked {
+			defer e.registerWriteTx(false)
+		}
+	}
 	// Statement-scoped b-tree cursor lifecycle (btree.c closes a statement's
 	// cursors when its program halts): track the wrappers created during this
 	// statement and release them — unregistering their cursors from the
