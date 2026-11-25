@@ -2996,3 +2996,22 @@ Details: `portplan/HANDOFF_2026-11-25_DERIVED_COLLATION.md`.
   the schema. Cross-engine coverage should be a matrix (rowid+overflow,
   WITHOUT ROWID, indexed, auto_vacuum) with both read directions, not one
   shape. Details: `portplan/HANDOFF_2026-11-25_NOTADB_CROSS_ENGINE.md`.
+
+## Index-key comparisons must not allocate a Record (2026-11-25)
+
+- CPU profiles of CRUD perfbench are runtime/GC dominated; the
+  `alloc_objects` profile is the actionable one. `storage.DecodeRecord`
+  accounted for 40% of allocated objects because `RecordPayloadCompare`
+  fully decoded BOTH index payloads on EVERY comparison (insert, split,
+  descent). Decode only the leading key fields into caller-owned stack
+  scratch (`DecodeRecordPrefix`), with a full-decode fallback for wide or
+  corrupt records; keep the exact field-count tiebreak.
+- A naive swap to `DecodeRecordColumns` regressed: its `decodeColumnAt`
+  scans the whole requested-column list per field. A dedicated prefix
+  decoder avoids that loop. Measure paired/interleaved against a frozen
+  baseline worktree: single runs are far too noisy (per-pair ratios span
+  0.85-1.23 even for untouched phases).
+- Deterministic file bytes are NOT a valid equivalence gate here: two runs
+  of the SAME binary produce different index page layouts. Compare logical
+  row sets and integrity_check instead. Details:
+  `portplan/HANDOFF_2026-11-25_INDEX_COMPARE_ALLOCS.md`.

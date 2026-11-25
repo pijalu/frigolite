@@ -124,6 +124,14 @@ a regression from `ec5683fc4`/`a06dba606`. Result-affecting items come first.
    515.3k ops/s (4.2×), indexed SELECT 138.4k vs 401.7k (2.9×), indexed UPDATE
    152.4k vs 480.1k (3.2×); file insert 10.4k vs 4.9k (2.1× faster). Profile
    before optimizing; no simplification.
+   2026-11-25 progress: allocation profile showed `RecordPayloadCompare`
+   fully decoding both index payloads on every comparison (40% of allocated
+   objects). `storage.DecodeRecordPrefix` + stack scratch in the comparator
+   cut allocations 18.34M→13.39M (-27%) and, in 8 paired interleaved runs,
+   improved INSERT 1.149×, indexed-DELETE 1.089×, point-DELETE 1.117×.
+   Remaining SQLite gaps (indexed SELECT ~4×, UPDATE ~4×, scan ~3.7×) are
+   still open; full-gate result in
+   `portplan/HANDOFF_2026-11-25_INDEX_COMPARE_ALLOCS.md`.
 1. **QUALITY — repo-wide gate debt**: `tools/quality_gate.sh` exits 1 with 10
    staticcheck findings, 221 functions over gocognit 15, 204 over gocyclo 12,
    and 18 files over the 1000-line hard limit. Baseline at HEAD fails the same

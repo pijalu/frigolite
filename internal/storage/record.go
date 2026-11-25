@@ -114,6 +114,45 @@ func DecodeRecord(data []byte) (*Record, error) {
 	return r, nil
 }
 
+// DecodeRecordPrefix decodes the first len(out) fields of a record directly
+// into caller-owned storage, returning the record's exact field count. It
+// validates the header and every value's bounds exactly like DecodeRecord,
+// but allocates no Record and no Values slice: callers that only inspect a
+// few leading fields (index-key comparison) avoid the per-comparison heap
+// churn of a full decode.
+func DecodeRecordPrefix(data []byte, out []interface{}) (int, error) {
+	hdrSize, n := util.GetVarint(data)
+	if n == 0 {
+		return 0, fmt.Errorf("storage: corrupt record header size")
+	}
+	hdrEnd := int(hdrSize)
+	if hdrEnd < n || hdrEnd > len(data) {
+		return 0, fmt.Errorf("database disk image is malformed")
+	}
+	typePos, dataPos := n, hdrEnd
+	col := 0
+	for typePos < hdrEnd {
+		st, width := util.GetVarint(data[typePos:])
+		if width == 0 {
+			return 0, fmt.Errorf("storage: corrupt record header at offset %d", typePos)
+		}
+		typePos += width
+		valLen, err := SerialTypeLength(st)
+		if err != nil {
+			return 0, err
+		}
+		if dataPos+int(valLen) > len(data) {
+			return 0, fmt.Errorf("storage: record data too short at value %d: need %d bytes at offset %d, have %d", col, valLen, dataPos, len(data))
+		}
+		if col < len(out) {
+			out[col] = decodeValue(st, data[dataPos:dataPos+int(valLen)])
+		}
+		dataPos += int(valLen)
+		col++
+	}
+	return col, nil
+}
+
 // ParseRecordHeader parses a SQLite record header and returns the serial type
 // codes for each column and the byte offset where the value data begins.
 // The value data starts at the returned dataStart offset within the data slice.

@@ -122,22 +122,45 @@ func (t *BTree) SetIndexKeyInfo(ki *KeyInfo, lookup CollationLookup) {
 // Undecodable records (never produced by the engine) fall back to
 // bytes.Compare.
 func RecordPayloadCompare(a, b []byte, ki *KeyInfo, lookup CollationLookup) int {
-	ra, errA := storage.DecodeRecord(a)
-	rb, errB := storage.DecodeRecord(b)
+	// Index keys are almost always 1-3 fields. Decode only the fields the
+	// comparator can look at, into stack-backed scratch slices: the old
+	// full DecodeRecord allocated a Record plus a []interface{} plus every
+	// boxed value on EVERY comparison, which dominated INSERT profiles
+	// (storage.DecodeRecord = 40% of allocated objects). DecodeRecordPrefix
+	// still walks the whole header and returns the exact column count, so
+	// the length tiebreak is unchanged.
+	const scratchCols = 16
+	var va, vb [scratchCols]interface{}
+	na, errA := storage.DecodeRecordPrefix(a, va[:])
+	nb, errB := storage.DecodeRecordPrefix(b, vb[:])
 	if errA != nil || errB != nil {
 		return bytes.Compare(a, b)
 	}
-	n := len(ra.Values)
-	if len(rb.Values) < n {
-		n = len(rb.Values)
+	if na > scratchCols || nb > scratchCols {
+		// Wide records can carry a corrupt field past the scratch window
+		// that a full decode would have rejected; keep the old fallback.
+		ra, errA := storage.DecodeRecord(a)
+		rb, errB := storage.DecodeRecord(b)
+		if errA != nil || errB != nil {
+			return bytes.Compare(a, b)
+		}
+		n := min(len(ra.Values), len(rb.Values))
+		for i := 0; i < n; i++ {
+			rc := CompareKeyField(util.UnwrapColumnValue(ra.Values[i]), util.UnwrapColumnValue(rb.Values[i]), ki.collationOf(i), ki.sortFlagOf(i), lookup)
+			if rc != 0 {
+				return rc
+			}
+		}
+		return len(ra.Values) - len(rb.Values)
 	}
+	n := min(na, nb)
 	for i := 0; i < n; i++ {
-		rc := CompareKeyField(util.UnwrapColumnValue(ra.Values[i]), util.UnwrapColumnValue(rb.Values[i]), ki.collationOf(i), ki.sortFlagOf(i), lookup)
+		rc := CompareKeyField(util.UnwrapColumnValue(va[i]), util.UnwrapColumnValue(vb[i]), ki.collationOf(i), ki.sortFlagOf(i), lookup)
 		if rc != 0 {
 			return rc
 		}
 	}
-	return len(ra.Values) - len(rb.Values)
+	return na - nb
 }
 
 // CompareKeyField compares two decoded index-key values under one column's
