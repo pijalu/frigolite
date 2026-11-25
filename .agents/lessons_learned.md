@@ -2691,3 +2691,13 @@ everywhere; go vet + go build clean.
   `-0xFFFFFFFFFFFFFFFF` is 1, but `-0x8000000000000000` is a parser error
   because negating MinInt64 overflows. Leading zeros do not count toward
   the 16-digit width.
+- **Underscore digit separators are QNUMBER tokens**: SQLite's tokenizer
+  consumes every `_` inside an integer/fraction/exponent/hex run without
+  checking the next byte, then dequote validates both neighbours and reports
+  the ORIGINAL whole token on failure. Patching the three visible strings
+  is not a fix: `1_.4`, `12._34`, `12_.34`, `0xFF__EF`, and valid
+  `1.4_2`/`0xFF_FF` all come from one scan/dequote contract.
+- **A file one line below the hard size gate needs a cohesive helper move,
+  not a line shaved off**: `lexer.go` was 992/1000, so the complete numeric
+  scanner moved to `lexer_number.go`; splitting `validSeparators` into a
+  neighbour-check helper also kept gocognit/gocyclo at the baseline.
