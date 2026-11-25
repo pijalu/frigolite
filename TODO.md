@@ -1,6 +1,6 @@
 # TODO — the live restart index
 
-> Details live in **[portplan/HANDOFF_2026-11-25_S60_QUOTE_DQS.md](portplan/HANDOFF_2026-11-25_S60_QUOTE_DQS.md)** —
+> Details live in **[portplan/HANDOFF_2026-11-25_S61_UNHEX.md](portplan/HANDOFF_2026-11-25_S61_UNHEX.md)** —
 > read it first (then the older WAL-residue handoff for the durable baseline
 > methodology). This file is the one-page index; update BOTH when checking
 > items off.
@@ -9,7 +9,7 @@
 
 `close all gaps with sqlite — functional first, then performance.`
 
-## State (2026-11-25, feature/perf @ 2324b3a18 — S43 slices 1-6 + S44-S60 landed: hexlit 2→0, literal-1.5.* 3→0, literal-4.x 3→0, printf-20.* 14→0, quote 7→0; FULL gate NEW=0 vs durable t10 apart from documented flakes; all other NEW=0)
+## State (2026-11-25, feature/perf @ 3a9e6ed2d — S43 slices 1-6 + S44-S61 landed: hexlit 2→0, literal-1.5.* 3→0, literal-4.x 3→0, printf-20.* 14→0, quote 7→0, unhex 5→0; FULL gate NEW=0 vs durable t10 apart from documented flakes; all other NEW=0)
 
 Full-suite truth **1190 failing leaves** (the s35g gate baseline
 portplan/baselines/s35g_gate_fails.txt minus the three walfault leaves
@@ -371,9 +371,15 @@ portplan/baselines/s35g_gate_fails.txt.)
      repeat body. FULL gate `/tmp/t25_full_gate.log` (1231 leaves): NEW=0
      vs t24 and durable t10; all seven target leaves GONE. Quality/converter
      failure-name sets unchanged.
+ 3r. **S61 DELIVERED — unhex 5→0**: Tcl `db eval` binds `$hex` as TEXT, so
+     leading-zero values now render as SQL `'0000'`; 3-digit Tcl `\u`
+     escapes decode to UTF-8. FULL gate `/tmp/t26_full_gate.log` (1226
+     leaves): NEW=0 vs durable t10; all target leaves GONE. Vs t25 the only
+     NEW is the documented `resetdb-300` flake. Quality/converter baseline
+     sets unchanged.
  4. **Engine residue cards**: FTS3 residue 0; unsigned hex literals 0
     (hexlit 2, literal-1.5.* 3); literal-4.x 0; printf `%j/%J` 0; quote DQS
-    0. Next: unhex, the interleaved row-callback step; then pager1 directory
+    0; unhex 0. Next: interleaved row-callback step; then pager1 directory
     hierarchy / S34 journal / temptable2 / where2 watchlist.
 5. **The performance phase** (F1c/F3 lanes in
    GAP_CLOSURE_PLAN_2026-10-31.md) after functional gaps close.
@@ -441,7 +447,7 @@ portplan/baselines/s35g_gate_fails.txt.)
    bestindexF 2.3.0/2.4.0/2.5.0 eDistinct handshake + xBestIndex
    globals).
 4. **Engine residue cards**: fts3* residue ~39 (fts3defer2 MATCH
-   evaluation first); unhex, `binary format`/file-write substrate
+   evaluation first); `binary format`/file-write substrate
    (the format-c and binary-scan i*/I* pieces landed in S35d/S53), the
    interleaved row-callback step.
 5. **Engine residue cards**: pager1 4.4.2 directory-hierarchy machinery,

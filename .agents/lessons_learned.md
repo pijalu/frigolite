@@ -2725,3 +2725,14 @@ everywhere; go vet + go build clean.
   `repeat ×2 {set_dqs false,true}`, not two top-level steps. Inspect
   `repeatBody` when checking regenerated fixtures; harness repeat expansion
   applies the DQS state on both iterations.
+- **Tcl `db eval` binds variables as TEXT**: `$hex` with value `0000` must
+  be rendered as SQL `'0000'`, not bare integer `0`. Canonical numeric
+  inlining stays for `10`/`0`/`0.5`, but leading-zero spellings are textual
+  (`tclsqlite.c:1505-1544`).
+- **Tcl `\u` takes 1–4 hex digits**: `\uE01` is U+0E01, not a literal
+  `uE01`. Stop at the first non-hex byte; taking four bytes would turn
+  `\uE01ABCD` into U+E01A.
+- **Complexity baselines catch helper placement**: extending an existing
+  decoder inline raised its gocyclo/gocognit findings. Moving the new scan
+  into a small helper returns the dispatcher to its baseline branch count
+  while keeping behavior.
