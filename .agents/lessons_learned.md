@@ -2599,3 +2599,13 @@ everywhere; go vet + go build clean.
   work**: splitting hit-column collection from count accumulation kept
   `PhraseColumnCounts` at the clean-HEAD gocognit/gocyclo baseline; dead
   helpers must be removed before the comparison is meaningful.
+- **An `unknown tokenizer` failure can masquerade as a deferred-MATCH bug**:
+  `fts3defer-5.2.2/3` failed only because `CREATE ... TOKENIZE icu en_US` did
+  not create the table. Read the first failing step's message before chasing
+  downstream query behavior; the factory error is the unit.
+- **SQLite's ICU tokenizer is a word-boundary tokenizer, not a synonym for
+  `simple`**: it case-folds each codepoint, uses UBRK_WORD boundaries, keeps
+  mid-word apostrophes (`don't`) and reports byte spans into the original
+  text (`fts3_icu.c` icuOpen/icuNext). A pure-Go implementation should mirror
+  those observable rules and retain the locale instead of silently mapping
+  `icu` to an existing tokenizer.

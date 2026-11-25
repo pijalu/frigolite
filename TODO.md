@@ -1,6 +1,6 @@
 # TODO — the live restart index
 
-> Details live in **[portplan/HANDOFF_2026-11-24_S53_DEFERRED_MATCHINFO.md](portplan/HANDOFF_2026-11-24_S53_DEFERRED_MATCHINFO.md)** —
+> Details live in **[portplan/HANDOFF_2026-11-25_S54_ICU_TOKENIZER.md](portplan/HANDOFF_2026-11-25_S54_ICU_TOKENIZER.md)** —
 > read it first (then the older WAL-residue handoff for the durable baseline
 > methodology). This file is the one-page index; update BOTH when checking
 > items off.
@@ -9,7 +9,7 @@
 
 `close all gaps with sqlite — functional first, then performance.`
 
-## State (2026-11-24, feature/perf @ 9b58d6b0c — S43 slices 1-6 + S44-S53 landed: bestindexE, bestindexF-1.4.1, distinctagg 5→0, trigger7 6→0, misc3 1→0, gencol1 6→5, indexexpr3 2→0, e_expr 2→0, indexexpr2 3→0, starschema1 8→1, expridx1 11→0, TCL binary-scan UDFs 8→0, FTS4 deferred matchinfo 6→0, deferred MATCH 14→0; FULL gate NEW=0 vs the durable t10 baseline; only documented flakes)
+## State (2026-11-25, feature/perf @ 73b414639 — S43 slices 1-6 + S44-S54 landed: bestindexE, bestindexF-1.4.1, distinctagg 5→0, trigger7 6→0, misc3 1→0, gencol1 6→5, indexexpr3 2→0, e_expr 2→0, indexexpr2 3→0, starschema1 8→1, expridx1 11→0, TCL binary-scan UDFs 8→0, FTS4 deferred matchinfo 6→0, deferred MATCH 14→0, ICU leaves 3→0; FULL gate NEW=0 vs the durable t10 baseline; only documented flakes)
 
 Full-suite truth **1190 failing leaves** (the s35g gate baseline
 portplan/baselines/s35g_gate_fails.txt minus the three walfault leaves
@@ -298,8 +298,15 @@ portplan/baselines/s35g_gate_fails.txt.)
    invalidated on every index mutation, so MATCH preparing once per row stays
    linear. FULL gate `/tmp/t14_full2.log` (1171.345s, 1311 leaves): NEW=0 vs
    t10, GONE=40; fts3defer2 focused 0 leaves; pins and quality clean.
-4. **Engine residue cards**: fts3* residue ~39 (fts3defer2 MATCH now 0;
-   fts3query/fts4umlaut/fts3malloc/fts3defer 5.2 next); `binary format`/
+3g. **S54 slice 1 DELIVERED — ICU tokenizer 3→0**: `TOKENIZE icu en_US`
+   now resolves to a pure-Go ICU word-boundary tokenizer (case folding,
+   mid-word apostrophes, original byte spans), so the FTS4 `a b` deferral
+   test runs instead of failing at CREATE. FULL gate `/tmp/t15_full.log`
+   (1154.984s, 1307 leaves): NEW=0 vs t10, GONE=4; focused fts3defer raw
+   diff NEW=0/GONE=4; pins and quality clean. `fts3atoken` remains an
+   unsupported family at HEAD.
+4. **Engine residue cards**: fts3* residue ~37 (fts3defer2/ICU now 0;
+   fts3query/fts4umlaut/fts3malloc/fts3defer3 next); `binary format`/
    file-write substrate (the format-c and binary-scan i*/I* pieces landed in
    S35d/S53), the interleaved row-callback step.
 5. **The performance phase** (F1c/F3 lanes in
