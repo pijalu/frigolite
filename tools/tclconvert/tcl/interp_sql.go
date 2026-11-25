@@ -1318,8 +1318,8 @@ func (i *Interp) cmdDoTest(rawWords []rawWord, localVars map[string]string) erro
 			i.stmts = append(i.stmts, Stmt{Type: "runtime_list", ListValues: []string{"$" + rcVar}, Expected: expected, TestName: name})
 			bodyValueCaptured = true
 		}
-		if lastCmd := bodyCommands[len(bodyCommands)-1]; len(lastCmd) == 2 && lastCmd[0].Text == "expr" {
-			if exprText := strings.TrimSpace(lastCmd[1].Text); i.exprReadsRuntimeVar(exprText) {
+		if lastCmd := bodyCommands[len(bodyCommands)-1]; len(lastCmd) >= 2 && lastCmd[0].Text == "expr" {
+			if exprText := strings.TrimSpace(rawCommandWordsText(lastCmd[1:])); i.exprReadsRuntimeVar(exprText) {
 				// The expectation may itself be a runtime expression: the
 				// do_test's expected argument is a command substitution over
 				// runtime values (`[expr {$nFree - $nFree2}]`,
@@ -1468,6 +1468,17 @@ func firstStatement(sql string) string {
 // in a Tcl expression — the same references readVarName reads (the element
 // may nest one level of parentheses).
 var tclVarRef = regexp.MustCompile(`\$(?:::)?([A-Za-z_][A-Za-z0-9_]*(?:\((?:[^()]|\([^()]*\))*\))?)`)
+
+// rawCommandWordsText joins a Tcl command's already-split words back into
+// source form. `expr ($n >280 && $n <300)` is one expression split across
+// several words; commandExpr uses the same join before evaluating it.
+func rawCommandWordsText(words []rawWord) string {
+	parts := make([]string, 0, len(words))
+	for _, w := range words {
+		parts = append(parts, w.Text)
+	}
+	return strings.Join(parts, " ")
+}
 
 // exprReadsRuntimeVar reports whether a Tcl expression references a variable
 // whose value is only known at runtime (assigned from a query result), meaning

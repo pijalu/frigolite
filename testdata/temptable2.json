@@ -165,7 +165,11 @@
         {
           "type": "query_assign",
           "sql": "PRAGMA temp.page_count",
-          "variable": "n",
+          "variable": "n"
+        },
+        {
+          "type": "runtime_expr",
+          "sql": "($n >280 && $n <300)",
           "expect": "1"
         },
         {
@@ -194,7 +198,11 @@
         {
           "type": "query_assign",
           "sql": "PRAGMA temp.page_count",
-          "variable": "n",
+          "variable": "n"
+        },
+        {
+          "type": "runtime_expr",
+          "sql": "($n >270 && $n <290)",
           "expect": "1"
         }
       ]
