@@ -2657,3 +2657,9 @@ everywhere; go vet + go build clean.
   recording after the type switch registered every item, shifted
   `InsLitVals`, and panicked `stashValues`; changed-package tests must run
   before a full gate because harness leaves may not cover that shape.
+- **A stale fixture can omit wrapper-generated DDL entirely**: `e_fts3` had
+  25 tests and failed with `no such table: docs/t4/ta_segdir`; regeneration
+  with current `do_write_test`/`do_error_test` support produced 432 tests
+  with the CREATE/write steps. Regenerate one family with `-only` before
+  chasing an engine bug when the missing object is created by a sourced TCL
+  helper.
