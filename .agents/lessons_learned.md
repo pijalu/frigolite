@@ -2609,3 +2609,15 @@ everywhere; go vet + go build clean.
   text (`fts3_icu.c` icuOpen/icuNext). A pure-Go implementation should mirror
   those observable rules and retain the locale instead of silently mapping
   `icu` to an existing tokenizer.
+- **TCL `\uXXXX` in a quoted foreach-list element must be decoded before the
+  harness sees the SQL**: `fts4umlaut` emitted literal `u1ed9`/`u006f`/`u0302`
+  because `unescapeListElement` dropped the backslash for unknown escapes.
+  Reuse the interpreter's `decodeBackslashEscape` so quoted-list elements,
+  double-quoted words and `subst` agree; regenerate the fixture with `-only`.
+- **A pure-Go port decides engine vs converter**: when `fts4umlaut` failed with
+  fabricated `uXXXX` text, the direct engine test with real Unicode strings
+  passed. Fix the converter class, not the tokenizer's diacritic fold.
+- **Converter packages can have a stable baseline of pre-existing failures**:
+  compare raw `--- FAIL:` names against a clean worktree and require added
+  unit tests to be green; do not treat the package's overall non-zero exit as
+  a regression by itself.
