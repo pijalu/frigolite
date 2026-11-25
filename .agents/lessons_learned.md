@@ -2753,3 +2753,14 @@ everywhere; go vet + go build clean.
   sentinel (`ErrWalBusySnapshot`) and map it with `errors.Is` in the top-level
   `specialErrorCode`; string-only guessing loses `BUSY_SNAPSHOT` to plain
   `BUSY`.
+- **Tcl `tv delete` unregisters the VFS object**: test_vfs.c's CMD_DELETE calls
+  `Tcl_DeleteCommand`; it does not delete a file. A converter that drops the
+  zero-argument form leaves the default fixture pointing at the LAST
+  `-noshm`/`-iversion` registration under that name, so every later reopen
+  silently refuses WAL (pager1-35's missing `-shm`). Emit a `delete_vfs`
+  marker, remove the fixture, and clear a matching default VFS; existing
+  connections keep their hook until close.
+- **A focused fixture patch beats a whole-family regen**: running the current
+  converter over pager1 rewrote thousands of unrelated steps and regressed
+  the family. Insert only the missing marker steps from a scratch regen into
+  the checked-in fixture; the corpus migration is its own gated unit.
