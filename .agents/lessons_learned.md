@@ -2621,3 +2621,10 @@ everywhere; go vet + go build clean.
   compare raw `--- FAIL:` names against a clean worktree and require added
   unit tests to be green; do not treat the package's overall non-zero exit as
   a regression by itself.
+- **Sourced TCL helper procs can be load-bearing for later fixtures**:
+  `fts3malloc`'s `no such table: ft1` came from `malloc_common.tcl`'s
+  `do_write_test` CREATEs never being emitted. Materialize the completed
+  SQL/error contract (as tcl2go already does) before chasing an engine bug.
+- **Converter tests can live in an ignored subtree**: `git add` warned that
+  `tools/tclconvert` was ignored, so the new unit test was absent from the
+  first commit. Use `git add -f` and verify `git show --stat` before docs.
