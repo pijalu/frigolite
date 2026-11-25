@@ -2861,3 +2861,13 @@ everywhere; go vet + go build clean.
   shards already marked complete in the status file are valid evidence.
   Merge `--- FAIL: TestSQLiteSuite/<family>/<leaf>` names from all shards
   before comparing with the durable baseline; GONE is fine, NEW must be 0.
+- **Result-affecting native failures were already present at HEAD**: a
+  2026-11-25 review reproduced all seven root-package fails
+  (concurrent DML CANTOPEN/readonly, WAL exclusive-mode SELECT locked, WAL
+  lock-protocol error swallowed, locking_mode reporting, harness `$t$tcl`
+  expansion, pending-byte test's invalid ReadPage premise) and nine tclconvert
+  unit fails at `5b5472021` as well as at the S66 commits. Logged in TODO.md
+  as OPEN items, classified HIGH/MEDIUM/LOW; none is an S66 regression.
+  Full-harness DML residue sampled: `insert-17.15` reports the wrong UNIQUE
+  column and `insert-5.3` misses an EXPLAIN opcode — result-visible error text,
+  not row loss.

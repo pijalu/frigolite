@@ -20,6 +20,65 @@
 
 `close all gaps with sqlite — functional first, then performance.`
 
+## Review TODOs (2026-11-25) — OPEN
+
+Every native failure below reproduces identically at HEAD `5b5472021`; none is
+a regression from `ec5683fc4`/`a06dba606`. Result-affecting items come first.
+
+1. **HIGH — concurrent DML can fail**: `TestNativeThreadConcurrentWritersSerialize`
+   (`frigolite_thread_concurrency_native_test.go:62`) reports `unable to open
+   database file` on INSERT; `TestNativeThreadReaderDuringWrites` (:108,:136)
+   reports `attempt to write a readonly database` and a reader failure. Binary
+   connections on one file must serialize or fail cleanly with `database is
+   locked`, never CANTOPEN. Fix engine, keep integrity_check=ok and exact counts.
+1. **HIGH — WAL exclusive-mode visibility**: `TestWalMVCCExclusiveModeVisibility`
+   (`frigolite_walmvcc_test.go:45`) gets `database is locked` for
+   `SELECT count(*) FROM t1` after another connection commits; rows must be
+   visible per the walnosh contract. Fix and re-pin both connections.
+1. **MEDIUM — WAL lock-protocol error swallowed**: `TestWalLockProtocol/recover-range-busy`
+   (`frigolite_wallocks_test.go:319`) expects `locking protocol` on SELECT but
+   gets nil. Persistent xShmLock BUSY during recovery must surface
+   SQLITE_PROTOCOL (walprotocol-1.3/1.4).
+1. **MEDIUM — locking_mode reporting**: `TestW6_LockingMode`
+   (`frigolite_w6_kernel_pin_test.go:144-202`) reports default `normal` where
+   `exclusive` is expected (7 assertions). Fix PRAGMA state propagation or
+   correct the expectations against the sqlite3 oracle.
+1. **MEDIUM — harness variable expansion**: `TestExpandTCLRuntimeVarsWholeReferences`
+   (`frigolite_harness_expand_test.go:24`) expands `$t$tcl` into
+   `null'abc'`, corrupting generated SQL for e_expr-12.3.13.1-class fixtures.
+   Whole-reference rule must leave `$tcl` untouched. Harness-only, not engine.
+1. **LOW — invalid pending-byte test premise**: `TestNativePendingBytePageNeverAllocated`
+   (`frigolite_autovacuum_native_test.go:130`) calls `pager.ReadPage(65)`,
+   which `internal/pager/pagerpage.go:244-246` intentionally rejects with
+   ErrCorruptPage for the lock-byte page. Rewrite the assertion to read raw
+   file bytes at the reserved page offset; verify the engine guarantee without
+   bypassing the pager corruption guard.
+1. **MEDIUM — converter unit-test drift**: 9 failures in
+   `tools/tclconvert` / `tools/tclconvert/tcl` (e.g. `TestConvertPreservesCustomCollationLifecycle`,
+   `TestExecSQLResultAssignmentIsCapturedAsRuntimeStep`, `TestDBStatusBareStyleAndSearchCount`)
+   expect pre-S65 step streams; S65 added `runtime_expr` capture. Re-baseline
+   against the oracle, do not delete assertions wholesale.
+1. **MEDIUM — DML parity residue**: `insert-17.15` reports `UNIQUE constraint
+   failed: t3.a` where sqlite reports `t3.d`; `insert-5.3` misses an
+   `OpenEphemeral` EXPLAIN opcode. Result-visible error text, not row loss;
+   fix with oracle checks.
+1. **PERF — secondary-index paths**: R14 measured rowid CRUD at parity but
+   index SELECT/UPDATE/DELETE 3–5× slower and indexed UPDATE 2700× slower on a
+   fresh table. Quick paired rerun (5000 rows, 200 point ops): INSERT 122.8k vs
+   515.3k ops/s (4.2×), indexed SELECT 138.4k vs 401.7k (2.9×), indexed UPDATE
+   152.4k vs 480.1k (3.2×); file insert 10.4k vs 4.9k (2.1× faster). Profile
+   before optimizing; no simplification.
+1. **QUALITY — repo-wide gate debt**: `tools/quality_gate.sh` exits 1 with 10
+   staticcheck findings, 221 functions over gocognit 15, 204 over gocyclo 12,
+   and 18 files over the 1000-line hard limit. Baseline at HEAD fails the same
+   gates; reduce by package, no blanket suppressions.
+
+## Archived completed units
+
+The `S66…S35g` entries below are historical COMPLETE/DELIVERED records; their
+evidence lives in `portplan/HANDOFF_*.md`, `portplan/PLAN_*.md`, and the
+commit history. Open work is listed above, not below.
+
 ## State (2026-11-25, feature/perf @ ec5683fc4 — S43 slices 1-6 + S44-S66 landed: hexlit 2→0, literal-1.5.* 3→0, literal-4.x 3→0, printf-20.* 14→0, quote 7→0, unhex 5→0, interleaved row callback 4→0, pager1 VFS delete 2→0, S34 journal/close cards 2→0, multi-word expr fixture fidelity 2→0, S66 recursive parent cascade accepted). Full parity gate re-run in 12 shards: 1024 leaf failures, NEW=0 vs `/tmp/t30_full_gate.log`; GONE=4 (resetdb-100/300 documented flakes + the two superseded tempting2 density leaves). vs the older s35g baseline the only 3 NEW names (bestindexF 2.8.0/2.9.0/2.10.0) are pre-existing at HEAD 5b5472021. TODO queue CLOSED.
 
 Full-suite truth **1190 failing leaves** (the s35g gate baseline
@@ -224,7 +283,7 @@ indexexpr3 0, e_expr 0, starschema1 1 (1.2), without_rowid3 16
 mixed substring filters; the per-leaf truth is
 portplan/baselines/s35g_gate_fails.txt.)
 
-## Immediate next action
+### Archived historical entries (no open work)
 
 1. **S66 COMPLETE (density variance accepted)** — recursive parent-boundary
    cascade (`btree_index_balance_cascade.go` + window/pack/leaf/interior
