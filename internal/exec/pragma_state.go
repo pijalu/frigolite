@@ -227,6 +227,8 @@ func (e *Engine) JournalSizeLimit(schema, value string) *execpragma.Result {
 //     row is MAIN's resulting mode.
 //   - Bare "PRAGMA locking_mode" (query) returns db->dfltLockMode — which
 //     may differ from MAIN's own pager mode after a schema-qualified set.
+//     Schema-qualified queries instead return the ADDRESSED database's pager
+//     mode (pragma.c: only the bare-query branch substitutes dfltLockMode).
 //   - Schema-qualified forms address only that database's pager and never
 //     touch dfltLockMode. TEMP ignores sets and always reports "exclusive"
 //     (pager.c: pPager->exclusiveMode = tempFile at open, and
@@ -258,7 +260,7 @@ func (e *Engine) LockingMode(schema, value string) *execpragma.Result {
 		}
 		return &execpragma.Result{Rows: [][]interface{}{{e.currentLockingMode(schema)}}}
 	}
-	return &execpragma.Result{Rows: [][]interface{}{{e.currentLockingMode("")}}}
+	return &execpragma.Result{Rows: [][]interface{}{{e.currentLockingMode(schema)}}}
 }
 
 // lockingModeSetAll applies an unqualified PRAGMA locking_mode = X: every

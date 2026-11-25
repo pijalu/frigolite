@@ -323,6 +323,11 @@ appending.
   and ?N"; an ASSIGNED index above the limit → "too many SQL variables",
   and the check must run on the Query path too). SQLITE_MAX_VARIABLE_NUMBER
   (32766 post-3.32) must be exposed to fixtures.
+- PRAGMA locking_mode query: only a BARE `PRAGMA locking_mode` reports
+  `db->dfltLockMode` (pragma.c:691-697); a schema-qualified query reports THAT
+  pager's mode, and a junk `=` value on a qualified form is a QUERY, not a set
+  (`getLockingMode` -> QUERY). Passing the default on every value-less form
+  produced the 7 W6 wrong normal/exclusive combinations.
 - Bitwise operators coerce (int as-is, reals truncated, text/blob parsed
   with 0 on failure); only NULL propagates NULL. `IS TRUE/FALSE` uses
   boolean truth coercion (OP_IsTrue), not equality against 1/0. SQLite's

@@ -164,11 +164,21 @@ func TestW6_LockingMode(t *testing.T) {
 	if got := q1W6(t, db, "pragma locking_mode; pragma main.locking_mode; pragma temp.locking_mode;"); got != "normal normal exclusive" {
 		t.Errorf("1.6 = %q want 'normal normal exclusive'", got)
 	}
+	// 1.6b: an invalid value on a qualified pragma is a QUERY of that
+	// schema (C's getLockingMode maps junk to PAGER_LOCKINGMODE_QUERY).
+	if got := q1W6(t, db, "pragma main.locking_mode = invalid; pragma temp.locking_mode = invalid;"); got != "normal exclusive" {
+		t.Errorf("1.6b = %q want 'normal exclusive'", got)
+	}
 	// 1.7: unqualified set exclusive, then ATTACH and check main/aux.
 	execW6(t, db, "pragma locking_mode = exclusive;")
 	execW6(t, db, "ATTACH '"+t.TempDir()+"/aux1.db' AS aux;")
 	if got := q1W6(t, db, "pragma main.locking_mode; pragma aux.locking_mode;"); got != "exclusive exclusive" {
 		t.Errorf("1.7 = %q want 'exclusive exclusive'", got)
+	}
+	// 1.7b: the same junk-token query after a bare exclusive set reports
+	// each schema's own mode, not the connection default.
+	if got := q1W6(t, db, "pragma main.locking_mode = invalid; pragma temp.locking_mode = invalid; pragma aux.locking_mode = invalid;"); got != "exclusive exclusive exclusive" {
+		t.Errorf("1.7b = %q want 'exclusive exclusive exclusive'", got)
 	}
 	// 1.8 + 1.9: QUALIFIED set main=normal changes main (and leaves temp
 	// exclusive) but the connection default stays exclusive, so the

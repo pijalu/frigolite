@@ -48,10 +48,17 @@ a regression from `ec5683fc4`/`a06dba606`. Result-affecting items come first.
    (`-count=3`), WAL-family harness 41=41 fail leaves NEW=0 vs t30, internal
    packages green, SOLID green. Detail:
    `portplan/PLAN_2026-11-25_WAL_LOCK_PROTOCOL.md`.
-1. **MEDIUM — locking_mode reporting**: `TestW6_LockingMode`
-   (`frigolite_w6_kernel_pin_test.go:144-202`) reports default `normal` where
-   `exclusive` is expected (7 assertions). Fix PRAGMA state propagation or
-   correct the expectations against the sqlite3 oracle.
+1. **DONE — locking_mode reporting**: `TestW6_LockingMode`
+   (`frigolite_w6_kernel_pin_test.go:144-202`) now passes all assertions,
+   including two new qualified-junk-query pins. Root cause: value-less
+   `PRAGMA <schema>.locking_mode` ignored `s.Schema` and always returned
+   `db->dfltLockMode`; C's `pragma.c:687-724` only substitutes the default for
+   the BARE query. `LockingMode` now passes `s.Schema` through on that branch.
+   Oracle sqlite3 3.54 confirmed every shape. Verify command green; all
+   `TestW6_*` green; full 12-shard harness NEW=0 vs `/tmp/t30_full_gate.log`
+   (first run's 15 `temptable2-9.2.*` leaves were unseeded-randomblob flakes,
+   absent in the focused rerun and the second full run); SOLID green. Detail:
+   `portplan/HANDOFF_2026-11-25_W6_LOCKING_MODE.md`.
 1. **MEDIUM — harness variable expansion**: `TestExpandTCLRuntimeVarsWholeReferences`
    (`frigolite_harness_expand_test.go:24`) expands `$t$tcl` into
    `null'abc'`, corrupting generated SQL for e_expr-12.3.13.1-class fixtures.
