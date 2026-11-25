@@ -2291,9 +2291,28 @@ func commandSQLiteCreateFunction(i *Interp, rawWords []rawWord, args []string, l
 }
 
 func commandDBConfig(i *Interp, rawWords []rawWord, args []string, localVars map[string]string) error {
-	if len(args) >= 3 && args[1] == "DEFENSIVE" {
-		i.stmts = append(i.stmts, Stmt{Type: "defensive", SQL: args[2], TestName: i.curTest})
+	if len(args) < 3 {
+		return nil
 	}
+	flag := strings.ToUpper(strings.TrimSpace(args[1]))
+	val := strings.TrimSpace(args[2])
+	on := val != "0" && !strings.EqualFold(val, "off")
+	switch {
+	case flag == "DEFENSIVE":
+		i.stmts = append(i.stmts, Stmt{Type: "defensive", SQL: val, TestName: i.curTest})
+		return nil
+	case strings.HasSuffix(flag, "DQS_DDL"):
+		i.dqsDDL = on
+	case strings.HasSuffix(flag, "DQS_DML"):
+		i.dqsDML = on
+	default:
+		return nil
+	}
+	i.stmts = append(i.stmts, Stmt{
+		Type:     "set_dqs",
+		SQL:      fmt.Sprintf("%t,%t", i.dqsDDL, i.dqsDML),
+		TestName: i.curTest,
+	})
 	return nil
 }
 

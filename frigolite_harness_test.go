@@ -4440,6 +4440,16 @@ func TestSQLiteSuite(t *testing.T) {
 							db.SetDefensive(step.SQL == "1")
 							continue
 						}
+						if step.Type == "set_dqs" {
+							parts := strings.Split(step.SQL, ",")
+							ddl, _ := strconv.ParseBool(parts[0])
+							dml := true
+							if len(parts) > 1 {
+								dml, _ = strconv.ParseBool(parts[1])
+							}
+							db.SetDQS(ddl, dml)
+							continue
+						}
 						if step.Type == "register_tcl_module" {
 							// The register's callbackVars seed the runtime
 							// set (the register_collation pattern): the

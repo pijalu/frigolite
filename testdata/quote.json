@@ -4,6 +4,16 @@
   "ordered": true,
   "tests": [
     {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "runtime_expr",
+          "sql": "file dirname $argv0",
+          "variable": "testdir"
+        }
+      ]
+    },
+    {
       "name": "quote-1.0",
       "steps": [
         {
@@ -101,7 +111,14 @@
           "sql": "SELECT '@abc'.'!pqr', '@abc'.'#xyz'+5 FROM '@abc'",
           "variable": "r",
           "catchResult": true,
-          "catchMessage": "msg",
+          "catchMessage": "msg"
+        },
+        {
+          "type": "runtime_list",
+          "listValues": [
+            "$r",
+            "$msg"
+          ],
           "expect": "0 {hello 10}"
         }
       ]
@@ -114,7 +131,14 @@
           "sql": "UPDATE '@abc' SET '#xyz'=11",
           "variable": "r",
           "catchResult": true,
-          "catchMessage": "msg",
+          "catchMessage": "msg"
+        },
+        {
+          "type": "runtime_list",
+          "listValues": [
+            "$r",
+            "$msg"
+          ],
           "expect": "0 {}"
         }
       ]
@@ -127,7 +151,14 @@
           "sql": "SELECT '@abc'.'!pqr', '@abc'.'#xyz'+5 FROM '@abc'",
           "variable": "r",
           "catchResult": true,
-          "catchMessage": "msg",
+          "catchMessage": "msg"
+        },
+        {
+          "type": "runtime_list",
+          "listValues": [
+            "$r",
+            "$msg"
+          ],
           "expect": "0 {hello 16}"
         }
       ]
@@ -140,14 +171,36 @@
           "sql": "DROP TABLE '@abc'",
           "variable": "r",
           "catchResult": true,
-          "catchMessage": "msg",
+          "catchMessage": "msg"
+        },
+        {
+          "type": "runtime_list",
+          "listValues": [
+            "$r",
+            "$msg"
+          ],
           "expect": "0 {}"
         }
       ]
     },
     {
       "name": "__RESET_DB__",
-      "steps": null
+      "steps": []
+    },
+    {
+      "name": "setup_1",
+      "steps": [
+        {
+          "repeatCount": 2,
+          "repeatBody": [
+            {
+              "type": "set_dqs",
+              "sql": "false,true"
+            }
+          ],
+          "type": "repeat"
+        }
+      ]
     },
     {
       "name": "quote-2.0",
@@ -208,7 +261,7 @@
       ]
     },
     {
-      "name": "setup_0",
+      "name": "setup_2",
       "steps": [
         {
           "type": "close_db"
@@ -260,7 +313,7 @@
     },
     {
       "name": "__RESET_DB__",
-      "steps": null
+      "steps": []
     },
     {
       "name": "quote-3.0",
@@ -309,6 +362,15 @@
           "type": "catch",
           "sql": "DROP TABLE t1;\n    CREATE TABLE t1(a, b, c);\n    CREATE INDEX x1 ON t1(\"a\"||\"b\");\n    INSERT INTO t1 VALUES(1,2,3),(1,4,5);\n    ALTER TABLE t1 DROP COLUMN b;",
           "expect": "1 {error in index x1 after drop column: no such column: \"b\" - should this be a string literal in single-quotes?}"
+        }
+      ]
+    },
+    {
+      "name": "setup_3",
+      "steps": [
+        {
+          "type": "set_dqs",
+          "sql": "true,true"
         }
       ]
     },

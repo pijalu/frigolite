@@ -179,6 +179,8 @@ type Interp struct {
 	incrblobWrites     map[string]*tclIncrblobWrite
 	nextFileHandle     int
 	nullToken          string    // "db null TOKEN": rendering of SQL NULLs in results
+	dqsDDL             bool      // SQLITE_DBCONFIG_DQS_DDL state (default true)
+	dqsDML             bool      // SQLITE_DBCONFIG_DQS_DML state (default true)
 	stmtBudget         int       // max captured statements; 0 = unlimited
 	conversionMode     bool      // the CONVERTER's offline evaluator (capture branches fire only here)
 	deadline           time.Time // zero = none
@@ -339,6 +341,8 @@ func NewInterp() *Interp {
 		fileWrites:       make(map[string]*tclFileWrite),
 		incrblobWrites:   make(map[string]*tclIncrblobWrite),
 		preparedSQL:      make(map[string]string),
+		dqsDDL:           true,
+		dqsDML:           true,
 		pendingFileSets:  make([]string, 0, 8),
 		runtimeVars:      make(map[string]int),
 	}
