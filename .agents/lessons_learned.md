@@ -66,6 +66,7 @@ appending.
   batch/suite is running; a verify-install batch must treat a BUILD
   FAILURE as "no result", never "0 failures" (it once installed 13
   unverified fixtures).
+- **Detached full-gate wait time is investigation time**: do not sit idle polling. While the suite runs, diff failure-name sets, read the failing families, inspect source alongside the SQLite oracle, run non-conflicting checks, and draft the handoff/plan update. Never edit engine code or regenerate fixtures during the run — that invalidates the result — and poll only when no useful non-conflicting work remains.
 - Go gotchas with blast radius: an untyped constant returned as
   `interface{}` boxes as `int`, not `int64` — always `int64(0)` in engine
   helpers returning `interface{}`. `os.SameFile` type-asserts `*os.fileStat`
@@ -2736,3 +2737,19 @@ everywhere; go vet + go build clean.
   decoder inline raised its gocyclo/gocognit findings. Moving the new scan
   into a small helper returns the dispatcher to its baseline branch count
   while keeping behavior.
+- **Interleaved `db eval SQL BODY` cannot be flattened into the last query**:
+  the body observes and mutates connection state BETWEEN real row steps
+  (wal6-5.2's cross-connection INSERT/BEGIN, interrupt2-2.1's mid-scan
+  checkpoint). Emit one step carrying the full TCL body; run it in a runtime
+  interpreter whose `db eval` prepares and steps a live statement, binding
+  row columns into TCL variables before each callback. Never hand-code the
+  expected body result.
+- **WAL readers do not block writers; a stale reader snapshot does**: DML must
+  proceed while another connection's read mark is open, but BEGIN on a
+  connection that already pinned an older wal-index header fails with
+  `SQLITE_BUSY_SNAPSHOT`. Keep the snapshot upgrade check gated on THIS
+  connection's read mark; an unconditional check breaks ordinary WAL readers.
+- **Preserve extended SQLite codes across wrapping**: expose an exported pager
+  sentinel (`ErrWalBusySnapshot`) and map it with `errors.Is` in the top-level
+  `specialErrorCode`; string-only guessing loses `BUSY_SNAPSHOT` to plain
+  `BUSY`.

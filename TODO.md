@@ -1,6 +1,6 @@
 # TODO — the live restart index
 
-> Details live in **[portplan/HANDOFF_2026-11-25_S61_UNHEX.md](portplan/HANDOFF_2026-11-25_S61_UNHEX.md)** —
+> Details live in **[portplan/HANDOFF_2026-11-25_S62_ROW_CALLBACK.md](portplan/HANDOFF_2026-11-25_S62_ROW_CALLBACK.md)** —
 > read it first (then the older WAL-residue handoff for the durable baseline
 > methodology). This file is the one-page index; update BOTH when checking
 > items off.
@@ -9,7 +9,7 @@
 
 `close all gaps with sqlite — functional first, then performance.`
 
-## State (2026-11-25, feature/perf @ 3a9e6ed2d — S43 slices 1-6 + S44-S61 landed: hexlit 2→0, literal-1.5.* 3→0, literal-4.x 3→0, printf-20.* 14→0, quote 7→0, unhex 5→0; FULL gate NEW=0 vs durable t10 apart from documented flakes; all other NEW=0)
+## State (2026-11-25, feature/perf @ 2ea4d5a36 — S43 slices 1-6 + S44-S62 landed: hexlit 2→0, literal-1.5.* 3→0, literal-4.x 3→0, printf-20.* 14→0, quote 7→0, unhex 5→0, interleaved row callback 4→0; FULL gate NEW=0 vs durable t10 apart from documented flakes; all other NEW=0)
 
 Full-suite truth **1190 failing leaves** (the s35g gate baseline
 portplan/baselines/s35g_gate_fails.txt minus the three walfault leaves
@@ -215,6 +215,7 @@ portplan/baselines/s35g_gate_fails.txt.)
 
 ## Immediate next action
 
+1. **S62 COMPLETE** — interleaved `db eval SQL BODY` now runs the real TCL body between row steps; `interrupt2-2.1` and `wal6-5.2` (plus family leaves) GONE with full-gate NEW=0 vs t26/t10. Next unit: pager1 4.4.2 directory hierarchy / S34 journal cards.
 1. **S35g COMPLETE** (e_wal, e_walhook, walfault2, walfault all 0). The
    sqlite3_interrupt/memdebug_fail surfaces stay carded until a family
    needs them.
@@ -377,9 +378,16 @@ portplan/baselines/s35g_gate_fails.txt.)
      leaves): NEW=0 vs durable t10; all target leaves GONE. Vs t25 the only
      NEW is the documented `resetdb-300` flake. Quality/converter baseline
      sets unchanged.
- 4. **Engine residue cards**: FTS3 residue 0; unsigned hex literals 0
+ 3s. **S62 DELIVERED — interleaved row callback 4→0**: converter emits a
+     `row_callback` step carrying the full `db eval SQL BODY`; the harness
+     runs it in a runtime TCL interpreter with real per-row stepping. WAL
+     DML no longer waits on prepared readers, while a stale snapshot BEGIN
+     returns `SQLITE_BUSY_SNAPSHOT`. FULL gate `/tmp/t27_full_gate.log`
+     (1222 leaves): NEW=0 vs t26 and durable t10; all target leaves GONE.
+     Quality/converter baseline sets unchanged.
+4. **Engine residue cards**: FTS3 residue 0; unsigned hex literals 0
     (hexlit 2, literal-1.5.* 3); literal-4.x 0; printf `%j/%J` 0; quote DQS
-    0; unhex 0. Next: interleaved row-callback step; then pager1 directory
+    0; unhex 0; interleaved row callback 0. Next: pager1 directory
     hierarchy / S34 journal / temptable2 / where2 watchlist.
 5. **The performance phase** (F1c/F3 lanes in
    GAP_CLOSURE_PLAN_2026-10-31.md) after functional gaps close.
@@ -449,9 +457,9 @@ portplan/baselines/s35g_gate_fails.txt.)
 4. **Engine residue cards**: fts3* residue ~39 (fts3defer2 MATCH
    evaluation first); `binary format`/file-write substrate
    (the format-c and binary-scan i*/I* pieces landed in S35d/S53), the
-   interleaved row-callback step.
-5. **Engine residue cards**: pager1 4.4.2 directory-hierarchy machinery,
-   S34's two journal cards, temptable2-9.1.x/9.2.x (pre-existing
+   interleaved row-callback step is DELIVERED (S62).
+5. **NEXT — pager1 4.4.2 directory-hierarchy machinery, S34's two journal
+   cards**, temptable2-9.1.x/9.2.x (pre-existing
    small-cache stress dithers, watchlist), where2-2.4 random() flake,
    the resetdb load flap (watchlist).
 6. **Performance phase** (F1c/F3 lanes in GAP_CLOSURE_PLAN_2026-10-31.md)

@@ -150,6 +150,14 @@ After **every** completed micro-task (not just at goal end):
 
 This ensures any interruption resumes from committed state only. No work is lost.
 
+**Detached validation runs are work time, not wait time.** While a detached full
+suite/verify batch runs, use the interval productively: investigate the current
+failure set, compare against baselines, inspect relevant code/tests, run
+non-conflicting read-only checks, and draft handoff/plan notes. Do not edit
+engine code or regenerate fixtures while the batch is in flight; the result
+would no longer describe the workspace. Only poll for completion when there is
+no remaining non-conflicting work.
+
 **Session closeout:** Never end a considered working session without either committing all completed changes or documenting them clearly in a durable handover/task note. Record changed files, intent, verification run and result, and any remaining work; do not leave unexplained workspace changes. If the user requests a commit, commit all requested workspace changes after reviewing their scope and validating them.
 
 ## 4a. Handover-Goal Protocol (budget exhaustion / large goal)
