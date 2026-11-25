@@ -126,7 +126,7 @@ type Tokenizer interface {
 	TokenizeOffsets(text string) []OffsetToken
 }
 
-// NewTokenizer creates a tokenizer by name (simple, unicode61, porter).
+// NewTokenizer creates a tokenizer by name (simple, unicode61, porter, icu).
 func NewTokenizer(name string) Tokenizer {
 	switch strings.ToLower(name) {
 	case "unicode61":
@@ -135,6 +135,8 @@ func NewTokenizer(name string) Tokenizer {
 	case "porter":
 		// Porter tokenizer chains simple + porter stemming
 		return &PorterTokenizer{}
+	case "icu":
+		return NewICUTokenizer(nil)
 	case "simple":
 		fallthrough
 	default:
@@ -160,6 +162,8 @@ func NewTokenizerFromSpec(spec string, extraArgs []string) (Tokenizer, error) {
 		return newUnicode61Tokenizer(args)
 	case "porter":
 		return &PorterTokenizer{}, nil
+	case "icu":
+		return NewICUTokenizer(args), nil
 	}
 	// A name registered through fts3_tokenizer(name, module) resolves to its
 	// stored factory (fts3_tokenizer.c keeps a hash of registered modules).
