@@ -2628,3 +2628,11 @@ everywhere; go vet + go build clean.
 - **Converter tests can live in an ignored subtree**: `git add` warned that
   `tools/tclconvert` was ignored, so the new unit test was absent from the
   first commit. Use `git add -f` and verify `git show --stat` before docs.
+- **A regenerated fixture can reveal helper commands hidden by stale data**:
+  `fts3cov` fixed `11.1` but exposed `2.3/2.5` because `read_fts3varint`
+  disappeared; the fix is to materialize the helper in converter and harness,
+  not to hand-edit the JSON.
+- **Runtime TCL command heads and dispatch must change together**: adding
+  `read_fts3varint` to `harnessRuntimeCommands` without dispatch (or vice
+  versa) leaves expressions unevaluated. `string range` includes the command
+  name in its word count (5, not 4).

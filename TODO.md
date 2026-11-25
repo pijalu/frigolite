@@ -1,6 +1,6 @@
 # TODO — the live restart index
 
-> Details live in **[portplan/HANDOFF_2026-11-25_S54_MALLOC_WRAPPERS.md](portplan/HANDOFF_2026-11-25_S54_MALLOC_WRAPPERS.md)** —
+> Details live in **[portplan/HANDOFF_2026-11-25_S54_FTS3COV.md](portplan/HANDOFF_2026-11-25_S54_FTS3COV.md)** —
 > read it first (then the older WAL-residue handoff for the durable baseline
 > methodology). This file is the one-page index; update BOTH when checking
 > items off.
@@ -9,7 +9,7 @@
 
 `close all gaps with sqlite — functional first, then performance.`
 
-## State (2026-11-25, feature/perf @ 7aced89b1 — S43 slices 1-6 + S44-S54 landed: bestindexE, bestindexF-1.4.1, distinctagg 5→0, trigger7 6→0, misc3 1→0, gencol1 6→5, indexexpr3 2→0, e_expr 2→0, indexexpr2 3→0, starschema1 8→1, expridx1 11→0, TCL binary-scan UDFs 8→0, FTS4 deferred matchinfo 6→0, deferred MATCH 14→0, ICU leaves 3→0, fts4umlaut 12→0, fts3malloc 5→0; FULL gate NEW=0 vs the durable t10 baseline; only documented flakes)
+## State (2026-11-25, feature/perf @ b140ccfa7 — S43 slices 1-6 + S44-S54 landed: bestindexE, bestindexF-1.4.1, distinctagg 5→0, trigger7 6→0, misc3 1→0, gencol1 6→5, indexexpr3 2→0, e_expr 2→0, indexexpr2 3→0, starschema1 8→1, expridx1 11→0, TCL binary-scan UDFs 8→0, FTS4 deferred matchinfo 6→0, deferred MATCH 14→0, ICU leaves 3→0, fts4umlaut 12→0, fts3malloc 5→0, fts3cov 2→0; FULL gate only documented flakes vs t10; all other NEW=0)
 
 Full-suite truth **1190 failing leaves** (the s35g gate baseline
 portplan/baselines/s35g_gate_fails.txt minus the three walfault leaves
@@ -318,10 +318,17 @@ portplan/baselines/s35g_gate_fails.txt.)
    vs t10, GONE=64; focused family 0 leaves, converter failure-name set
    unchanged vs HEAD. `resetdb-300` is the documented flake (present in
    t10 and a focused re-run).
-4. **Engine residue cards**: fts3* residue ~17 (fts3defer2/ICU/fts4umlaut/
-   fts3malloc now 0; fts3query/fts3defer3/fts3cov next); `binary format`/
-   file-write substrate (the format-c and binary-scan i*/I* pieces landed in
-   S35d/S53), the interleaved row-callback step.
+3j. **S54 slice 4 DELIVERED — fts3cov 2→0**: regenerating the family with the
+   malloc-common wrappers exposed the dropped `read_fts3varint` helper; the
+   converter now emits it as a runtime_expr and the harness can evaluate
+   `string range` plus FTS3 varint decoding. FULL gate `/tmp/t18_full.log`
+   (1172.895s, 1286 leaves): GONE=2 vs t17 for fts3cov; the only NEW leaves
+   vs t10 are the documented `atof1-2.40` random-dice flake (focused run
+   green). Converter failure-name set unchanged vs HEAD; quality NEW=0.
+4. **Engine residue cards**: fts3* residue ~15 (fts3defer2/ICU/fts4umlaut/
+   fts3malloc/fts3cov now 0; fts3query/fts3defer3/fts3auto next); `binary
+   format`/file-write substrate (the format-c and binary-scan i*/I* pieces
+   landed in S35d/S53), the interleaved row-callback step.
 5. **The performance phase** (F1c/F3 lanes in
    GAP_CLOSURE_PLAN_2026-10-31.md) after functional gaps close.
 
