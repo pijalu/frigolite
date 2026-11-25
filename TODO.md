@@ -1,6 +1,6 @@
 # TODO — the live restart index
 
-> Details live in **[portplan/HANDOFF_2026-11-25_S58_LITERAL4.md](portplan/HANDOFF_2026-11-25_S58_LITERAL4.md)** —
+> Details live in **[portplan/HANDOFF_2026-11-25_S59_PRINTF_JSON.md](portplan/HANDOFF_2026-11-25_S59_PRINTF_JSON.md)** —
 > read it first (then the older WAL-residue handoff for the durable baseline
 > methodology). This file is the one-page index; update BOTH when checking
 > items off.
@@ -9,7 +9,7 @@
 
 `close all gaps with sqlite — functional first, then performance.`
 
-## State (2026-11-25, feature/perf @ 976c3f169 — S43 slices 1-6 + S44-S58 landed: hexlit 2→0, literal-1.5.* 3→0, literal-4.x 3→0; FULL gate NEW=0 vs durable t10 apart from documented flakes; all other NEW=0)
+## State (2026-11-25, feature/perf @ 796615dfe — S43 slices 1-6 + S44-S59 landed: hexlit 2→0, literal-1.5.* 3→0, literal-4.x 3→0, printf-20.* 14→0; FULL gate NEW=0 vs durable t10 apart from documented flakes; all other NEW=0)
 
 Full-suite truth **1190 failing leaves** (the s35g gate baseline
 portplan/baselines/s35g_gate_fails.txt minus the three walfault leaves
@@ -360,11 +360,16 @@ portplan/baselines/s35g_gate_fails.txt.)
      the three target leaves GONE. NEW=1 vs t22 = the documented
      `temptable2-4.1.1` flake (absent in focused re-run). Quality/converter
      failure-name sets unchanged.
+ 3p. **S59 DELIVERED — printf `%j/%J` 14→0**: added SQLite's JSON string
+     conversions (NULL `null`/empty, argument precision, quote/backslash/control
+     escapes, width/`!`). FULL gate `/tmp/t24_full_gate.log` (1238 leaves):
+     NEW=0 vs t23 and durable t10; all target leaves GONE. Quality/converter
+     failure-name sets unchanged.
  4. **Engine residue cards**: FTS3 residue 0; unsigned hex literals 0
-    (hexlit 2, literal-1.5.* 3); literal-4.x 0. Next: printf `%j/%J` JSON
-    quoting, quote's double-quoted identifier rejection, unhex, the
-    interleaved row-callback step; then pager1 directory hierarchy / S34
-    journal / temptable2 / where2 watchlist.
+    (hexlit 2, literal-1.5.* 3); literal-4.x 0; printf `%j/%J` 0. Next:
+    quote's double-quoted identifier rejection, unhex, the interleaved
+    row-callback step; then pager1 directory hierarchy / S34 journal /
+    temptable2 / where2 watchlist.
 5. **The performance phase** (F1c/F3 lanes in
    GAP_CLOSURE_PLAN_2026-10-31.md) after functional gaps close.
 

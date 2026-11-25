@@ -2701,3 +2701,13 @@ everywhere; go vet + go build clean.
   not a line shaved off**: `lexer.go` was 992/1000, so the complete numeric
   scanner moved to `lexer_number.go`; splitting `validSeparators` into a
   neighbour-check helper also kept gocognit/gocyclo at the baseline.
+- **SQLite printf `%j`/`%J` are distinct JSON conversions, not `%s`**: `%J`
+  emits a quoted JSON string (`null` for NULL), `%j` emits only the escaped
+  contents (empty for NULL), precision truncates the ARGUMENT (bytes by
+  default, UTF-8 code points with `!`), and quote/backslash/C0 bytes use JSON
+  escapes. Escape quote/backslash exactly once after the shared prefix.
+- **A local sqlite3 CLI can be the wrong oracle**: this environment's
+  `/usr/bin/sqlite3` reports 3.54 but returns NULL for `%j/%J`. Build a
+  canonical source tarball in /tmp before declaring engine behavior; record
+  fixture/Tcl-canonicalization discrepancies instead of editing the fixture
+  to match a different build.
