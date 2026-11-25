@@ -77,6 +77,15 @@ a regression from `ec5683fc4`/`a06dba606`. Result-affecting items come first.
    integrity_check and DELETE drain assertions kept. Targeted test + SOLID
    green; full 12-shard harness NEW=0 vs t30 at leaf and family level.
    Detail: `portplan/HANDOFF_2026-11-25_PENDING_BYTE_TEST.md`.
+1. **DONE — derived-table column name + collation**: `e_select-1.7.4b.*`
+   returned 0 rows where sqlite3 3.54 returns the NOCASE join matches.
+   `selectColumnName` now skips top-level COLLATE before bare-ref naming
+   (C `sqlite3ExprSkipCollateAndLikely`), `materializeSubqueryJoin` copies
+   the subquery's output collation onto derived ColumnDefs (C
+   `sqlite3SubqueryColumnTypes`), and `buildSubqueryRowMaps` wraps plain-path
+   values with that collation. Native pin plus three focused harness leaves
+   green; full-harness result and handoff recorded in
+   `portplan/HANDOFF_2026-11-25_DERIVED_COLLATION.md`.
 1. **DONE — converter unit-test drift**: all 9 `tools/tclconvert` /
    `tools/tclconvert/tcl` failures re-baselined: `runtime_expr` steps
    (collation counter setup, query-assigned handle/value aliases, file-level

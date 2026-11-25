@@ -2955,3 +2955,22 @@ its bytes stay zero.
 non-zero, the engine is at fault and the test stays red. The rewrite is only
 legitimate after a direct file probe proves zero. Details:
 `portplan/HANDOFF_2026-11-25_PENDING_BYTE_TEST.md`.
+
+## Derived-table columns carry name AND collation (2026-11-25)
+
+- **A COLLATE-decorated select item is still a bare column for naming**: C's
+`sqlite3ColumnsFromExprList` calls `sqlite3ExprSkipCollateAndLikely` before
+using a `TK_COLUMN` name. Our `selectColumnName` used the raw expression
+span, so `SELECT a COLLATE nocase FROM t` produced a derived column named
+`a COLLATE nocase`; an outer `x.a` then missed the row map key and the join
+returned zero rows. Skip top-level COLLATE before resolving a bare ref.
+- **Derived-table ColumnDefs must inherit SELECT-list collation**: C's
+`sqlite3SubqueryColumnTypes` copies `sqlite3ExprCollSeq` onto each Column.
+Setting only the name loses NOCASE in outer join ON predicates; the value
+wrapping path (`buildSubqueryRowMaps`, plain and rowMaps variants) must use
+the inherited collation, not just affinity.
+- **Triage before fixing a harness failure**: `normalize-300`/`350`,
+`e_blobopen-3.2.5`, `triggerC-3.3.1` and `join3-3.1` all reproduce the SAME
+text in sqlite3 3.54 (or lack setup steps in the converted fixture); they
+are converter artifacts, not engine bugs. Compare native + oracle first.
+Details: `portplan/HANDOFF_2026-11-25_DERIVED_COLLATION.md`.

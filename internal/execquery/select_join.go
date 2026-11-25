@@ -395,6 +395,16 @@ func (e *SelectEngine) materializeSubqueryJoin(s *sql.SelectStmt, join sql.JoinC
 	// (sqlite3ColumnsFromExprList ":N" suffixing) so duplicate output names
 	// (joined t1.*/t2.* stars) cannot collide in the row maps.
 	rightDefs := resultColumnDefs(dedupDerivedColumnNames(subqResult.Columns))
+	// C's sqlite3SubqueryColumnTypes copies each SELECT-list expression's
+	// collation onto the derived table's Column (select.c:2427-2432). Without
+	// this, `SELECT a COLLATE nocase ...` loses NOCASE in an outer join ON.
+	if subqColls := e.selectOutputCollations(join.Table.Subquery); len(subqColls) == len(rightDefs) {
+		for i, coll := range subqColls {
+			if coll != "" {
+				rightDefs[i].Collate = coll
+			}
+		}
+	}
 	tableName := joinTableName(join)
 	synthetic := tableName == ""
 	if synthetic {

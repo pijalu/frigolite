@@ -254,7 +254,7 @@ func (e *SelectEngine) selectColumnName(col sql.SelectColumn, colDefs []sql.Colu
 	if col.As != "" {
 		return []string{col.As}
 	}
-	if ref, ok := col.Expr.(*sql.ColumnRef); ok {
+	if ref, ok := skipCollateForName(col.Expr).(*sql.ColumnRef); ok {
 		return []string{e.resolveColumnRefName(ref, colDefs, sel, ops)}
 	}
 	// Unaliased expression: SQLite names the result column after the
@@ -264,6 +264,19 @@ func (e *SelectEngine) selectColumnName(col sql.SelectColumn, colDefs []sql.Colu
 	// mirrors the raw SQL span, so symbol operators render without
 	// injected spaces (select1-6.5 "f1+F2").
 	return []string{exprResultName(col.Expr)}
+}
+
+// skipCollateForName mirrors SQLite's sqlite3ExprSkipCollateAndLikely
+// (select.c sqlite3ColumnsFromExprList): an unaliased `a COLLATE nocase`
+// names its result column `a`, not the COLLATE expression's SQL span.
+func skipCollateForName(expr sql.Expr) sql.Expr {
+	for {
+		b, ok := expr.(*sql.BinaryOp)
+		if !ok || !strings.EqualFold(b.Operator, "COLLATE") {
+			return expr
+		}
+		expr = b.Left
+	}
 }
 
 // operandVisible reports whether a table reference matches the lookup name.

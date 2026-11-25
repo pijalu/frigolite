@@ -38,9 +38,13 @@ func (e *SelectEngine) buildSubqueryRowMaps(subqResult *Result, rightDefs []sql.
 			}
 			aff := e.subqueryColumnAffinity(subqAff, i, rightDefs[i], subquery)
 			cv := &util.ColumnValue{Value: util.UnwrapColumnValue(val), Affinity: aff}
-			rightRowMap[rightDefs[i].Name] = cv
+			var mapped interface{} = cv
+			if coll := rightDefs[i].Collate; coll != "" && !strings.EqualFold(coll, "BINARY") {
+				mapped = &CollatedValue{Value: cv, Collation: strings.ToUpper(coll)}
+			}
+			rightRowMap[rightDefs[i].Name] = mapped
 			if synthetic {
-				rightRowMap[tableName+"."+rightDefs[i].Name] = val
+				rightRowMap[tableName+"."+rightDefs[i].Name] = mapped
 			}
 		}
 		rightMaps = append(rightMaps, rightRowMap)
