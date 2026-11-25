@@ -1,6 +1,6 @@
 # TODO — the live restart index
 
-> Details live in **[portplan/HANDOFF_2026-11-26_S63_VFS_DELETE.md](portplan/HANDOFF_2026-11-26_S63_VFS_DELETE.md)** —
+> Details live in **[portplan/HANDOFF_2026-11-26_S64_JOURNAL_ROLLBACK.md](portplan/HANDOFF_2026-11-26_S64_JOURNAL_ROLLBACK.md)** —
 > read it first (then the older WAL-residue handoff for the durable baseline
 > methodology). This file is the one-page index; update BOTH when checking
 > items off.
@@ -9,7 +9,7 @@
 
 `close all gaps with sqlite — functional first, then performance.`
 
-## State (2026-11-26, feature/perf @ 6266740fd — S43 slices 1-6 + S44-S63 landed: hexlit 2→0, literal-1.5.* 3→0, literal-4.x 3→0, printf-20.* 14→0, quote 7→0, unhex 5→0, interleaved row callback 4→0, pager1 VFS delete 2→0; FULL gate NEW=0 vs durable t10 apart from documented flakes; all other NEW=0)
+## State (2026-11-26, feature/perf @ 6d3ba760e — S43 slices 1-6 + S44-S64 landed: hexlit 2→0, literal-1.5.* 3→0, literal-4.x 3→0, printf-20.* 14→0, quote 7→0, unhex 5→0, interleaved row callback 4→0, pager1 VFS delete 2→0, S34 journal/close cards 2→0; FULL gate 1219 leaves NEW=0 vs t28/t10, sole GONE resetdb-300 load flap; all other NEW=0)
 
 Full-suite truth **1190 failing leaves** (the s35g gate baseline
 portplan/baselines/s35g_gate_fails.txt minus the three walfault leaves
@@ -215,6 +215,12 @@ portplan/baselines/s35g_gate_fails.txt.)
 
 ## Immediate next action
 
+1. **S64 COMPLETE** — ROLLBACK finalizes the DELETE-mode journal and close
+   mid-txn rolls back; WAL rewind now uses the writer-savepoint boundary so a
+   read-only close cannot truncate other connections' frames. Full gate
+   `/tmp/t29_full_gate2.log` (1219 leaves): NEW=0 vs t28/t10, sole GONE
+   `resetdb-300` load flap. Next unit: temptable2 range-expression converter
+   fidelity (4.1.4/5.1.2), then where2-2.4.
 1. **S63 COMPLETE** — `tv delete` now unregisters the test VFS; `pager1-35`
    GONE with full-gate NEW=0 vs t27/t26/t10. Next unit: S34's two journal
    cards.
@@ -393,10 +399,16 @@ portplan/baselines/s35g_gate_fails.txt.)
      reopens no longer inherit noShm and WAL is available. FULL gate
      `/tmp/t28_full_gate.log` (1220 leaves): NEW=0 vs t27/t26/t10;
      `pager1-35` GONE. Quality/converter baseline sets unchanged.
+ 3u. **S64 DELIVERED — S34 journal/close cards 2→0**: ROLLBACK finalizes the
+     DELETE-mode journal; close mid-txn rolls back instead of flushing. WAL
+     rewind uses the writer-savepoint boundary so a read-only close cannot
+     truncate another connection's frames. FULL gate
+     `/tmp/t29_full_gate2.log` (1219 leaves): NEW=0 vs t28/t10, sole GONE
+     `resetdb-300` load flap. Quality normalized baseline unchanged.
 4. **Engine residue cards**: FTS3 residue 0; unsigned hex literals 0
-    (hexlit 2, literal-1.5.* 3); literal-4.x 0; printf `%j/%J` 0; quote DQS
-    0; unhex 0; interleaved row callback 0; test-VFS delete 0. Next: S34
-    journal cards / temptable2 / where2 watchlist.
+     (hexlit 2, literal-1.5.* 3); literal-4.x 0; printf `%j/%J` 0; quote DQS
+     0; unhex 0; interleaved row callback 0; test-VFS delete 0; S34 journal
+     cards 0. Next: temptable2 range expressions / where2 watchlist.
 5. **The performance phase** (F1c/F3 lanes in
    GAP_CLOSURE_PLAN_2026-10-31.md) after functional gaps close.
 
@@ -466,10 +478,10 @@ portplan/baselines/s35g_gate_fails.txt.)
    evaluation first); `binary format`/file-write substrate
    (the format-c and binary-scan i*/I* pieces landed in S35d/S53), the
    interleaved row-callback step is DELIVERED (S62).
-5. **NEXT — S34's two journal cards**: ROLLBACK's DELETE-mode journal-file
-   residue and close mid-txn rolling back instead of flushing.
-   Remaining watchlist: temptable2-9.1.x/9.2.x (pre-existing
-   small-cache stress dithers), where2-2.4 random() flake,
-   the resetdb load flap.
+5. **S64 COMPLETE — S34's two journal cards**: ROLLBACK's DELETE-mode
+   journal-file residue and close mid-txn rolling back instead of flushing,
+   plus the WAL writer-savepoint rewind boundary. Remaining watchlist:
+   temptable2-4.1.4/5.1.2 (multi-word `expr` converter fidelity), where2-2.4
+   random() flake, the resetdb load flap.
 6. **Performance phase** (F1c/F3 lanes in GAP_CLOSURE_PLAN_2026-10-31.md)
    — after functional gaps close.

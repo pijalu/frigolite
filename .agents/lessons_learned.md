@@ -2764,3 +2764,13 @@ everywhere; go vet + go build clean.
   converter over pager1 rewrote thousands of unrelated steps and regressed
   the family. Insert only the missing marker steps from a scratch regen into
   the checked-in fixture; the corpus migration is its own gated unit.
+- **WAL rollback starts at the WRITE-savepoint boundary, not the read
+  snapshot**: closing a read-only `BEGIN` must never truncate the shared
+  `-wal`; another connection may have committed frames after the reader's
+  snapshot (wal3-9.3/9.4's `checkpoint: wal frame N missing`). Track frame
+  count and checksum chain when THIS connection acquires the WRITER lock;
+  a read-only transaction has no such boundary and rewinds nothing.
+- **Never run two `go test` processes in one worktree**: concurrent focused
+  gates fabricated a `temptable2-4.1.1` page-count mismatch that vanished
+  on a sequential recheck and was absent from a pure-Go pin. Full gates stay
+  single-process; treat concurrent-run results as invalid evidence.
