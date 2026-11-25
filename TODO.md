@@ -39,10 +39,15 @@ a regression from `ec5683fc4`/`a06dba606`. Result-affecting items come first.
    `TestWalMVCCExclusiveLatePeerBlocked`; e_wal harness green; full-harness
    NEW=0 vs t30; SOLID green. Detail:
    `portplan/HANDOFF_2026-11-27_WAL_EXCLUSIVE_VISIBILITY.md`.
-1. **MEDIUM — WAL lock-protocol error swallowed**: `TestWalLockProtocol/recover-range-busy`
-   (`frigolite_wallocks_test.go:319`) expects `locking protocol` on SELECT but
-   gets nil. Persistent xShmLock BUSY during recovery must surface
-   SQLITE_PROTOCOL (walprotocol-1.3/1.4).
+1. **DONE — WAL lock-protocol error swallowed**: `TestWalLockProtocol/recover-range-busy`
+   (`frigolite_wallocks_test.go:319`) now reports `locking protocol` on SELECT.
+   The per-statement WAL attach (`Pager.CheckExternalFile`, C's
+   `pagerOpenWalIfPresent`) now propagates `openWal`'s rc instead of dropping
+   it, so a persistent xShmLock BUSY on the recovery range burns the retry
+   budget into SQLITE_PROTOCOL (walprotocol-1.3/1.4). Both subtests pass
+   (`-count=3`), WAL-family harness 41=41 fail leaves NEW=0 vs t30, internal
+   packages green, SOLID green. Detail:
+   `portplan/PLAN_2026-11-25_WAL_LOCK_PROTOCOL.md`.
 1. **MEDIUM — locking_mode reporting**: `TestW6_LockingMode`
    (`frigolite_w6_kernel_pin_test.go:144-202`) reports default `normal` where
    `exclusive` is expected (7 assertions). Fix PRAGMA state propagation or

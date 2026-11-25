@@ -590,7 +590,9 @@ func (p *Pager) WALIndexLock(idx, n int, excl, lock bool) bool {
 // error surfaced: a wal-index that cannot be parsed and cannot be recovered
 // right now reports SQLITE_BUSY_RECOVERY ("database is locked", another
 // connection is mid-recovery) or SQLITE_PROTOCOL ("locking protocol"). The
-// plain CheckExternalFile keeps the no-error signature for existing callers.
+// same error also surfaces from the per-statement WAL attach when this
+// connection carries no walWriter yet (CheckExternalFile's
+// pagerOpenWalIfPresent equivalent).
 //
 // pinWAL selects whether a WAL-mode pager OPENS ITS READ TRANSACTION (the
 // read-mark pin — sqlite3WalBeginReadTransaction parity) as part of the
@@ -613,7 +615,7 @@ func (p *Pager) CheckExternalFileErr(pinWAL bool) (bool, error) {
 		}
 		return p.walIndexRefreshLocked()
 	}
-	return p.CheckExternalFile(), nil
+	return p.CheckExternalFile()
 }
 
 // CorruptWalIndex clobbers the shared wal-index header — the walsetlk-1.2

@@ -42,10 +42,12 @@ func (p *Pager) walRef() bool {
 // while other connections' WAL-only commits bump mxFrame/iChange in the
 // wal-index. A header change drops the page cache and reloads page 1
 // through the wal-index read path, so the caller's schema reload observes
-// the other connection's commits.
-func (p *Pager) CheckExternalFile() bool {
+// the other connection's commits. Reports whether an external change was
+// seen, plus the WAL-refresh / per-statement WAL-attach error (C's
+// pagerOpenWalIfPresent rc propagation, pager.c:5432-5438).
+func (p *Pager) CheckExternalFile() (bool, error) {
 	if p.file == nil {
-		return false
+		return false, nil
 	}
 	if p.walRef() {
 		p.mu.Lock()
@@ -54,14 +56,13 @@ func (p *Pager) CheckExternalFile() bool {
 		// transaction), its cached pages ARE its snapshot: do not drop
 		// them (schema.checkExternalMod applies the same guard).
 		if len(p.dirty) > 0 {
-			return false
+			return false, nil
 		}
-		ch, _ := p.walIndexRefreshLocked()
-		return ch
+		return p.walIndexRefreshLocked()
 	}
 	vers, size, ok := p.readFileStamp()
 	if !ok {
-		return false
+		return false, nil
 	}
 	p.mu.Lock()
 	defer p.mu.Unlock()
@@ -88,7 +89,18 @@ func (p *Pager) CheckExternalFile() bool {
 			}
 			if nPages == 0 {
 				_ = os.Remove(p.path + "-wal")
-			} else if w, werr := openWal(p, p.path, p.pageSize); werr == nil {
+			} else {
+				// C's pagerOpenWalIfPresent propagates sqlite3PagerOpenWal's
+				// rc (pager.c:5432-5438, assert(pPager->pWal==0 ||
+				// rc==SQLITE_OK)); a WAL that cannot be recovered right now
+				// is a statement error, not a silent fallback to the main
+				// file. A persistent recovery-lock veto burns the retry
+				// budget into SQLITE_PROTOCOL ("locking protocol",
+				// walprotocol-1.3/1.4).
+				w, werr := openWal(p, p.path, p.pageSize)
+				if werr != nil {
+					return false, werr
+				}
 				p.wal = w
 				p.journalMode = "wal"
 				// attachWalAtOpen's post-attach adoption: the committed
@@ -101,14 +113,14 @@ func (p *Pager) CheckExternalFile() bool {
 				p.header = nil
 				if p.numPages > 0 {
 					if _, rerr := p.readPageLocked(1); rerr != nil {
-						return false
+						return false, rerr
 					}
 				}
 				changed = true
 			}
 		}
 	}
-	return changed
+	return changed, nil
 }
 
 // applyExternalChangeLocked adopts an externally-modified database file: the

@@ -2898,3 +2898,14 @@ everywhere; go vet + go build clean.
   start closes the race and gives clean SQLITE_BUSY. WAL writes must be
   exempt: C serializes them through the -shm WRITER byte, so reusing the
   rollback RESERVED mark broke `TestWalLockWriterSerialization`.
+- **A WAL recovery protocol error can be generated and still never reach the
+  statement**: `walIndexReadHdr` correctly burned its 100-round budget and
+  returned `errWalProtocol`, but `Pager.CheckExternalFile` (C's
+  `pagerOpenWalIfPresent`) had an `if w, werr := openWal(...); werr == nil`
+  guard that silently dropped the error when the open-time attach had failed
+  first. Instrument the hook (log every `{idx n op mode}` + the error each
+  layer returns) before assuming the retry loop is at fault — the veto count
+  told us the protocol error WAS produced. C propagates the attach rc at
+  `pager.c:5432-5438`; the statement-level attach is the faithful place to
+  surface it, while the open-time swallow stays (C's `sqlite3_open` is lazy
+  and our next-statement retry is the equivalent point).
