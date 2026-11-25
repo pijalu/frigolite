@@ -86,6 +86,8 @@ func init() {
 		"catchsql":                    commandCatchSQL,
 		"db":                          commandDB,
 		"do_execsql_test":             commandDoExecSQL,
+		"do_write_test":               commandDoWriteTest,
+		"do_error_test":               commandDoErrorTest,
 		"do_searchcount_test":         commandDoSearchCount,
 		"do_test":                     commandDoTest,
 		"do_catchsql_test":            commandDoCatchSQL,
@@ -1699,6 +1701,29 @@ func commandDoSearchCount(i *Interp, rawWords []rawWord, args []string, localVar
 // commandDoCatchSQL implements `do_catchsql_test`.
 func commandDoCatchSQL(i *Interp, rawWords []rawWord, args []string, localVars map[string]string) error {
 	return i.cmdDoCatchSQL(rawWords, localVars)
+}
+
+// commandDoWriteTest implements malloc_common.tcl's do_write_test. The OOM
+// trials are not reproducible in the JSON harness; the observable contract
+// for the following tests is that the SQL ran successfully, so emit it as a
+// do_execsql_test with an empty expected result (tcl2go's emitFTSWriteExec).
+func commandDoWriteTest(i *Interp, rawWords []rawWord, args []string, localVars map[string]string) error {
+	if len(rawWords) < 4 {
+		return nil
+	}
+	wrapped := []rawWord{rawWords[0], rawWords[1], rawWords[3], {Text: ""}}
+	return i.cmdDoExecSQL(wrapped, localVars)
+}
+
+// commandDoErrorTest implements malloc_common.tcl's do_error_test: run the
+// SQL as catchsql and expect do_catchsql_test's "1 {msg}" form.
+func commandDoErrorTest(i *Interp, rawWords []rawWord, args []string, localVars map[string]string) error {
+	if len(rawWords) < 3 || len(args) < 3 {
+		return nil
+	}
+	expected := rawWord{Text: "1 {" + args[2] + "}", Braced: true}
+	wrapped := []rawWord{rawWords[0], rawWords[1], rawWords[2], expected}
+	return i.cmdDoCatchSQL(wrapped, localVars)
 }
 
 // commandDoTest implements `do_test`.
