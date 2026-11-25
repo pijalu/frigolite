@@ -2774,3 +2774,13 @@ everywhere; go vet + go build clean.
   gates fabricated a `temptable2-4.1.1` page-count mismatch that vanished
   on a sequential recheck and was absent from a pure-Go pin. Full gates stay
   single-process; treat concurrent-run results as invalid evidence.
+- **TCL `expr (...)` is multi-word in the converter**: the unbraced
+  parenthesized form is split into several raw words, so a trailing-expr
+  check that requires exactly two words folds a runtime assertion at
+  conversion time. Join all words after `expr` (as the expression evaluator
+  does) while keeping the runtime-variable gate.
+- **Index-btree density is a distinct btree card**: table-leaf density can
+  match SQLite exactly while index leaves are sparse. Compare per-page
+  `ncell` histograms (`dbstat`), not only total page_count: SQLite's
+  1024-byte index leaves are mostly 4 cells/page; a local single-page split
+  that fails to gather siblings leaves too many 1–2 cell pages.

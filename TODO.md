@@ -1,6 +1,6 @@
 # TODO — the live restart index
 
-> Details live in **[portplan/HANDOFF_2026-11-26_S64_JOURNAL_ROLLBACK.md](portplan/HANDOFF_2026-11-26_S64_JOURNAL_ROLLBACK.md)** —
+> Details live in **[portplan/HANDOFF_2026-11-26_S65_EXPR_FIXTURE.md](portplan/HANDOFF_2026-11-26_S65_EXPR_FIXTURE.md)** —
 > read it first (then the older WAL-residue handoff for the durable baseline
 > methodology). This file is the one-page index; update BOTH when checking
 > items off.
@@ -9,7 +9,7 @@
 
 `close all gaps with sqlite — functional first, then performance.`
 
-## State (2026-11-26, feature/perf @ 6d3ba760e — S43 slices 1-6 + S44-S64 landed: hexlit 2→0, literal-1.5.* 3→0, literal-4.x 3→0, printf-20.* 14→0, quote 7→0, unhex 5→0, interleaved row callback 4→0, pager1 VFS delete 2→0, S34 journal/close cards 2→0; FULL gate 1219 leaves NEW=0 vs t28/t10, sole GONE resetdb-300 load flap; all other NEW=0)
+## State (2026-11-26, feature/perf @ c1cc2486e — S43 slices 1-6 + S44-S65 landed: hexlit 2→0, literal-1.5.* 3→0, literal-4.x 3→0, printf-20.* 14→0, quote 7→0, unhex 5→0, interleaved row callback 4→0, pager1 VFS delete 2→0, S34 journal/close cards 2→0, multi-word expr fixture fidelity 2→0; FULL gate 1220 leaves NEW=0 vs t28/t10; all other NEW=0)
 
 Full-suite truth **1190 failing leaves** (the s35g gate baseline
 portplan/baselines/s35g_gate_fails.txt minus the three walfault leaves
@@ -215,12 +215,17 @@ portplan/baselines/s35g_gate_fails.txt.)
 
 ## Immediate next action
 
+1. **S65 COMPLETE** — multi-word TCL `expr (...)` bodies now emit a
+   `runtime_expr` assertion; `temptable2-4.1.4/5.1.2` preserve their original
+   true boolean ranges. Full gate `/tmp/t30_full_gate.log` (1220 leaves):
+   NEW=0 vs t28/t10. The two leaves remain until index-btree density is
+   fixed (table-leaf density already matches SQLite; index leaves are too
+   sparse). Next unit: index-btree balance/density.
 1. **S64 COMPLETE** — ROLLBACK finalizes the DELETE-mode journal and close
    mid-txn rolls back; WAL rewind now uses the writer-savepoint boundary so a
    read-only close cannot truncate other connections' frames. Full gate
    `/tmp/t29_full_gate2.log` (1219 leaves): NEW=0 vs t28/t10, sole GONE
-   `resetdb-300` load flap. Next unit: temptable2 range-expression converter
-   fidelity (4.1.4/5.1.2), then where2-2.4.
+   `resetdb-300` load flap.
 1. **S63 COMPLETE** — `tv delete` now unregisters the test VFS; `pager1-35`
    GONE with full-gate NEW=0 vs t27/t26/t10. Next unit: S34's two journal
    cards.
@@ -405,10 +410,17 @@ portplan/baselines/s35g_gate_fails.txt.)
      truncate another connection's frames. FULL gate
      `/tmp/t29_full_gate2.log` (1219 leaves): NEW=0 vs t28/t10, sole GONE
      `resetdb-300` load flap. Quality normalized baseline unchanged.
+ 3v. **S65 DELIVERED — multi-word `expr` fixture fidelity**: trailing
+     `expr ($n >280 && $n <300)` now joins its raw words and emits a
+     `runtime_expr` assertion; both temptable2 range cases assert the original
+     TCL contract. FULL gate `/tmp/t30_full_gate.log` (1220 leaves): NEW=0 vs
+     t28/t10. Oracle 287/277 vs Frigolite 316/304 cards the engine's
+     index-leaf density gap.
 4. **Engine residue cards**: FTS3 residue 0; unsigned hex literals 0
      (hexlit 2, literal-1.5.* 3); literal-4.x 0; printf `%j/%J` 0; quote DQS
      0; unhex 0; interleaved row callback 0; test-VFS delete 0; S34 journal
-     cards 0. Next: temptable2 range expressions / where2 watchlist.
+     cards 0; multi-word expr fidelity 0. Next: index-leaf density / where2
+     watchlist.
 5. **The performance phase** (F1c/F3 lanes in
    GAP_CLOSURE_PLAN_2026-10-31.md) after functional gaps close.
 
@@ -478,10 +490,9 @@ portplan/baselines/s35g_gate_fails.txt.)
    evaluation first); `binary format`/file-write substrate
    (the format-c and binary-scan i*/I* pieces landed in S35d/S53), the
    interleaved row-callback step is DELIVERED (S62).
-5. **S64 COMPLETE — S34's two journal cards**: ROLLBACK's DELETE-mode
-   journal-file residue and close mid-txn rolling back instead of flushing,
-   plus the WAL writer-savepoint rewind boundary. Remaining watchlist:
-   temptable2-4.1.4/5.1.2 (multi-word `expr` converter fidelity), where2-2.4
-   random() flake, the resetdb load flap.
+5. **S64/S65 COMPLETE**: S34 journal/close cards and multi-word `expr`
+   fixture fidelity landed. Remaining watchlist: temptable2-4.1.4/5.1.2
+   (engine index-leaf density), where2-2.4 random() flake, the resetdb load
+   flap.
 6. **Performance phase** (F1c/F3 lanes in GAP_CLOSURE_PLAN_2026-10-31.md)
    — after functional gaps close.
