@@ -2942,3 +2942,16 @@ everywhere; go vet + go build clean.
   genuine SQL and the whole reference stays verbatim. This keeps both the
   whole-reference pins and the `$as$bs` expectation pin green. Details:
   `portplan/HANDOFF_2026-11-25_TCL_WHOLE_REF.md`.
+
+## Pending-byte page: assert at the observable (2026-11-25)
+
+- **When an internal API's contract changes, move the assertion to the
+observable; never weaken the new contract**: a content read of the lock-byte
+page is deliberately `ErrCorruptPage` (C pager.c:5577-5580). A "page N was
+never allocated" test must read raw file bytes at `(N-1)*pageSize` instead
+of calling `pager.ReadPage(N)`; an unallocated page was never written, so
+its bytes stay zero.
+- **Confirm the invariant before changing the test**: if the raw page is
+non-zero, the engine is at fault and the test stays red. The rewrite is only
+legitimate after a direct file probe proves zero. Details:
+`portplan/HANDOFF_2026-11-25_PENDING_BYTE_TEST.md`.

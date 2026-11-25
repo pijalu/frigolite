@@ -67,12 +67,16 @@ a regression from `ec5683fc4`/`a06dba606`. Result-affecting items come first.
    adjacent-placeholder pin pass; focused `FRIGOLITE_TEST=e_expr` harness
    NEW=0 vs `/tmp/t30_baseline_leaves_clean.txt`; SOLID green. Detail:
    `portplan/HANDOFF_2026-11-25_TCL_WHOLE_REF.md`.
-1. **LOW — invalid pending-byte test premise**: `TestNativePendingBytePageNeverAllocated`
-   (`frigolite_autovacuum_native_test.go:130`) calls `pager.ReadPage(65)`,
-   which `internal/pager/pagerpage.go:244-246` intentionally rejects with
-   ErrCorruptPage for the lock-byte page. Rewrite the assertion to read raw
-   file bytes at the reserved page offset; verify the engine guarantee without
-   bypassing the pager corruption guard.
+1. **DONE — invalid pending-byte test premise**: `TestNativePendingBytePageNeverAllocated`
+   (`frigolite_autovacuum_native_test.go:130`) called `pager.ReadPage(65)`,
+   which `internal/pager/pagerpage.go:245-246` deliberately rejects with
+   ErrCorruptPage for the lock-byte page (C pager.c:5577-5580 parity). A raw
+   file probe confirmed 0 nonzero bytes at offset (65-1)*pageSize with
+   page_size=1024 / page_count=158 / integrity_check=ok, so the assertion now
+   reads the raw database file at that offset instead; pager guard untouched,
+   integrity_check and DELETE drain assertions kept. Targeted test + SOLID
+   green; full 12-shard harness NEW=0 vs t30 at leaf and family level.
+   Detail: `portplan/HANDOFF_2026-11-25_PENDING_BYTE_TEST.md`.
 1. **DONE — converter unit-test drift**: all 9 `tools/tclconvert` /
    `tools/tclconvert/tcl` failures re-baselined: `runtime_expr` steps
    (collation counter setup, query-assigned handle/value aliases, file-level

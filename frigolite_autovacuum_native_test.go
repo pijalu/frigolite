@@ -23,7 +23,9 @@ package frigolite
 
 import (
 	"fmt"
+	"os"
 	"path/filepath"
+	"strconv"
 	"testing"
 )
 
@@ -124,14 +126,30 @@ func TestNativePendingBytePageNeverAllocated(t *testing.T) {
 	for i := 1; i <= 20; i++ {
 		exec(fmt.Sprintf("INSERT INTO av1 (oid, a) VALUES(%d, '%s')", i, val))
 	}
-	// The reserved page must be zeroed, never btree content.
-	pg65, err := db.pager.ReadPage(65)
-	if err != nil {
-		t.Fatalf("read page 65: %v", err)
+	// The reserved page must be zeroed, never btree content. The pager
+	// intentionally refuses to acquire the lock-byte page (ErrCorruptPage,
+	// internal/pager/pagerpage.go), so the file bytes are the observable
+	// guarantee: a page that was never allocated was never written.
+	psr := db.Query("PRAGMA page_size")
+	if psr.Error != nil || len(psr.Rows) != 1 {
+		t.Fatalf("page_size: %v %v", psr.Error, psr.Rows)
 	}
-	for _, b := range pg65.Data {
+	pageSize, err := strconv.ParseInt(fmt.Sprint(psr.Rows[0][0]), 10, 64)
+	if err != nil || pageSize <= 0 {
+		t.Fatalf("page_size = %v: %v", psr.Rows[0][0], err)
+	}
+	f, err := os.Open(path)
+	if err != nil {
+		t.Fatalf("open %s: %v", path, err)
+	}
+	defer f.Close()
+	buf := make([]byte, pageSize)
+	if _, err := f.ReadAt(buf, (65-1)*pageSize); err != nil {
+		t.Fatalf("read raw page 65: %v", err)
+	}
+	for _, b := range buf {
 		if b != 0 {
-			t.Fatalf("page 65 (pending-byte slot) holds non-zero data")
+			t.Fatalf("page 65 (pending-byte slot) holds non-zero data in database file")
 		}
 	}
 	// Drains triggered by DELETE must not consult the reserved page.
