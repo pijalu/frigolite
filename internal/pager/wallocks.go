@@ -528,6 +528,33 @@ func (p *Pager) WALHeapMemory() bool {
 	return p.wal != nil && p.wal.heapMemory
 }
 
+// WALIndexShared reports whether this pager's wal-index is attached by
+// another connection (C's single-process sole-connection proof via the
+// EXCLUSIVE file lock). The registry's refcount is the same gate walCloseCheckpoint,
+// leaveWALModeLocked and walConvertHeapEligibleLocked use. A connection in
+// locking_mode=EXCLUSIVE that still shares a wal-index cannot claim sole
+// ownership of the database file: its WAL shm locks become no-ops (wal.c
+// walLockShared/walLockExclusive), but the peers keep reading through the
+// shared index (TestWalMVCCExclusiveModeVisibility).
+func (p *Pager) WALIndexShared() bool {
+	p.mu.RLock()
+	defer p.mu.RUnlock()
+	return p.wal != nil && p.wal.wi != nil && p.wal.wi.RefCount() > 1
+}
+
+// WALExclusiveActive reports whether this pager's WAL has already flipped
+// into exclusive shm mode (wal.c WAL_EXCLUSIVE_MODE): the first write in
+// locking_mode=EXCLUSIVE releases its read-mark byte and every later shm
+// lock is a no-op until locking_mode=normal. A peer's WAL-file-SHARED hold
+// can refuse the FIRST acquisition (e_wal-3.2.5) but not a later write by
+// the same established exclusive writer — with a shared wal-index the peer
+// keeps reading the frames (TestWalMVCCExclusiveModeVisibility).
+func (p *Pager) WALExclusiveActive() bool {
+	p.mu.RLock()
+	defer p.mu.RUnlock()
+	return p.wal != nil && p.wal.exclusiveMode
+}
+
 // SetWALExclusiveMode toggles locking_mode=EXCLUSIVE for the WAL writer
 // (native-test seam): immediate exclusive shm mode — every walLockShared/
 // walLockExclusive is a no-op, the shm locks are never taken.

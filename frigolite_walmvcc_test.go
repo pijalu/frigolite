@@ -18,6 +18,7 @@ package frigolite
 //     above the reader's minFrame (never a checkpointed stale version).
 
 import (
+	"path/filepath"
 	"strconv"
 	"strings"
 	"sync"
@@ -64,6 +65,41 @@ func TestWalMVCCExclusiveModeVisibility(t *testing.T) {
 	r := c1.Query("PRAGMA integrity_check")
 	if r.Error != nil || formatSQLiteValue("", r.Rows[0][0]) != "ok" {
 		t.Errorf("integrity_check: %v %v", r.Error, r.Rows)
+	}
+}
+
+// TestWalMVCCExclusiveLatePeerBlocked pins the fixture-side boundary: a
+// connection opened AFTER the exclusive writer has committed is not attached
+// to its wal-index and is excluded by the file EXCLUSIVE hold (e_wal
+// 2.2.2/3.2.2). The visibility test above pins the opposite case — a peer
+// already attached to the index keeps reading the writer's frames.
+func TestWalMVCCExclusiveLatePeerBlocked(t *testing.T) {
+	path := filepath.Join(t.TempDir(), "late.db")
+	c1, err := Open(path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer c1.Close()
+	if res := c1.Exec("PRAGMA journal_mode=WAL; CREATE TABLE t1(a)"); res.Error != nil {
+		t.Fatal(res.Error)
+	}
+	if res := c1.Exec("PRAGMA locking_mode=EXCLUSIVE"); res.Error != nil {
+		t.Fatal(res.Error)
+	}
+	if res := c1.Exec("INSERT INTO t1 VALUES(1)"); res.Error != nil {
+		t.Fatal(res.Error)
+	}
+	c2, err := Open(path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer c2.Close()
+	r := c2.Query("SELECT count(*) FROM t1")
+	if r.Error == nil || !strings.Contains(r.Error.Error(), "database is locked") {
+		t.Fatalf("late peer read: want 'database is locked', got %v", r.Error)
+	}
+	if got := queryInt(t, c1, "SELECT count(*) FROM t1"); got != "1" {
+		t.Errorf("exclusive writer count = %s, want 1", got)
 	}
 }
 

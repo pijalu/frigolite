@@ -31,10 +31,14 @@ a regression from `ec5683fc4`/`a06dba606`. Result-affecting items come first.
    autocommit rollback-journal writes; WAL writes stay exempt. Both native
    tests pass (`-count=20`); 12-shard harness diff NEW=0; SOLID green. Detail:
    `portplan/HANDOFF_2026-11-25_CONCURRENT_DML.md`.
-1. **HIGH — WAL exclusive-mode visibility**: `TestWalMVCCExclusiveModeVisibility`
-   (`frigolite_walmvcc_test.go:45`) gets `database is locked` for
-   `SELECT count(*) FROM t1` after another connection commits; rows must be
-   visible per the walnosh contract. Fix and re-pin both connections.
+1. **DONE — WAL exclusive-mode visibility**: `TestWalMVCCExclusiveModeVisibility`
+   (`frigolite_walmvcc_test.go`) now passes. The EXCLUSIVE file hold is skipped
+   while another connection is attached to the same wal-index (refcount > 1);
+   a peer opened after the exclusive write stays blocked, and a fresh
+   acquisition still honors the peer's file-SHARED refusal. Companion pin:
+   `TestWalMVCCExclusiveLatePeerBlocked`; e_wal harness green; full-harness
+   NEW=0 vs t30; SOLID green. Detail:
+   `portplan/HANDOFF_2026-11-27_WAL_EXCLUSIVE_VISIBILITY.md`.
 1. **MEDIUM — WAL lock-protocol error swallowed**: `TestWalLockProtocol/recover-range-busy`
    (`frigolite_wallocks_test.go:319`) expects `locking protocol` on SELECT but
    gets nil. Persistent xShmLock BUSY during recovery must surface

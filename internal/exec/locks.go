@@ -325,30 +325,11 @@ func (e *Engine) walBeginStmtWrite(stmt sql.Stmt) error {
 	if p == nil {
 		return nil
 	}
-	// C's sqlite3PagerBegin (pager.c:5928-5938): a write transaction under
-	// locking_mode=EXCLUSIVE takes the EXCLUSIVE lock on the database FILE
-	// while the WAL's own shm mode is still NORMAL (the op=-1 dry run gates
-	// the take on it) and holds it past the transaction (pager.c:2158 skips
-	// the unlock while exclusiveMode). Another connection's persistent holds
-	// block the acquisition (e_wal 3.2.5: db's EXCLUSIVE INSERT fails
-	// "database is locked" against db2's WAL-mode file-SHARED, which survives
-	// db2's statements — the pager_end_transaction unlock-skip quirk).
-	if ctx != nil && e.lockStyle == LockStyleDefault &&
-		strings.EqualFold(e.schemaLockingMode(ctx.Name), "exclusive") {
-		if key := e.dbLockKey(ctx); key != "" {
-			if _, blocked := lockreg.Global.ExclusiveLockedByOther(key, e.connID); blocked {
-				return fmt.Errorf("database is locked")
-			}
-			if lockreg.Global.WALFileSharedByOther(key, e.connID) ||
-				lockreg.Global.SharedTxByOther(key, e.connID) {
-				return fmt.Errorf("database is locked")
-			}
-			lockreg.Global.SetExclusive(key, e.connID, true)
-			if e.walExclusiveFileHeld == nil {
-				e.walExclusiveFileHeld = make(map[string]bool)
-			}
-			e.walExclusiveFileHeld[key] = true
-		}
+	// C's sqlite3PagerBegin (pager.c:5928-5938): an exclusive-mode write
+	// takes the database file's EXCLUSIVE lock before the WAL's write lock.
+	// The registry gate is isolated in walExclusiveFileLock.
+	if err := e.walExclusiveFileLock(ctx); err != nil {
+		return err
 	}
 	changed, err := p.WALBeginWrite()
 	if err != nil {

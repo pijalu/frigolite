@@ -247,6 +247,17 @@ appending.
   repeats the last commit frame to the 4096-byte sector boundary at
   synchronous=FULL (22 pages + 2 padding). The CLI oracle (PSO on) cannot
   reproduce it; the reference testfixture can.
+- locking_mode=EXCLUSIVE has TWO distinct shm states (wal.c): a
+  heap-memory/no-shm wal-index opened before WAL (C sole-connection), and
+  WAL_EXCLUSIVE_MODE entered on the first write after WAL was already open.
+  C takes pagerOpenWal's file EXCLUSIVE hold in the no-shm case and
+  sqlite3PagerBegin's hold on the first write in the latter. Our in-process
+  registry uses the wal-index refcount as the sole-connection gate: a peer
+  already attached keeps reading the exclusive writer's committed frames;
+  a connection opened AFTER that writer's first commit has no index ref
+  and is still excluded by the file hold (e_wal 2.2.2/3.2.2/3.2.5).
+  The peer's WAL-file-SHARED hold refuses a FRESH exclusive acquisition
+  but not later commits by an already-active WAL_EXCLUSIVE_MODE writer.
 - Pager short reads: readFilePageLocked zero-fills like C's readDbPage
   (SQLITE_IOERR_SHORT_READ swallowed) — a 0-byte main file under WAL mode
   reads page 1 as zeros and the SCHEMA layer decides. A wal-index adopted
