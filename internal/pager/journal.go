@@ -674,6 +674,21 @@ func (p *Pager) appendRollbackRecordLocked(pageNum uint32, data []byte) error {
 	return nil
 }
 
+// EndRollbackJournal finalizes the rollback journal after a FULL transaction
+// rollback (not a savepoint ROLLBACK TO). C's pager_playback ends with
+// pager_end_transaction: DELETE-mode journals are unlinked, TRUNCATE/PERSIST
+// journals get their mode-specific finalization, and the journal epoch ends.
+// Frigolite's page image is restored from the BEGIN snapshot, but the sidecar
+// must still be finalized so a later reopen does not see a stale hot journal.
+func (p *Pager) EndRollbackJournal() error {
+	p.mu.Lock()
+	defer p.mu.Unlock()
+	if p.wal != nil {
+		return nil
+	}
+	return p.finalizeRollbackJournalLockedMulti(false)
+}
+
 // finalizeRollbackJournalLockedMulti applies the post-flush action dictated
 // by the journal mode. Called from flushAllCtx after all dirty pages
 // have been written to the main database file. The multiDB flag is true

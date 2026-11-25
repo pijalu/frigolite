@@ -74,6 +74,7 @@ func (p *Pager) walBeginWriteLocked(cacheDroppable bool) (bool, error) {
 					return nil
 				})
 			}
+			w.markWriteStartLocked()
 			return adopted, nil
 		}
 		if errors.Is(err, errWalBusySnapshot) &&
@@ -256,6 +257,9 @@ func (p *Pager) walEndWriteLocked() {
 		w.walUnlockExclusive(walLockWrite, 1)
 		w.writeLock = false
 		w.spillStarted = false
+		w.writeStartSet = false
+		w.writeStartFrame = 0
+		w.writeStartCksum1, w.writeStartCksum2 = 0, 0
 		clear(w.spilled)
 	}
 }

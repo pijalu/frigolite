@@ -345,9 +345,6 @@ type PagerState struct {
 	numPages  uint32
 	header    []byte
 	fileSize  int64
-	walNFrame int
-	walCksum1 uint32
-	walCksum2 uint32
 }
 
 // deriveCksumInit produces a non-zero random-ish uint32 used as the

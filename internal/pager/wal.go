@@ -42,6 +42,15 @@ type walWriter struct {
 	cksum1   uint32 // running frame-checksum chain (aFrameCksum seed)
 	cksum2   uint32
 	nFrame   int // number of frames in the log (1-based next index)
+	// writeStartFrame/Cksum capture the log state when this connection
+	// acquires the WRITER lock (sqlite3WalSavepoint's write-transaction
+	// boundary). Pager.Restore rewinds uncommitted frames to this point;
+	// the BEGIN read snapshot may be older and must never be used to
+	// truncate frames another connection committed in between.
+	writeStartFrame  int
+	writeStartCksum1 uint32
+	writeStartCksum2 uint32
+	writeStartSet    bool
 	// wi is the shared wal-index this connection attached to (one per
 	// database path, refcounted by the WALIndexRegistry).
 	wi *WALIndex
@@ -318,6 +327,19 @@ func (w *walWriter) tryHeaderRefresh() (changed, ok bool) {
 		return nil
 	})
 	return changed, ok
+}
+
+// markWriteStartLocked records the WAL savepoint boundary for the current
+// write transaction. It is called only where a real WRITER lock is acquired
+// for writing (not for recovery or a checkpoint's temporary lock). Caller
+// holds p.mu.
+func (w *walWriter) markWriteStartLocked() {
+	if w == nil || w.writeStartSet {
+		return
+	}
+	w.writeStartFrame = w.nFrame
+	w.writeStartCksum1, w.writeStartCksum2 = w.cksum1, w.cksum2
+	w.writeStartSet = true
 }
 
 // walRecoverWithWriterLock runs walIndexRecover under the WRITER lock (its C
@@ -602,6 +624,7 @@ func (w *walWriter) commit() (int, error) {
 			return 0, err
 		}
 		w.writeLock = true
+		w.markWriteStartLocked()
 	}
 	appended := 0
 	var commitErr error

@@ -54,11 +54,23 @@ func (p *Pager) Snapshot() *PagerState {
 		}
 	}
 	s.fileSize = p.fileSize
-	if p.wal != nil {
-		s.walNFrame = p.wal.nFrame
-		s.walCksum1, s.walCksum2 = p.wal.cksum1, p.wal.cksum2
-	}
 	return s
+}
+
+// rewindOwnWALFramesLocked undoes frames appended by this connection's
+// write transaction. It is a no-op for a read-only transaction: C's WAL
+// rollback starts at the writer-savepoint boundary, not at the read
+// snapshot that preceded another connection's commits. Caller holds p.mu.
+func (p *Pager) rewindOwnWALFramesLocked() {
+	w := p.wal
+	if w == nil || !w.writeStartSet || w.nFrame <= w.writeStartFrame {
+		return
+	}
+	frameSize := int64(p.pageSize) + WalFrameHdrSize
+	if err := w.file.Truncate(WalHdrSize + int64(w.writeStartFrame)*frameSize); err == nil {
+		w.nFrame = w.writeStartFrame
+		w.cksum1, w.cksum2 = w.writeStartCksum1, w.writeStartCksum2
+	}
 }
 
 // Restore replaces the pager's in-memory state with a snapshot taken earlier.
@@ -78,15 +90,10 @@ func (p *Pager) Restore(s *PagerState) {
 		cur.done = true
 	}
 	p.stmtTop = nil
-	// Rewind cache-spilled, uncommitted WAL frames before releasing WRITER;
-	// published mxFrame is unchanged, so truncating to the snapshot frame is safe.
-	if p.wal != nil && p.wal.nFrame > s.walNFrame {
-		frameSize := int64(p.pageSize) + WalFrameHdrSize
-		if err := p.wal.file.Truncate(WalHdrSize + int64(s.walNFrame)*frameSize); err == nil {
-			p.wal.nFrame = s.walNFrame
-			p.wal.cksum1, p.wal.cksum2 = s.walCksum1, s.walCksum2
-		}
-	}
+	// Rewind only frames written by THIS connection's write transaction
+	// (wal3-9.3/9.4): a read-only close must not truncate another
+	// connection's committed frames.
+	p.rewindOwnWALFramesLocked()
 	// ROLLBACK ends the write transaction: drop the WRITER shm lock
 	// (sqlite3WalEndWriteTransaction parity; a savepoint rollback that still
 	// leaves dirty pages re-acquires it at the next write).

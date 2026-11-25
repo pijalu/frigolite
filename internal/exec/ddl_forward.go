@@ -203,6 +203,14 @@ func (e *Engine) readCellByRowID(tree *btree.BTree, rowID int64) (*storage.Cell,
 
 // Close closes every database pager, flushing buffered writes to disk.
 func (e *Engine) Close() error {
+	// sqlite3Close → sqlite3RollbackAll (main.c:1374-1379): a connection
+	// closed with an open transaction rolls it back before its btrees close.
+	// Doing this here also finalizes the rollback journal, so the pager close
+	// below sees no dirty pages and cannot turn the open transaction into an
+	// implicit COMMIT.
+	if e.tx.inTransaction {
+		_ = e.rollbackOpenTx()
+	}
 	// Flush pending fts5 index blobs first (sqlite3Fts5StorageSync fires
 	// before the connection drops; a later reopen loads the shadow state).
 	for _, t5 := range e.fts5Tables {

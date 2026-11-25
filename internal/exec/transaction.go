@@ -584,6 +584,15 @@ func (e *Engine) rollbackOpenTx() *Result {
 		e.tx.ddlBuffer[i]()
 	}
 	e.tx.ddlBuffer = nil
+	var journalErr error
+	for _, ctx := range e.dbList {
+		if ctx == nil || ctx.Pager == nil {
+			continue
+		}
+		if err := ctx.Pager.EndRollbackJournal(); err != nil && journalErr == nil {
+			journalErr = err
+		}
+	}
 	e.restoreTxSnapshots()
 	// The rolled-back deletes' pending format-upgrade requests are dropped
 	// with them (sqlite3Fts5StorageRollback discards the pending data).
@@ -595,6 +604,9 @@ func (e *Engine) rollbackOpenTx() *Result {
 	// Fire the rollback hook after the rollback completes
 	// (sqlite3_rollback_hook).
 	e.fireRollbackHook()
+	if journalErr != nil {
+		return &Result{Error: journalErr}
+	}
 	return &Result{}
 }
 
