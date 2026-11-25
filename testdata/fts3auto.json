@@ -222,7 +222,7 @@
         },
         {
           "type": "exec",
-          "sql": "INSERT INTO t1 () VALUES('aaaaaaa caaaaa')"
+          "sql": "INSERT INTO t1 (x) VALUES('aaaaaaa caaaaa')"
         },
         {
           "type": "exec",
@@ -275,6 +275,10 @@
         {
           "type": "exec",
           "sql": "INSERT INTO t1(a, b) VALUES('the beams of our house are cedar and our rafters of fir', '')"
+        },
+        {
+          "type": "exec",
+          "sql": "COMMIT"
         },
         {
           "type": "exec",
@@ -395,7 +399,7 @@
         },
         {
           "type": "exec",
-          "sql": "INSERT INTO t1 () VALUES('aaaaaaa Baaaaa')"
+          "sql": "INSERT INTO t1 (x) VALUES('aaaaaaa Baaaaa')"
         },
         {
           "type": "exec",

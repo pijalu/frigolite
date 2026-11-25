@@ -377,6 +377,9 @@ type TestStep struct {
 	BindBlob      bool   `json:"bindBlob,omitempty"`
 	CollectColumn int    `json:"collectColumn,omitempty"`
 	CollectVar    string `json:"collectVar,omitempty"`
+	// stmt_column_name: resolve a prepared statement's result-column name.
+	ColumnIndex    int    `json:"columnIndex,omitempty"`
+	AssignVariable string `json:"assignVariable,omitempty"`
 	// VFS names the testvfs wrapper the opening command requested
 	// (walvfs.test's `sqlite3 db test.db -vfs tvfs`).
 	VFS string `json:"vfs,omitempty"`
@@ -4628,6 +4631,17 @@ func TestSQLiteSuite(t *testing.T) {
 								continue
 							}
 							prepared[step.Variable] = stmt
+						case "stmt_column_name":
+							stmt := prepared[step.Variable]
+							if stmt == nil {
+								t.Errorf("column name: unknown prepared statement %q", step.Variable)
+								continue
+							}
+							name := ""
+							if cols := stmt.Columns(); step.ColumnIndex >= 0 && step.ColumnIndex < len(cols) {
+								name = cols[step.ColumnIndex]
+							}
+							runtimeVars[step.AssignVariable] = name
 						case "stmt_bind":
 							stmt := prepared[step.Variable]
 							if stmt == nil {

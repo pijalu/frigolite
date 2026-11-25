@@ -222,6 +222,29 @@ func commandColumnText(i *Interp, _ []rawWord, args []string, _ map[string]strin
 	return nil
 }
 
+// commandColumnName captures `sqlite3_column_name $STMT N`: the name is
+// fixed when the statement is prepared, so the harness resolves it from the
+// prepared handle before the first step and stores it in the Tcl variable.
+func commandColumnName(i *Interp, _ []rawWord, args []string, _ map[string]string) error {
+	if len(args) < 2 {
+		return nil
+	}
+	handle := strings.TrimPrefix(args[0], "$")
+	idx, err := strconv.Atoi(strings.TrimSpace(args[1]))
+	if err != nil || idx < 0 {
+		return nil
+	}
+	stmt := Stmt{
+		Type:        "stmt_column_name",
+		Variable:    handle,
+		ColumnIndex: idx,
+		TestName:    i.curTest,
+	}
+	i.vars[""] = i.markRuntimeValue(&stmt)
+	i.stmts = append(i.stmts, stmt)
+	return nil
+}
+
 // sqlite3BindKind is set by the dispatch wrapper: which sqlite3_bind_*
 // command invoked commandBindStmt.
 var sqlite3BindKind string

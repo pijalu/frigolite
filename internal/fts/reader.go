@@ -245,15 +245,23 @@ func (idx *InvertedIndex) loadInterior(blob []byte, height uint64, pos int, last
 		return nil, fmt.Errorf("corrupt segment root")
 	}
 	pos += n
-	// Parse the boundary terms to know the number of children.
-	nChildren, _, err := countInteriorChildren(blob, pos)
+	// The boundary terms identify the first key of each child. When a child
+	// block fails to load, its first term is the one SQLite would fail to
+	// seek; record it so a query that reads it reports SQLITE_CORRUPT.
+	boundaryTerms, _, err := collectInteriorBoundaryTerms(blob, pos)
 	if err != nil {
 		return nil, err
 	}
+	return idx.loadInteriorChildren(boundaryTerms, height, firstBlock, lastTerm, readBlock)
+}
+
+// loadInteriorChildren descends one interior node's children. boundaryTerms[i]
+// is the first key of child i+1, so a failed child records that term as the
+// key a SQLite segment seek would fail to read.
+func (idx *InvertedIndex) loadInteriorChildren(boundaryTerms [][]byte, height uint64, firstBlock uint64, lastTerm []byte, readBlock SegmentBlockReader) ([]byte, error) {
 	var firstErr error
-	for i := 0; i < nChildren; i++ {
-		blockID := int(firstBlock) + i
-		block, err := readBlock(blockID)
+	for i := 0; i <= len(boundaryTerms); i++ {
+		block, err := readBlock(int(firstBlock) + i)
 		if err != nil {
 			if firstErr == nil {
 				firstErr = err
@@ -265,6 +273,9 @@ func (idx *InvertedIndex) loadInterior(blob []byte, height uint64, pos int, last
 		if cerr != nil {
 			if firstErr == nil {
 				firstErr = cerr
+			}
+			if i > 0 {
+				idx.recordCorruptTerm(string(boundaryTerms[i-1]))
 			}
 			lastTerm = nil
 			continue
@@ -298,7 +309,18 @@ func (idx *InvertedIndex) loadInteriorChild(block []byte, height uint64, lastTer
 // boundary per child after the first. A framing violation is a corrupt
 // segment root.
 func countInteriorChildren(blob []byte, pos int) (nChildren, next int, err error) {
-	nChildren = 1
+	terms, next, err := collectInteriorBoundaryTerms(blob, pos)
+	if err != nil {
+		return 0, next, err
+	}
+	return len(terms) + 1, next, nil
+}
+
+// collectInteriorBoundaryTerms parses an interior node's boundary terms
+// (the first length-prefixed, the rest delta-encoded). One boundary sits
+// between each pair of children; boundary[i] starts child i+1.
+func collectInteriorBoundaryTerms(blob []byte, pos int) ([][]byte, int, error) {
+	var terms [][]byte
 	var prevTerm []byte
 	first := true
 	for pos < len(blob) {
@@ -310,13 +332,13 @@ func countInteriorChildren(blob []byte, pos int) (nChildren, next int, err error
 			term, pos, ok = readValidatedLeafDeltaTerm(blob, pos, prevTerm)
 		}
 		if !ok {
-			return 0, pos, fmt.Errorf("corrupt segment root")
+			return nil, pos, fmt.Errorf("corrupt segment root")
 		}
+		terms = append(terms, append([]byte(nil), term...))
 		prevTerm = term
 		first = false
-		nChildren++
 	}
-	return nChildren, pos, nil
+	return terms, pos, nil
 }
 
 // loadLeaf parses a leaf node's terms (delta-encoded after the first) and adds
@@ -380,6 +402,18 @@ func readLeafDoclistBytes(leaf []byte, pos int) ([]byte, int, bool) {
 	return leaf[pos : pos+int(nDoclist)], pos + int(nDoclist), true
 }
 
+// recordCorruptTerm marks a term whose doclist could not be loaded. A MATCH
+// that reads the term must fail; deferred terms are excluded at query time.
+func (idx *InvertedIndex) recordCorruptTerm(term string) {
+	if term == "" {
+		return
+	}
+	if idx.corruptTerms == nil {
+		idx.corruptTerms = make(map[string]bool)
+	}
+	idx.corruptTerms[term] = true
+}
+
 // recordLeafTerm loads one term's doclist into the index, recording the term
 // as corrupt (valid framing, damaged content) when the load fails. The
 // recording keeps loading subsequent terms (their doclists are independent;
@@ -390,10 +424,7 @@ func readLeafDoclistBytes(leaf []byte, pos int) ([]byte, int, bool) {
 // those bytes as more positions of the current document.
 func (idx *InvertedIndex) recordLeafTerm(term string, doclist, tail []byte) {
 	if err := idx.loadDoclist(term, doclist, tail); err != nil {
-		if idx.corruptTerms == nil {
-			idx.corruptTerms = make(map[string]bool)
-		}
-		idx.corruptTerms[term] = true
+		idx.recordCorruptTerm(term)
 	}
 }
 
@@ -408,6 +439,14 @@ func readLeafChainTerm(leaf []byte, pos int, prev []byte, first bool) (term []by
 			return nil, pos, true, false
 		}
 		pos += n
+		// SQLite's first leaf term is length-prefixed with nPrefix=0,
+		// so this length is the term's suffix (fts3_write.c
+		// fts3SegReaderNext: nSuffix<=0 => FTS_CORRUPT_VTAB). An all-zero
+		// zeroblobbed segment block must fail instead of parsing as an
+		// empty term with an empty doclist (fts3defer3 1.7).
+		if nLen == 0 {
+			return nil, pos, true, false
+		}
 		if uint64(pos)+nLen > uint64(len(leaf)) {
 			return nil, pos, true, false
 		}

@@ -166,6 +166,23 @@ func (i *Interp) cmdDB(rawWords []rawWord, args []string, localVars map[string]s
 			})
 		}
 		return nil
+	case "incrblob":
+		// `db incrblob TABLE COLUMN ROWID` opens a SQLite incremental I/O
+		// handle. The fts3defer3 corruption test writes NUL bytes through it;
+		// capture the handle and emit the equivalent in-place blob overwrite
+		// when the handle closes.
+		if len(args) < 4 {
+			return nil
+		}
+		i.nextFileHandle++
+		handle := fmt.Sprintf("incrblob%d", i.nextFileHandle)
+		i.incrblobWrites[handle] = &tclIncrblobWrite{
+			table:  args[1],
+			column: args[2],
+			rowid:  args[3],
+		}
+		i.vars[""] = handle
+		return nil
 	case "busy":
 		// `db busy [list busy_handler $mode $busy_handler_mode]` — the
 		// connection's busy handler (tclsqlite.c DbBusyHandler): the proc is

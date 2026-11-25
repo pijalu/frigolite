@@ -28,28 +28,28 @@ import (
 
 // TestStep matches the JSON format expected by frigolite_harness_test.go.
 type TestStep struct {
-	RepeatCount       int               `json:"repeatCount,omitempty"`
-	RepeatBody        []TestStep        `json:"repeatBody,omitempty"`
-	Type              string            `json:"type"`
-	SQL               string            `json:"sql,omitempty"`
-	Variable          string            `json:"variable,omitempty"`
-	ResultAll         bool              `json:"resultAll,omitempty"`
-	ResultFlat        bool              `json:"resultFlat,omitempty"`
-	ResultRows        bool              `json:"resultRows,omitempty"`
-	StmtStatus        bool              `json:"stmtStatus,omitempty"`
-	StatusStyle       string            `json:"statusStyle,omitempty"` // "bare" renders the counters as "N M" (where8's execsql_status)
-	SearchCount       bool              `json:"searchCount,omitempty"` // reset + append SQLITE_TEST's search counter (where8's execsql_status2)
-	SearchStyle       string            `json:"searchStyle,omitempty"` // "" = bare " N"; "search" = labeled " search N" (whereD's do_searchcount_test)
-	SortMarker        bool              `json:"sortMarker,omitempty"`
-	TransformProc     string            `json:"transformProc,omitempty"`
-	TransformBody     string            `json:"transformBody,omitempty"`
-	TransformArgs     []string          `json:"transformArgs,omitempty"`
-	Condition         string            `json:"condition,omitempty"`
-	CatchResult       bool              `json:"catchResult,omitempty"`
-	ShmSeed           string            `json:"shmSeed,omitempty"`
-	AuthProc          string            `json:"authProc,omitempty"`
-	CatchMessage      string            `json:"catchMessage,omitempty"`
-	ExplainBody       string            `json:"explainBody,omitempty"` // explain_rows: the per-row callback body (index9's sqluses)
+	RepeatCount   int        `json:"repeatCount,omitempty"`
+	RepeatBody    []TestStep `json:"repeatBody,omitempty"`
+	Type          string     `json:"type"`
+	SQL           string     `json:"sql,omitempty"`
+	Variable      string     `json:"variable,omitempty"`
+	ResultAll     bool       `json:"resultAll,omitempty"`
+	ResultFlat    bool       `json:"resultFlat,omitempty"`
+	ResultRows    bool       `json:"resultRows,omitempty"`
+	StmtStatus    bool       `json:"stmtStatus,omitempty"`
+	StatusStyle   string     `json:"statusStyle,omitempty"` // "bare" renders the counters as "N M" (where8's execsql_status)
+	SearchCount   bool       `json:"searchCount,omitempty"` // reset + append SQLITE_TEST's search counter (where8's execsql_status2)
+	SearchStyle   string     `json:"searchStyle,omitempty"` // "" = bare " N"; "search" = labeled " search N" (whereD's do_searchcount_test)
+	SortMarker    bool       `json:"sortMarker,omitempty"`
+	TransformProc string     `json:"transformProc,omitempty"`
+	TransformBody string     `json:"transformBody,omitempty"`
+	TransformArgs []string   `json:"transformArgs,omitempty"`
+	Condition     string     `json:"condition,omitempty"`
+	CatchResult   bool       `json:"catchResult,omitempty"`
+	ShmSeed       string     `json:"shmSeed,omitempty"`
+	AuthProc      string     `json:"authProc,omitempty"`
+	CatchMessage  string     `json:"catchMessage,omitempty"`
+	ExplainBody   string     `json:"explainBody,omitempty"` // explain_rows: the per-row callback body (index9's sqluses)
 
 	ExpectedExpr      string            `json:"expectedExpr,omitempty"`
 	ValueType         string            `json:"valueType,omitempty"`
@@ -71,6 +71,8 @@ type TestStep struct {
 	BindValue         string            `json:"bindValue,omitempty"`
 	BindBlob          bool              `json:"bindBlob,omitempty"`
 	CollectColumn     int               `json:"collectColumn,omitempty"`
+	ColumnIndex       int               `json:"columnIndex,omitempty"`
+	AssignVariable    string            `json:"assignVariable,omitempty"`
 	VFS               string            `json:"vfs,omitempty"`
 	ReadOnly          bool              `json:"readonly,omitempty"`
 	StatusReset       bool              `json:"statusReset,omitempty"`
@@ -483,7 +485,7 @@ func groupToTestCase(g *stmtGroup) TestCase {
 	tc := TestCase{Name: tcl.StripRuntimeValues(g.name)}
 	for _, s := range g.stmts {
 		step := stepFromStmt(s)
-		if step.SQL != "" || step.Type == "runtime_loop" || step.Type == "runtime_list" || step.Type == "drop_all_indexes" || step.Type == "register_function" || step.Type == "register_collation" || step.Type == "delete_collation" || step.Type == "runtime_var" || step.Type == "register_echo_module" || step.Type == "register_tcl_module" || step.Type == "register_test_funcs" || step.Type == "defensive" || step.Type == "auth_analyze_deny" || step.Type == "auth_proc" || step.Type == "close_db" || step.Type == "reopen_db" || step.Type == "open_empty_db" || step.Type == "open_named_db" || step.Type == "close_named_db" || step.Type == "nullvalue" || step.Type == "set_current_time" || step.Type == "set_limit" || step.Type == "alter_table" || step.Type == "header_format" || step.Type == "write_file" || step.Type == "copy_file" || step.Type == "prepare_stmt" || step.Type == "stmt_step" || step.Type == "stmt_reset" || step.Type == "stmt_finalize" || step.Type == "runtime_assert" || step.Type == "db_status" || step.Type == "runtime_var_reset" || step.Type == "xferopt_reset" || step.Type == "cacheflush" || step.Type == "unlock_notify" || step.Type == "eval_script" || step.Type == "enable_shared_cache" || step.Type == "runtime_expr" || step.Type == "register_testvfs" || step.Type == "testvfs_config" || step.Type == "register_rtgeom" || step.Type == "rtgeom_proc" || step.Type == "register_busy_handler" || step.Type == "register_wal_hook" || step.Type == "backup_file" || step.Type == "backup_db" || step.Type == "faultsim_test" || step.Type == "faultsim_save" || step.Type == "faultsim_save_close" || step.Type == "faultsim_restore" || step.Type == "faultsim_restore_reopen" || step.Type == "file_attr" || step.Type == "capi_db_readonly" || step.Type == "capi_db_status" || step.Type == "update_hook" || step.Type == "explain_rows" || step.Type == "runtime_var_unset" {
+		if step.SQL != "" || step.Type == "runtime_loop" || step.Type == "runtime_list" || step.Type == "drop_all_indexes" || step.Type == "register_function" || step.Type == "register_collation" || step.Type == "delete_collation" || step.Type == "runtime_var" || step.Type == "register_echo_module" || step.Type == "register_tcl_module" || step.Type == "register_test_funcs" || step.Type == "defensive" || step.Type == "auth_analyze_deny" || step.Type == "auth_proc" || step.Type == "close_db" || step.Type == "reopen_db" || step.Type == "open_empty_db" || step.Type == "open_named_db" || step.Type == "close_named_db" || step.Type == "nullvalue" || step.Type == "set_current_time" || step.Type == "set_limit" || step.Type == "alter_table" || step.Type == "header_format" || step.Type == "write_file" || step.Type == "copy_file" || step.Type == "prepare_stmt" || step.Type == "stmt_step" || step.Type == "stmt_reset" || step.Type == "stmt_finalize" || step.Type == "stmt_column_name" || step.Type == "runtime_assert" || step.Type == "db_status" || step.Type == "runtime_var_reset" || step.Type == "xferopt_reset" || step.Type == "cacheflush" || step.Type == "unlock_notify" || step.Type == "eval_script" || step.Type == "enable_shared_cache" || step.Type == "runtime_expr" || step.Type == "register_testvfs" || step.Type == "testvfs_config" || step.Type == "register_rtgeom" || step.Type == "rtgeom_proc" || step.Type == "register_busy_handler" || step.Type == "register_wal_hook" || step.Type == "backup_file" || step.Type == "backup_db" || step.Type == "faultsim_test" || step.Type == "faultsim_save" || step.Type == "faultsim_save_close" || step.Type == "faultsim_restore" || step.Type == "faultsim_restore_reopen" || step.Type == "file_attr" || step.Type == "capi_db_readonly" || step.Type == "capi_db_status" || step.Type == "update_hook" || step.Type == "explain_rows" || step.Type == "runtime_var_unset" {
 			tc.Steps = append(tc.Steps, step)
 		}
 	}
@@ -586,6 +588,8 @@ func stepFromStmt(s tcl.Stmt) TestStep {
 		BindValue:         s.BindValue,
 		BindBlob:          s.BindBlob,
 		CollectColumn:     s.CollectColumn,
+		ColumnIndex:       s.ColumnIndex,
+		AssignVariable:    s.AssignVariable,
 		Prep:              stmtsToSteps(s.Prep),
 		Body:              stmtsToSteps(s.Body),
 		TestScript:        tcl.StripRuntimeValues(s.TestScript),

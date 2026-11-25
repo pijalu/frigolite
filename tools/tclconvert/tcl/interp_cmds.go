@@ -124,6 +124,7 @@ func init() {
 		"sqlite3_prepare":             commandPrepareStmt,
 		"sqlite3_step":                commandStepStmt,
 		"sqlite3_column_text":         commandColumnText,
+		"sqlite3_column_name":         commandColumnName,
 		"sqlite3_db_readonly":         commandDBReadonly,
 		"sqlite3_db_status":           commandDBStatus,
 		"sqlite3_reset":               commandResetStmt,
@@ -668,14 +669,21 @@ func commandSet(i *Interp, rawWords []rawWord, args []string, localVars map[stri
 	// is only known at run time. The query becomes the step that fills the
 	// variable, so the harness holds the value the Tcl variable would hold.
 	if len(args) >= 2 && len(rawWords) >= 3 && !assignedFromQuery {
-		if stmt := i.runtimeValueStatement(args[1]); stmt != nil && stmt.Type == "query" {
-			name := strings.TrimPrefix(args[0], "::")
-			stmt.Type = "query_assign"
-			stmt.Variable = name
-			stmt.ResultAll = true
-			i.dynamicVars[name] = true
-			i.runtimeVars[name] = stmt.runtimeID
-			queryVar = name
+		if stmt := i.runtimeValueStatement(args[1]); stmt != nil {
+			if stmt.Type == "query" || stmt.Type == "stmt_column_name" {
+				name := strings.TrimPrefix(args[0], "::")
+				switch stmt.Type {
+				case "query":
+					stmt.Type = "query_assign"
+					stmt.Variable = name
+					stmt.ResultAll = true
+					i.runtimeVars[name] = stmt.runtimeID
+				case "stmt_column_name":
+					stmt.AssignVariable = name
+				}
+				i.dynamicVars[name] = true
+				queryVar = name
+			}
 		}
 	}
 	if len(args) >= 2 && len(rawWords) >= 3 && !assignedFromQuery {
@@ -2079,15 +2087,28 @@ func commandOpen(i *Interp, _ []rawWord, args []string, _ map[string]string) err
 }
 
 func commandPuts(i *Interp, _ []rawWord, args []string, _ map[string]string) error {
+	if len(args) > 0 && strings.TrimSpace(args[0]) == "-nonewline" {
+		args = args[1:]
+	}
 	if len(args) < 2 {
 		return nil
 	}
 	write := i.fileWrites[args[0]]
-	if write == nil {
+	if write != nil {
+		write.data.WriteString(args[1])
+		write.data.WriteByte('\n')
 		return nil
 	}
-	write.data.WriteString(args[1])
-	write.data.WriteByte('\n')
+	blob := i.incrblobWrites[args[0]]
+	if blob == nil {
+		return nil
+	}
+	for _, b := range []byte(args[1]) {
+		if b != 0 {
+			return fmt.Errorf("incrblob write of non-zero bytes is not supported")
+		}
+	}
+	blob.data = append(blob.data, args[1]...)
 	return nil
 }
 
@@ -2096,6 +2117,18 @@ func commandClose(i *Interp, _ []rawWord, args []string, _ map[string]string) er
 		return nil
 	}
 	handle := args[0]
+	blob := i.incrblobWrites[handle]
+	if blob != nil {
+		if len(blob.data) > 0 {
+			i.stmts = append(i.stmts, Stmt{
+				Type:     "exec",
+				SQL:      fmt.Sprintf("UPDATE %s SET %s = zeroblob(length(%s)) WHERE rowid = %s", blob.table, blob.column, blob.column, blob.rowid),
+				TestName: i.curTest,
+			})
+		}
+		delete(i.incrblobWrites, handle)
+		return nil
+	}
 	write := i.fileWrites[handle]
 	if write == nil {
 		return nil

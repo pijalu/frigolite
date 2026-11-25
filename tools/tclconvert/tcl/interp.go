@@ -57,6 +57,10 @@ type Stmt struct {
 	BindIndex int
 	BindValue string
 	BindBlob  bool
+	// stmt_column_name: the C-API column-name lookup performed on a prepared
+	// statement; the harness stores the result in AssignVariable.
+	ColumnIndex    int
+	AssignVariable string
 	// stmt_step row collection (func-13.7's while loop): per row, column
 	// CollectColumn's text appends to the runtime list CollectVar.
 	CollectColumn   int
@@ -172,6 +176,7 @@ type Interp struct {
 	pendingReadOnly    bool                        // the -readonly 1 option of the sqlite3 open being converted
 	deletedFiles       map[string]bool             // files removed via forcedelete/file delete
 	fileWrites         map[string]*tclFileWrite
+	incrblobWrites     map[string]*tclIncrblobWrite
 	nextFileHandle     int
 	nullToken          string    // "db null TOKEN": rendering of SQL NULLs in results
 	stmtBudget         int       // max captured statements; 0 = unlimited
@@ -300,6 +305,13 @@ type tclFileWrite struct {
 	data strings.Builder
 }
 
+type tclIncrblobWrite struct {
+	table  string
+	column string
+	rowid  string
+	data   []byte
+}
+
 // NewInterp creates a new TCL interpreter.
 func NewInterp() *Interp {
 	return &Interp{
@@ -325,6 +337,7 @@ func NewInterp() *Interp {
 		procs:            make(map[string]*Proc),
 		procGlobals:      make(map[string]bool),
 		fileWrites:       make(map[string]*tclFileWrite),
+		incrblobWrites:   make(map[string]*tclIncrblobWrite),
 		preparedSQL:      make(map[string]string),
 		pendingFileSets:  make([]string, 0, 8),
 		runtimeVars:      make(map[string]int),

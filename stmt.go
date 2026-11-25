@@ -49,15 +49,16 @@ func stepHaltView(err error, classify func(error) string) error {
 // Stmt is a reusable prepared SQL statement. It provides parameter binding and
 // row-at-a-time execution while retaining Frigolite's Result-based API.
 type Stmt struct {
-	db       *DB
-	sql      string
-	args     map[int]interface{}
-	named    map[string]interface{}
-	result   *Result
-	row      int
-	closed   bool
-	readLock bool
-	readStmt bool
+	db              *DB
+	sql             string
+	args            map[int]interface{}
+	named           map[string]interface{}
+	result          *Result
+	preparedColumns []string
+	row             int
+	closed          bool
+	readLock        bool
+	readStmt        bool
 	// activeReadsID is the engine registry id of this statement's read-table
 	// set while its cursors are open (from the first Step until Reset, run-
 	// to-completion, or finalize); 0 when not registered. The same-connection
@@ -136,6 +137,7 @@ func (db *DB) Prepare(sqlText string) (*Stmt, error) {
 		return nil, fmt.Errorf("frigolite: prepared statements support exactly one SQL statement, got %d", len(parsed))
 	}
 	stmt := &Stmt{db: db, sql: sqlText, args: make(map[int]interface{}), named: make(map[string]interface{})}
+	stmt.preparedColumns = db.engine.PrepareColumnNames(parsed[0])
 	_, stmt.readStmt = parsed[0].(*sql.SelectStmt)
 	if stmt.db.engine != nil {
 		stmt.prepareStamp = stmt.db.engine.SchemaMutationStamp()
@@ -360,10 +362,16 @@ func (s *Stmt) Row() []interface{} {
 
 // Columns returns result column names.
 func (s *Stmt) Columns() []string {
-	if s == nil || s.result == nil {
+	if s == nil {
 		return nil
 	}
-	return s.result.Columns
+	if s.result != nil && len(s.result.Columns) > 0 {
+		return s.result.Columns
+	}
+	// sqlite3_column_name is legal before the first step; the VDBE fixes the
+	// names at prepare time. Keep returning that snapshot until execution
+	// supplies its own (possibly wider/aliased) result columns.
+	return s.preparedColumns
 }
 
 // StepResult returns the statement's materialized result after the first

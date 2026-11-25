@@ -4,6 +4,16 @@
   "ordered": true,
   "tests": [
     {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "runtime_expr",
+          "sql": "file dirname $argv0",
+          "variable": "testdir"
+        }
+      ]
+    },
+    {
       "name": "fts3defer3-1.1",
       "steps": [
         {
@@ -3233,6 +3243,15 @@
           "type": "query",
           "sql": "SELECT docid, content FROM t1 WHERE t1 MATCH 'a b';",
           "expect": "200 {a b}"
+        }
+      ]
+    },
+    {
+      "name": "fts3defer3-1.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "UPDATE t1_segments SET block = zeroblob(length(block)) WHERE rowid = 2"
         }
       ]
     },

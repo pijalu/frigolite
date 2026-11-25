@@ -929,6 +929,14 @@ func (e *SelectEngine) TableColumnNames(tableName string) ([]string, error) {
 	return e.tableColumnNames(tableName)
 }
 
+// VisibleTableColumnNames returns a table's columns after dropping hidden
+// virtual-table columns (FTS's table-name/docid aliases). sqlite3_column_name
+// on SELECT * exposes only visible columns.
+func (e *SelectEngine) VisibleTableColumnNames(tableName string) ([]string, error) {
+	names, err := e.tableColumnNames(tableName)
+	return dropHiddenOperandNames(e, tableName, names), err
+}
+
 // ValidateRowValueUse validates row-value usage in an expression.
 func (e *SelectEngine) ValidateRowValueUse(expr sql.Expr, topLevel bool) error {
 	return e.validateRowValueUse(expr, topLevel)

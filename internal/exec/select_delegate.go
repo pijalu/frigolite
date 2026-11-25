@@ -68,6 +68,49 @@ func (e *Engine) finalizeSelectResult(result *Result, s *sql.SelectStmt, rowMaps
 	return e.selectEngine.FinalizeSelectResult(result, s, rowMaps)
 }
 
+// PrepareColumnNames returns result column names fixed at prepare time.
+//
+// SQLite's sqlite3_column_name works before the first sqlite3_step because
+// sqlite3Prepare records column names in the VDBE (vdbeaux.c
+// sqlite3VdbeSetColName). Frigolite's Result carries them only after
+// execution, so prepared statements snapshot the SELECT naming pass here.
+func (e *Engine) PrepareColumnNames(stmt sql.Stmt) []string {
+	sel, ok := stmt.(*sql.SelectStmt)
+	if !ok || sel == nil {
+		return nil
+	}
+	return e.buildColumnNames(sel.Columns, e.prepareSelectColumnDefs(sel), sel)
+}
+
+// prepareSelectColumnDefs supplies the declared columns of a SELECT's FROM
+// operands to the naming pass. Plain stars expand from these defs; schema/
+// subquery operands are still resolved by the naming pass itself.
+func (e *Engine) prepareSelectColumnDefs(sel *sql.SelectStmt) []sql.ColumnDef {
+	refs := make([]sql.TableRef, 0, 1+len(sel.Joins))
+	refs = append(refs, sel.From)
+	for _, j := range sel.Joins {
+		refs = append(refs, j.Table)
+	}
+	var defs []sql.ColumnDef
+	for _, ref := range refs {
+		if ref.Name == "" {
+			continue
+		}
+		name := ref.Name
+		if dot := strings.LastIndex(name, "."); dot >= 0 {
+			name = name[dot+1:]
+		}
+		names, err := e.selectEngine.VisibleTableColumnNames(name)
+		if err != nil {
+			continue
+		}
+		for _, col := range names {
+			defs = append(defs, sql.ColumnDef{Name: col})
+		}
+	}
+	return defs
+}
+
 // buildColumnNames builds the result column names for a SELECT.
 func (e *Engine) buildColumnNames(columns []sql.SelectColumn, colDefs []sql.ColumnDef, sel *sql.SelectStmt) []string {
 	return e.selectEngine.BuildColumnNames(columns, colDefs, sel)

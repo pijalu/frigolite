@@ -695,12 +695,10 @@ func groupSegmentsByLanguage(rows []SegmentRow, nIndex int) (map[int64][]Segment
 func (t *FTS3Table) QueryHasCorruptTerm(query string) bool {
 	t.mu.Lock()
 	defer t.mu.Unlock()
-	node, err := ParseMatchQuery(query)
+	node, err := t.prepareQueryLocked(query, "", 0)
 	if err != nil {
 		return false
 	}
-	node = tokenizeQueryNode(node, t.tokenizer)
-	node = ResolveQuery(node, t.columnNames)
 	return queryReferencesCorruptTerm(node, t.index)
 }
 

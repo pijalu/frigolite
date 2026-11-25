@@ -74,13 +74,33 @@ func queryReferencesCorruptTerm(node QueryNode, idx *InvertedIndex) bool {
 	if idx == nil || len(idx.corruptTerms) == 0 {
 		return false
 	}
+	if corrupt, leaf := corruptLeafTerm(node, idx); leaf {
+		return corrupt
+	}
+	return corruptQueryChildren(node, idx)
+}
+
+// corruptLeafTerm checks one MATCH leaf against the terms whose doclists
+// failed to load. The second result reports whether node was a leaf.
+func corruptLeafTerm(node QueryNode, idx *InvertedIndex) (corrupt, leaf bool) {
 	switch n := node.(type) {
 	case *TermNode:
-		return idx.corruptTerms[n.Term]
+		return !n.Deferred && idx.corruptTerms[n.Term], true
 	case *PrefixNode:
-		return prefixTouchesCorruptTerm(n.Prefix, idx)
+		if n.Deferred {
+			return false, true
+		}
+		return prefixTouchesCorruptTerm(n.Prefix, idx), true
 	case *PhraseNode:
-		return phraseTouchesCorruptTerm(n.Terms, idx)
+		return phraseTouchesCorruptTerm(n.Terms, n.Deferred, idx), true
+	}
+	return false, false
+}
+
+// corruptQueryChildren walks a composite MATCH node; deferred tokens never
+// read their doclist, so they are excluded by corruptLeafTerm above.
+func corruptQueryChildren(node QueryNode, idx *InvertedIndex) bool {
+	switch n := node.(type) {
 	case *AndNode:
 		return corruptChildren(n.Left, n.Right, idx)
 	case *NearNode:
@@ -116,8 +136,11 @@ func prefixTouchesCorruptTerm(prefix string, idx *InvertedIndex) bool {
 
 // phraseTouchesCorruptTerm reports whether any token of the phrase is a
 // corrupt term.
-func phraseTouchesCorruptTerm(terms []string, idx *InvertedIndex) bool {
-	for _, t := range terms {
+func phraseTouchesCorruptTerm(terms []string, deferred []bool, idx *InvertedIndex) bool {
+	for i, t := range terms {
+		if i < len(deferred) && deferred[i] {
+			continue
+		}
 		if idx.corruptTerms[t] {
 			return true
 		}
