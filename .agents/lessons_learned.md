@@ -2685,3 +2685,9 @@ everywhere; go vet + go build clean.
   to `UPDATE T SET C = zeroblob(length(C)) WHERE rowid = ROWID` for the
   harness; validate the captured bytes are all NUL instead of emitting a
   generic write marker.
+- **Unsigned hex literals wrap before sign application**: SQLite's
+  `sqlite3DecOrHexToI64` reinterprets up to 16 significant hex digits as a
+  `u64` bit pattern in `int64`. `0xFFFFFFFFFFFFFFFF` is -1 and
+  `-0xFFFFFFFFFFFFFFFF` is 1, but `-0x8000000000000000` is a parser error
+  because negating MinInt64 overflows. Leading zeros do not count toward
+  the 16-digit width.

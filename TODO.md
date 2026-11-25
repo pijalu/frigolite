@@ -1,6 +1,6 @@
 # TODO — the live restart index
 
-> Details live in **[portplan/HANDOFF_2026-11-25_S56_RESIDUAL_FTS3.md](portplan/HANDOFF_2026-11-25_S56_RESIDUAL_FTS3.md)** —
+> Details live in **[portplan/HANDOFF_2026-11-25_S57_HEXLIT.md](portplan/HANDOFF_2026-11-25_S57_HEXLIT.md)** —
 > read it first (then the older WAL-residue handoff for the durable baseline
 > methodology). This file is the one-page index; update BOTH when checking
 > items off.
@@ -9,7 +9,7 @@
 
 `close all gaps with sqlite — functional first, then performance.`
 
-## State (2026-11-25, feature/perf @ 56b228df9 — S43 slices 1-6 + S44-S56 landed: fts3auto 1→0, fts3defer3 1→0; FULL gate NEW=0 vs t10 apart from documented flakes; all other NEW=0)
+## State (2026-11-25, feature/perf @ 1851faaa0 — S43 slices 1-6 + S44-S57 landed: hexlit 2→0, literal-1.5.* 3→0; FULL gate NEW=0 vs t10 apart from documented flakes; all other NEW=0)
 
 Full-suite truth **1190 failing leaves** (the s35g gate baseline
 portplan/baselines/s35g_gate_fails.txt minus the three walfault leaves
@@ -347,10 +347,17 @@ portplan/baselines/s35g_gate_fails.txt.)
      and `db incrblob` NUL-write capture. FULL gate `/tmp/t21_full.log`
      (1262 leaves): NEW=0 vs t20 and durable t10; the two residual leaves
      GONE. Quality NEW=0; converter failure-name set unchanged vs HEAD.
- 4. **Engine residue cards**: FTS3 residue 0 (fts3defer2/fts3query/ICU/
-   fts4umlaut/fts3malloc/fts3cov/e_fts3/fts3auto/fts3defer3 all 0);
-   `binary format`/file-write substrate (the format-c and binary-scan
-   i*/I* pieces landed in S35d/S53), the interleaved row-callback step.
+ 3n. **S57 DELIVERED — hexlit 2→0, literal-1.5.* 3→0**: `evalHexLiteral`
+     now mirrors SQLite's `sqlite3DecOrHexToI64` (16 significant hex digits,
+     unsigned bit pattern reinterpreted as int64, sign applied afterward).
+     FULL gate `/tmp/t22_full.log` (1256 leaves): NEW=0 vs t21 and durable
+     t10; the five target leaves GONE. Quality NEW=0; documented flakes
+     reproduce in focused runs.
+ 4. **Engine residue cards**: FTS3 residue 0; unsigned hex literals 0
+    (hexlit 2, literal-1.5.* 3). Next: remaining literal-4.x lexer error
+    text, printf `%j/%J` JSON quoting, quote's double-quoted identifier
+    rejection, unhex, the interleaved row-callback step; then pager1
+    directory hierarchy / S34 journal / temptable2 / where2 watchlist.
 5. **The performance phase** (F1c/F3 lanes in
    GAP_CLOSURE_PLAN_2026-10-31.md) after functional gaps close.
 
