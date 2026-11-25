@@ -104,6 +104,7 @@ func init() {
 		"faultsim_restore":            commandFaultsimRestore,
 		"faultsim_restore_and_reopen": commandFaultsimRestoreReopen,
 		"db_delete_and_reopen":        commandResetDB,
+		"read_fts3varint":             commandReadFTS3Varint,
 		// malloc_common.tcl:169-172 — faultsim_save IS db_save (and the
 		// restore pair): tester.tcl's snapshot helpers share the exact
 		// implementation, so the interrupt2 section-3 rounds trip through
@@ -1701,6 +1702,27 @@ func commandDoSearchCount(i *Interp, rawWords []rawWord, args []string, localVar
 // commandDoCatchSQL implements `do_catchsql_test`.
 func commandDoCatchSQL(i *Interp, rawWords []rawWord, args []string, localVars map[string]string) error {
 	return i.cmdDoCatchSQL(rawWords, localVars)
+}
+
+// commandReadFTS3Varint implements fts3cov.test's read_fts3varint BLOB VAR:
+// emit a runtime step that decodes the leading FTS3 varint of the (runtime)
+// blob and assigns it to VAR. The fixture must keep the nested `[string
+// range $root ...]` expression unevaluated until the harness knows $root.
+func commandReadFTS3Varint(i *Interp, rawWords []rawWord, args []string, localVars map[string]string) error {
+	if len(rawWords) < 3 || len(args) < 2 {
+		return nil
+	}
+	varName := strings.TrimPrefix(strings.TrimSpace(args[1]), "$")
+	expr := "read_fts3varint " + strings.TrimSpace(rawWords[1].Text) + " " + varName
+	i.stmts = append(i.stmts, Stmt{
+		Type:     "runtime_expr",
+		SQL:      expr,
+		Variable: varName,
+		TestName: i.curTest,
+	})
+	i.dynamicVars[varName] = true
+	i.vars[""] = ""
+	return nil
 }
 
 // commandDoWriteTest implements malloc_common.tcl's do_write_test. The OOM

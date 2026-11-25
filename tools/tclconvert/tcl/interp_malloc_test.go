@@ -1,7 +1,29 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 package tcl
 
-import "testing"
+import (
+	"strings"
+	"testing"
+)
+
+// TestReadFTS3VarintEmitsRuntimeExpr pins fts3cov 2.x: the blob argument is
+// runtime ($root), so the nested string range must stay in the emitted
+// runtime_expr instead of being evaluated at conversion time.
+func TestReadFTS3VarintEmitsRuntimeExpr(t *testing.T) {
+	i := NewInterp()
+	i.dynamicVars["root"] = true
+	if err := i.Execute(`read_fts3varint [string range $root 1 end] left_child`); err != nil {
+		t.Fatal(err)
+	}
+	if len(i.stmts) != 1 {
+		t.Fatalf("stmts = %#v, want 1", i.stmts)
+	}
+	s := i.stmts[0]
+	if s.Type != "runtime_expr" || s.Variable != "left_child" ||
+		strings.TrimSpace(s.SQL) != "read_fts3varint [string range $root 1 end] left_child" {
+		t.Fatalf("stmt = %#v", s)
+	}
+}
 
 // TestMallocCommonWrappers pins the subset of malloc_common.tcl that the JSON
 // converter materializes: successful writes become exec steps and expected

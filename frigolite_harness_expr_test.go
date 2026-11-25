@@ -14,6 +14,7 @@ import (
 	"testing"
 	"unicode"
 
+	"github.com/pijalu/frigolite/internal/fts"
 	"github.com/pijalu/frigolite/tools/tclconvert/tcl"
 )
 
@@ -1105,6 +1106,9 @@ func evalHarnessTclCommand(words []string, vars map[string]string, resolvePath f
 		// Tcl `list ?arg ...?`: the properly quoted list of the words.
 		return tclListString(words[1:]), nil
 	case "string":
+		if len(words) >= 4 && strings.EqualFold(words[1], "range") {
+			return harnessCmdStringRange(words)
+		}
 		if len(words) >= 4 && strings.EqualFold(words[1], "match") {
 			pattern, str := words[2], words[3]
 			nocase := strings.EqualFold(pattern, "-nocase")
@@ -1120,6 +1124,8 @@ func evalHarnessTclCommand(words []string, vars map[string]string, resolvePath f
 			return "0", nil
 		}
 		return "", fmt.Errorf("unsupported string command: %v", words)
+	case "read_fts3varint":
+		return harnessCmdReadFTS3Varint(words)
 	case "regexp":
 		if len(words) < 3 {
 			return "", fmt.Errorf("regexp: wrong # of arguments")
@@ -1322,13 +1328,67 @@ func harnessCommandValue(out string) tclExprVal {
 	return strVal(out)
 }
 
+// harnessCmdStringRange implements Tcl `string range s first last` for the
+// runtime command layer (fts3cov's root-blob slicing). Indices are rune-based
+// like Tcl; the FTS root blob slices used here are ASCII.
+func harnessCmdStringRange(words []string) (string, error) {
+	if len(words) != 5 {
+		return "", fmt.Errorf("string range: wrong # of arguments")
+	}
+	s := []rune(words[2])
+	first, ok := harnessTclIndex(words[3], len(s))
+	if !ok {
+		return "", fmt.Errorf("string range: bad first index %q", words[3])
+	}
+	last, ok := harnessTclIndex(words[4], len(s))
+	if !ok {
+		return "", fmt.Errorf("string range: bad last index %q", words[4])
+	}
+	if first < 0 {
+		first = 0
+	}
+	if last >= len(s) {
+		last = len(s) - 1
+	}
+	if first > last || first >= len(s) {
+		return "", nil
+	}
+	return string(s[first : last+1]), nil
+}
+
+// harnessTclIndex resolves the numeric/end-relative subset Tcl uses in
+// `string range` calls from the converted fixtures.
+func harnessTclIndex(spec string, length int) (int, bool) {
+	spec = strings.TrimSpace(spec)
+	if spec == "end" {
+		return length - 1, true
+	}
+	if strings.HasPrefix(spec, "end") && len(spec) > 3 {
+		offset, err := strconv.Atoi(spec[3:])
+		return length - 1 + offset, err == nil
+	}
+	idx, err := strconv.Atoi(spec)
+	return idx, err == nil
+}
+
+// harnessCmdReadFTS3Varint decodes the leading FTS3 varint from a raw blob
+// string (fts3cov's read_fts3varint helper). The caller's destination variable
+// is set by the runtime_expr step's Variable field.
+func harnessCmdReadFTS3Varint(words []string) (string, error) {
+	if len(words) < 2 {
+		return "", fmt.Errorf("read_fts3varint: wrong # of arguments")
+	}
+	value, _ := fts.GetFTS3Varint([]byte(words[1]))
+	return strconv.FormatUint(value, 10), nil
+}
+
 // harnessRuntimeCommands lists the command layer's head words: a runtime_expr
 // whose first word is one of these evaluates as a COMMAND (`join [array
 // names ::T] ,` — index9's set-in line) rather than as an expression.
 var harnessRuntimeCommands = map[string]bool{
 	"lsearch": true, "lindex": true, "join": true, "list": true,
 	"array": true, "file": true, "expr": true, "string": true,
-	"regexp": true, "wal_frame_count": true,
+	"regexp": true, "wal_frame_count": true, "read_fts3varint": true,
 }
 
 // firstWordIsRuntimeCommand reports whether the text's leading word is one of

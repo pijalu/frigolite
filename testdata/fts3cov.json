@@ -4,6 +4,16 @@
   "ordered": true,
   "tests": [
     {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "runtime_expr",
+          "sql": "file dirname $argv0",
+          "variable": "testdir"
+        }
+      ]
+    },
+    {
       "name": "fts3cov-1.1",
       "steps": [
         {
@@ -28,7 +38,7 @@
       ]
     },
     {
-      "name": "setup_0",
+      "name": "setup_1",
       "steps": [
         {
           "type": "defensive",
@@ -42,11 +52,27 @@
         {
           "type": "query_assign",
           "sql": "SELECT root FROM t1_segdir",
-          "variable": "root"
+          "variable": "root",
+          "resultAll": true
+        },
+        {
+          "type": "runtime_expr",
+          "sql": "read_fts3varint [string range $root 1 end] left_child",
+          "variable": "left_child"
         },
         {
           "type": "exec",
           "sql": "DELETE FROM t1_segments WHERE blockid = $left_child"
+        }
+      ]
+    },
+    {
+      "name": "fts3cov-2.3",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "SELECT * FROM t1 WHERE t1 MATCH 'c*'",
+          "expect": "1 {database disk image is malformed}"
         }
       ]
     },
@@ -60,11 +86,48 @@
       ]
     },
     {
+      "name": "fts3cov-2.5",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "SELECT * FROM t1 WHERE t1 MATCH 'cloud'",
+          "expect": "1 {database disk image is malformed}"
+        }
+      ]
+    },
+    {
       "name": "fts3cov-3.1",
       "steps": [
         {
           "type": "exec",
           "sql": "CREATE VIRTUAL TABLE t2 USING fts3(col0,col1,col2,col3,col4,col5,col6,col7,col8,col9,col10,col11,col12,col13,col14,col15,col16,col17,col18,col19,col20,col21,col22,col23,col24,col25,col26,col27,col28,col29,col30,col31,col32,col33,col34,col35,col36,col37,col38,col39,col40,col41,col42,col43,col44,col45,col46,col47,col48,col49,col50,col51,col52,col53,col54,col55,col56,col57,col58,col59,col60,col61,col62,col63,col64,col65,col66,col67,col68,col69,col70,col71,col72,col73,col74,col75,col76,col77,col78,col79,col80,col81,col82,col83,col84,col85,col86,col87,col88,col89,col90,col91,col92,col93,col94,col95,col96,col97,col98,col99,col100,col101,col102,col103,col104,col105,col106,col107,col108,col109,col110,col111,col112,col113,col114,col115,col116,col117,col118,col119)"
+        }
+      ]
+    },
+    {
+      "name": "fts3cov-3.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t2(docid, col0,col1,col2,col3,col4,col5,col6,col7,col8,col9,col10,col11,col12,col13,col14,col15,col16,col17,col18,col19,col20,col21,col22,col23,col24,col25,col26,col27,col28,col29,col30,col31,col32,col33,col34,col35,col36,col37,col38,col39,col40,col41,col42,col43,col44,col45,col46,col47,col48,col49,col50,col51,col52,col53,col54,col55,col56,col57,col58,col59,col60,col61,col62,col63,col64,col65,col66,col67,col68,col69,col70,col71,col72,col73,col74,col75,col76,col77,col78,col79,col80,col81,col82,col83,col84,col85,col86,col87,col88,col89,col90,col91,col92,col93,col94,col95,col96,col97,col98,col99,col100,col101,col102,col103,col104,col105,col106,col107,col108,col109,col110,col111,col112,col113,col114,col115,col116,col117,col118,col119) VALUES(1, 'word','word','word','word','word','word','word','word','word','word','word','word','word','word','word','word','word','word','word','word','word','word','word','word','word','word','word','word','word','word','word','word','word','word','word','word','word','word','word','word','word','word','word','word','word','word','word','word','word','word','word','word','word','word','word','word','word','word','word','word','word','word','word','word','word','word','word','word','word','word','word','word','word','word','word','word','word','word','word','word','word','word','word','word','word','word','word','word','word','word','word','word','word','word','word','word','word','word','word','word','word','word','word','word','word','word','word','word','word','word','word','word','word','word','word','word','word','word','word','word')"
+        }
+      ]
+    },
+    {
+      "name": "fts3cov-3.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t2(docid, col0,col1,col2,col3,col4,col5,col6,col7,col8,col9,col10,col11,col12,col13,col14,col15,col16,col17,col18,col19,col20,col21,col22,col23,col24,col25,col26,col27,col28,col29,col30,col31,col32,col33,col34,col35,col36,col37,col38,col39,col40,col41,col42,col43,col44,col45,col46,col47,col48,col49,col50,col51,col52,col53,col54,col55,col56,col57,col58,col59,col60,col61,col62,col63,col64,col65,col66,col67,col68,col69,col70,col71,col72,col73,col74,col75,col76,col77,col78,col79,col80,col81,col82,col83,col84,col85,col86,col87,col88,col89,col90,col91,col92,col93,col94,col95,col96,col97,col98,col99,col100,col101,col102,col103,col104,col105,col106,col107,col108,col109,col110,col111,col112,col113,col114,col115,col116,col117,col118,col119) VALUES(200, 'word','word','word','word','word','word','word','word','word','word','word','word','word','word','word','word','word','word','word','word','word','word','word','word','word','word','word','word','word','word','word','word','word','word','word','word','word','word','word','word','word','word','word','word','word','word','word','word','word','word','word','word','word','word','word','word','word','word','word','word','word','word','word','word','word','word','word','word','word','word','word','word','word','word','word','word','word','word','word','word','word','word','word','word','word','word','word','word','word','word','word','word','word','word','word','word','word','word','word','word','word','word','word','word','word','word','word','word','word','word','word','word','word','word','word','word','word','word','word','word')"
+        }
+      ]
+    },
+    {
+      "name": "fts3cov-3.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t2(docid, col0,col1,col2,col3,col4,col5,col6,col7,col8,col9,col10,col11,col12,col13,col14,col15,col16,col17,col18,col19,col20,col21,col22,col23,col24,col25,col26,col27,col28,col29,col30,col31,col32,col33,col34,col35,col36,col37,col38,col39,col40,col41,col42,col43,col44,col45,col46,col47,col48,col49,col50,col51,col52,col53,col54,col55,col56,col57,col58,col59,col60,col61,col62,col63,col64,col65,col66,col67,col68,col69,col70,col71,col72,col73,col74,col75,col76,col77,col78,col79,col80,col81,col82,col83,col84,col85,col86,col87,col88,col89,col90,col91,col92,col93,col94,col95,col96,col97,col98,col99,col100,col101,col102,col103,col104,col105,col106,col107,col108,col109,col110,col111,col112,col113,col114,col115,col116,col117,col118,col119) VALUES(60000, 'word','word','word','word','word','word','word','word','word','word','word','word','word','word','word','word','word','word','word','word','word','word','word','word','word','word','word','word','word','word','word','word','word','word','word','word','word','word','word','word','word','word','word','word','word','word','word','word','word','word','word','word','word','word','word','word','word','word','word','word','word','word','word','word','word','word','word','word','word','word','word','word','word','word','word','word','word','word','word','word','word','word','word','word','word','word','word','word','word','word','word','word','word','word','word','word','word','word','word','word','word','word','word','word','word','word','word','word','word','word','word','word','word','word','word','word','word','word','word','word')"
         }
       ]
     },
@@ -78,11 +141,29 @@
       ]
     },
     {
+      "name": "fts3cov-4.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3(docid, x)\n    SELECT 1, 'Then Christabel stretched forth her hand,' UNION ALL\n    SELECT 3, 'And comforted fair Geraldine:'             UNION ALL\n    SELECT 4, '''O well, bright dame, may you command'    UNION ALL\n    SELECT 5, 'The service of Sir Leoline;'               UNION ALL\n    SELECT 2, 'And gladly our stout chivalry'             UNION ALL\n    SELECT 7, 'Will he send forth, and friends withal,'   UNION ALL\n    SELECT 8, 'To guide and guard you safe and free'      UNION ALL\n    SELECT 6, 'Home to your noble father''s hall.'''"
+        }
+      ]
+    },
+    {
       "name": "fts3cov-5.1",
       "steps": [
         {
           "type": "exec",
           "sql": "CREATE VIRTUAL TABLE t4 USING fts3(x);\n    INSERT INTO t4(t4) VALUES('nodesize=24');"
+        }
+      ]
+    },
+    {
+      "name": "fts3cov-5.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t4\n    SELECT 'ItisanancientMarinerAndhestoppethoneofthreeAA' UNION ALL\n    SELECT 'ItisanancientMarinerAndhestoppethoneofthreeBB' UNION ALL\n    SELECT 'ItisanancientMarinerAndhestoppethoneofthreeCC' UNION ALL\n    SELECT 'BythylonggreybeardandglitteringeyeNowwhereforestoppstAA' UNION ALL\n    SELECT 'BythylonggreybeardandglitteringeyeNowwhereforestoppstBB' UNION ALL\n    SELECT 'BythylonggreybeardandglitteringeyeNowwhereforestoppstCC'"
         }
       ]
     },
@@ -96,11 +177,29 @@
       ]
     },
     {
+      "name": "fts3cov-5.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t4(t4) VALUES('optimize')"
+        }
+      ]
+    },
+    {
       "name": "fts3cov-5.5",
       "steps": [
         {
           "type": "exec",
           "sql": "INSERT INTO t4 VALUES('more extra!')"
+        }
+      ]
+    },
+    {
+      "name": "fts3cov-5.6",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM (SELECT optimize(t4) FROM t4 LIMIT 1)\n  EXCEPT SELECT 'Index optimized'"
         }
       ]
     },
@@ -183,7 +282,7 @@
       ]
     },
     {
-      "name": "setup_1",
+      "name": "setup_2",
       "steps": [
         {
           "type": "close_db"
@@ -191,6 +290,15 @@
         {
           "type": "reopen_db",
           "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "fts3cov-6.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t5 VALUES('segment number 16!');"
         }
       ]
     },
@@ -265,6 +373,15 @@
       ]
     },
     {
+      "name": "fts3cov-6.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t5 VALUES('segment number 16!');"
+        }
+      ]
+    },
+    {
       "name": "fts3cov-7.1",
       "steps": [
         {
@@ -285,11 +402,58 @@
       ]
     },
     {
+      "name": "__RESET_DB__",
+      "steps": []
+    },
+    {
+      "name": "fts3cov-8",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n    CREATE VIRTUAL TABLE t8 USING fts3;\n    INSERT INTO t8 VALUES('the output of each batch run');\n    INSERT INTO t8 VALUES('(possibly a day''s work)');\n    INSERT INTO t8 VALUES('was written to two separate disks');\n  COMMIT;"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n    DELETE FROM t8 WHERE rowid = 3;\n    DELETE FROM t8 WHERE rowid = 2;\n    DELETE FROM t8 WHERE rowid = 1;\n  COMMIT;"
+        }
+      ]
+    },
+    {
       "name": "fts3cov-9.1",
       "steps": [
         {
           "type": "exec",
           "sql": "CREATE VIRTUAL TABLE xx USING fts3"
+        }
+      ]
+    },
+    {
+      "name": "fts3cov-9.2",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO xx(xx) VALUES('optimise');   -- British spelling",
+          "expect": "1 {SQL logic error}"
+        }
+      ]
+    },
+    {
+      "name": "fts3cov-9.3",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO xx(xx) VALUES('short');",
+          "expect": "1 {SQL logic error}"
+        }
+      ]
+    },
+    {
+      "name": "fts3cov-9.4",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO xx(xx) VALUES('waytoolongtobecorrect');",
+          "expect": "1 {SQL logic error}"
         }
       ]
     },
@@ -303,6 +467,23 @@
       ]
     },
     {
+      "name": "__RESET_DB__",
+      "steps": []
+    },
+    {
+      "name": "fts3cov-10",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE VIRTUAL TABLE t10 USING fts3;\n  INSERT INTO t10 VALUES('Optimising images for the web is a tricky business');\n  BEGIN;\n    INSERT INTO t10 VALUES('You have to get the right balance between');"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10(t10) VALUES('optimize');"
+        }
+      ]
+    },
+    {
       "name": "fts3cov-11.1",
       "steps": [
         {
@@ -312,6 +493,40 @@
         {
           "type": "exec",
           "sql": "SELECT * FROM xx WHERE xx MATCH 'two'"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": []
+    },
+    {
+      "name": "fts3cov-12",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE VIRTUAL TABLE t12 USING fts3;\n  INSERT INTO t12 VALUES('is one of the two togther');\n  BEGIN;\n    INSERT INTO t12 VALUES('one which was appropriate at the time');"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t12 WHERE t12 MATCH 'one'"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": []
+    },
+    {
+      "name": "fts3cov-13",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA encoding = 'UTF-16';\n  CREATE VIRTUAL TABLE t13 USING fts3;\n  INSERT INTO t13 VALUES('two scalar functions');\n  INSERT INTO t13 VALUES('scalar two functions');\n  INSERT INTO t13 VALUES('functions scalar two');"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT snippet(t13, '%%', '%%', '#') FROM t13 WHERE t13 MATCH 'two';\n  SELECT snippet(t13, '%%', '%%') FROM t13 WHERE t13 MATCH 'two';\n  SELECT snippet(t13, '%%') FROM t13 WHERE t13 MATCH 'two';"
         }
       ]
     },
@@ -402,7 +617,7 @@
       ]
     },
     {
-      "name": "setup_2",
+      "name": "setup_3",
       "steps": [
         {
           "type": "defensive",
