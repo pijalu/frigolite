@@ -15,6 +15,16 @@ func TestSplitListUnescapesQuotedElements(t *testing.T) {
 	}
 }
 
+// TestSplitListUnescapesUnicode pins fts4umlaut's foreach list: TCL \uXXXX
+// escapes inside a quoted list element must become real Unicode characters.
+func TestSplitListUnescapesUnicode(t *testing.T) {
+	got := splitList(`4 "Ha N\u1ed9i" "Ha N\u006f\u0302i" 0`)
+	want := []string{"4", "Ha Nội", "Ha Nôi", "0"}
+	if !reflect.DeepEqual(got, want) {
+		t.Fatalf("splitList() = %#v, want %#v", got, want)
+	}
+}
+
 // TestSplitCommandMatchesTcl pins `split` semantics used by pragma4.test
 // (`lindex [split $sql =] 0`): any separator character splits, empty elements
 // are preserved, the default separator is whitespace, and an empty separator

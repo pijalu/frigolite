@@ -4,6 +4,16 @@
   "ordered": true,
   "tests": [
     {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "runtime_expr",
+          "sql": "file dirname $argv0",
+          "variable": "testdir"
+        }
+      ]
+    },
+    {
       "name": "fts4umlaut-1.0",
       "steps": [
         {
@@ -137,7 +147,7 @@
       "steps": [
         {
           "type": "query",
-          "sql": "DELETE FROM t1;\n    INSERT INTO t1(rowid, x) VALUES (1, 'Ha Noi');\n    SELECT count(*) FROM t1 WHERE t1 MATCH 'Ha Nu1ed9i'",
+          "sql": "DELETE FROM t1;\n    INSERT INTO t1(rowid, x) VALUES (1, 'Ha Noi');\n    SELECT count(*) FROM t1 WHERE t1 MATCH 'Ha Nội'",
           "expect": "0"
         }
       ]
@@ -147,7 +157,7 @@
       "steps": [
         {
           "type": "query",
-          "sql": "DELETE FROM t1;\n    INSERT INTO t1(rowid, x) VALUES (1, 'Ha Nu1ed9i');\n    SELECT count(*) FROM t1 WHERE t1 MATCH 'Ha Noi'",
+          "sql": "DELETE FROM t1;\n    INSERT INTO t1(rowid, x) VALUES (1, 'Ha Nội');\n    SELECT count(*) FROM t1 WHERE t1 MATCH 'Ha Noi'",
           "expect": "0"
         }
       ]
@@ -157,7 +167,7 @@
       "steps": [
         {
           "type": "query",
-          "sql": "DELETE FROM t2;\n    INSERT INTO t2(rowid, x) VALUES (1, 'Ha Noi');\n    SELECT count(*) FROM t2 WHERE t2 MATCH 'Ha Nu1ed9i'",
+          "sql": "DELETE FROM t2;\n    INSERT INTO t2(rowid, x) VALUES (1, 'Ha Noi');\n    SELECT count(*) FROM t2 WHERE t2 MATCH 'Ha Nội'",
           "expect": "1"
         }
       ]
@@ -167,7 +177,7 @@
       "steps": [
         {
           "type": "query",
-          "sql": "DELETE FROM t2;\n    INSERT INTO t2(rowid, x) VALUES (1, 'Ha Nu1ed9i');\n    SELECT count(*) FROM t2 WHERE t2 MATCH 'Ha Noi'",
+          "sql": "DELETE FROM t2;\n    INSERT INTO t2(rowid, x) VALUES (1, 'Ha Nội');\n    SELECT count(*) FROM t2 WHERE t2 MATCH 'Ha Noi'",
           "expect": "1"
         }
       ]
@@ -177,7 +187,7 @@
       "steps": [
         {
           "type": "query",
-          "sql": "DELETE FROM t1;\n    INSERT INTO t1(rowid, x) VALUES (1, 'Ha Noi');\n    SELECT count(*) FROM t1 WHERE t1 MATCH 'Ha Nu006fi'",
+          "sql": "DELETE FROM t1;\n    INSERT INTO t1(rowid, x) VALUES (1, 'Ha Noi');\n    SELECT count(*) FROM t1 WHERE t1 MATCH 'Ha Noi'",
           "expect": "1"
         }
       ]
@@ -187,7 +197,7 @@
       "steps": [
         {
           "type": "query",
-          "sql": "DELETE FROM t1;\n    INSERT INTO t1(rowid, x) VALUES (1, 'Ha Nu006fi');\n    SELECT count(*) FROM t1 WHERE t1 MATCH 'Ha Noi'",
+          "sql": "DELETE FROM t1;\n    INSERT INTO t1(rowid, x) VALUES (1, 'Ha Noi');\n    SELECT count(*) FROM t1 WHERE t1 MATCH 'Ha Noi'",
           "expect": "1"
         }
       ]
@@ -197,7 +207,7 @@
       "steps": [
         {
           "type": "query",
-          "sql": "DELETE FROM t2;\n    INSERT INTO t2(rowid, x) VALUES (1, 'Ha Noi');\n    SELECT count(*) FROM t2 WHERE t2 MATCH 'Ha Nu006fi'",
+          "sql": "DELETE FROM t2;\n    INSERT INTO t2(rowid, x) VALUES (1, 'Ha Noi');\n    SELECT count(*) FROM t2 WHERE t2 MATCH 'Ha Noi'",
           "expect": "1"
         }
       ]
@@ -207,7 +217,7 @@
       "steps": [
         {
           "type": "query",
-          "sql": "DELETE FROM t2;\n    INSERT INTO t2(rowid, x) VALUES (1, 'Ha Nu006fi');\n    SELECT count(*) FROM t2 WHERE t2 MATCH 'Ha Noi'",
+          "sql": "DELETE FROM t2;\n    INSERT INTO t2(rowid, x) VALUES (1, 'Ha Noi');\n    SELECT count(*) FROM t2 WHERE t2 MATCH 'Ha Noi'",
           "expect": "1"
         }
       ]
@@ -217,7 +227,7 @@
       "steps": [
         {
           "type": "query",
-          "sql": "DELETE FROM t1;\n    INSERT INTO t1(rowid, x) VALUES (1, 'Ha Noi');\n    SELECT count(*) FROM t1 WHERE t1 MATCH 'Ha Nu006fu0302i'",
+          "sql": "DELETE FROM t1;\n    INSERT INTO t1(rowid, x) VALUES (1, 'Ha Noi');\n    SELECT count(*) FROM t1 WHERE t1 MATCH 'Ha Nôi'",
           "expect": "1"
         }
       ]
@@ -227,7 +237,7 @@
       "steps": [
         {
           "type": "query",
-          "sql": "DELETE FROM t1;\n    INSERT INTO t1(rowid, x) VALUES (1, 'Ha Nu006fu0302i');\n    SELECT count(*) FROM t1 WHERE t1 MATCH 'Ha Noi'",
+          "sql": "DELETE FROM t1;\n    INSERT INTO t1(rowid, x) VALUES (1, 'Ha Nôi');\n    SELECT count(*) FROM t1 WHERE t1 MATCH 'Ha Noi'",
           "expect": "1"
         }
       ]
@@ -237,7 +247,7 @@
       "steps": [
         {
           "type": "query",
-          "sql": "DELETE FROM t2;\n    INSERT INTO t2(rowid, x) VALUES (1, 'Ha Noi');\n    SELECT count(*) FROM t2 WHERE t2 MATCH 'Ha Nu006fu0302i'",
+          "sql": "DELETE FROM t2;\n    INSERT INTO t2(rowid, x) VALUES (1, 'Ha Noi');\n    SELECT count(*) FROM t2 WHERE t2 MATCH 'Ha Nôi'",
           "expect": "1"
         }
       ]
@@ -247,7 +257,7 @@
       "steps": [
         {
           "type": "query",
-          "sql": "DELETE FROM t2;\n    INSERT INTO t2(rowid, x) VALUES (1, 'Ha Nu006fu0302i');\n    SELECT count(*) FROM t2 WHERE t2 MATCH 'Ha Noi'",
+          "sql": "DELETE FROM t2;\n    INSERT INTO t2(rowid, x) VALUES (1, 'Ha Nôi');\n    SELECT count(*) FROM t2 WHERE t2 MATCH 'Ha Noi'",
           "expect": "1"
         }
       ]
@@ -257,7 +267,7 @@
       "steps": [
         {
           "type": "query",
-          "sql": "DELETE FROM t1;\n    INSERT INTO t1(rowid, x) VALUES (1, 'Ha Noi');\n    SELECT count(*) FROM t1 WHERE t1 MATCH 'Ha Nu006fu0323u0302i'",
+          "sql": "DELETE FROM t1;\n    INSERT INTO t1(rowid, x) VALUES (1, 'Ha Noi');\n    SELECT count(*) FROM t1 WHERE t1 MATCH 'Ha Nội'",
           "expect": "1"
         }
       ]
@@ -267,7 +277,7 @@
       "steps": [
         {
           "type": "query",
-          "sql": "DELETE FROM t1;\n    INSERT INTO t1(rowid, x) VALUES (1, 'Ha Nu006fu0323u0302i');\n    SELECT count(*) FROM t1 WHERE t1 MATCH 'Ha Noi'",
+          "sql": "DELETE FROM t1;\n    INSERT INTO t1(rowid, x) VALUES (1, 'Ha Nội');\n    SELECT count(*) FROM t1 WHERE t1 MATCH 'Ha Noi'",
           "expect": "1"
         }
       ]
@@ -277,7 +287,7 @@
       "steps": [
         {
           "type": "query",
-          "sql": "DELETE FROM t2;\n    INSERT INTO t2(rowid, x) VALUES (1, 'Ha Noi');\n    SELECT count(*) FROM t2 WHERE t2 MATCH 'Ha Nu006fu0323u0302i'",
+          "sql": "DELETE FROM t2;\n    INSERT INTO t2(rowid, x) VALUES (1, 'Ha Noi');\n    SELECT count(*) FROM t2 WHERE t2 MATCH 'Ha Nội'",
           "expect": "1"
         }
       ]
@@ -287,7 +297,7 @@
       "steps": [
         {
           "type": "query",
-          "sql": "DELETE FROM t2;\n    INSERT INTO t2(rowid, x) VALUES (1, 'Ha Nu006fu0323u0302i');\n    SELECT count(*) FROM t2 WHERE t2 MATCH 'Ha Noi'",
+          "sql": "DELETE FROM t2;\n    INSERT INTO t2(rowid, x) VALUES (1, 'Ha Nội');\n    SELECT count(*) FROM t2 WHERE t2 MATCH 'Ha Noi'",
           "expect": "1"
         }
       ]

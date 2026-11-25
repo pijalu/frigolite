@@ -93,16 +93,21 @@ func readListQuoted(s string, pos int) (string, int) {
 	return unescapeListElement(s[start:pos]), pos
 }
 
-// unescapeListElement processes Tcl backslash escapes in a quoted list element.
+// unescapeListElement processes Tcl backslash escapes in a quoted list
+// element (fts4umlaut.test's `"Ha N\u1ed9i"` must become "Ha Nội"). Use the
+// same decoder as double-quoted word substitution so \uXXXX, octal and the
+// letter escapes all agree with Tcl.
 func unescapeListElement(s string) string {
 	var b strings.Builder
-	for i := 0; i < len(s); i++ {
+	for i := 0; i < len(s); {
 		if s[i] == '\\' && i+1 < len(s) {
-			i++
-			b.WriteByte(escapeChar(s[i]))
+			decoded, next := decodeBackslashEscape(s, i)
+			b.WriteString(decoded)
+			i = next
 			continue
 		}
 		b.WriteByte(s[i])
+		i++
 	}
 	return b.String()
 }
