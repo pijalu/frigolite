@@ -51,6 +51,19 @@ index comparator and their per-pair ranges straddle 1.0 — run-to-run GC
 noise, not a causal regression. Allocations drop 18.34M → 13.39M (-27%)
 on the same workload.
 
+## Remaining gaps — profile-backed root causes (not fixed in this unit)
+
+The same `alloc_objects` profile attributes the untouched scan/aggregate
+paths to `execquery.wrapPrecomputed` (2.0M objects, 10.9%),
+`exec.EnterAuxAggArg` (1.0M, 7.5% — a restore closure per aggregate-argument
+evaluation), and `scanState.cloneReuseSRow` (1.0M, 7.5%). Before/after medians
+for those phases are in the table above (`scan` 0.999×, `count-star` 0.941×,
+`point-select` 0.988×); their paired min–max ratios straddle 1.0 (e.g.
+`point-select` 0.781–1.075), so the sub-6% median dips are run-to-run GC
+noise, not a causal regression from an index-comparator change those paths
+never call. The top indexed-path gap was improved; the residual 3–7×
+SQLite gaps remain open for a separate unit.
+
 ## Equivalence
 
 - `go test -count=1 ./internal/btree/ ./internal/storage/` PASS.
