@@ -2711,3 +2711,17 @@ everywhere; go vet + go build clean.
   canonical source tarball in /tmp before declaring engine behavior; record
   fixture/Tcl-canonicalization discrepancies instead of editing the fixture
   to match a different build.
+- **DQS dbconfig is fixture state, not DDL validation**: tcl2go already emits
+  `db.SetDQS(false,true)` for `quote.test`; tclconvert dropped DQS flags.
+  Track `dqsDDL`/`dqsDML` in the converter interp and emit a `set_dqs` step
+  at the source point; harness parses the two bools and calls `SetDQS`. The
+  engine already produced every required DQS-off error verbatim.
+- **Check the generic step filter before extending a long whitelist**:
+  `set_dqs` carries non-empty `SQL`, so `groupToTestCase` already keeps it.
+  Adding an explicit type check only raised `gocyclo` by 1 in an
+  already-over-threshold function; normalize quality diffs catch that.
+- **Converter grouping can hide repeated fixture commands**: the two
+  consecutive DQS dbconfig calls were emitted as
+  `repeat ×2 {set_dqs false,true}`, not two top-level steps. Inspect
+  `repeatBody` when checking regenerated fixtures; harness repeat expansion
+  applies the DQS state on both iterations.
