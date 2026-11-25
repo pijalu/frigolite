@@ -112,25 +112,34 @@ func negatedMinInt64(text string) (int64, bool) {
 	return math.MinInt64, true
 }
 
-// evalHexLiteral evaluates a hexadecimal numeric literal, rejecting any whose
-// unsigned magnitude exceeds MaxInt64.
+// evalHexLiteral evaluates a hexadecimal numeric literal the way
+// sqlite3DecOrHexToI64 does: up to 16 significant hex digits accumulate into
+// a u64 whose bit pattern is then read as int64. A leading '-' is applied
+// afterwards; negating MinInt64 overflows and is reported as an oversized
+// literal (the sqlite3 parser's -0x800... case).
 func evalHexLiteral(v *sql.NumericLit) (interface{}, error) {
 	mag := v.Value
+	neg := false
 	if mag[0] == '+' || mag[0] == '-' {
+		neg = mag[0] == '-'
 		mag = mag[1:]
 	}
-	if u, err := strconv.ParseUint(mag, 0, 64); err == nil {
-		if u > math.MaxInt64 {
+	if len(strings.TrimLeft(mag[2:], "0")) > 16 {
+		return nil, fmt.Errorf("hex literal too big: %s", v.Value)
+	}
+	u, err := strconv.ParseUint(mag, 0, 64)
+	if err != nil {
+		return nil, fmt.Errorf("hex literal too big: %s", v.Value)
+	}
+	i := int64(u)
+	if neg {
+		if i == math.MinInt64 {
 			return nil, fmt.Errorf("hex literal too big: %s", v.Value)
 		}
-		i := int64(u)
-		if v.Value[0] == '-' {
-			i = -i
-		}
-		v.SetCached(i)
-		return i, nil
+		i = -i
 	}
-	return nil, fmt.Errorf("hex literal too big: %s", v.Value)
+	v.SetCached(i)
+	return i, nil
 }
 
 // resolveRowValueSubqueries re-evaluates a subquery operand in full when the
