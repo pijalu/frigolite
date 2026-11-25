@@ -204,8 +204,10 @@ func sqliteFormatVerb(verb byte, leftJustify bool, prefix byte, alt, alt2, zero,
 		return sqliteFormatInt(verb, leftJustify, prefix, alt, alt2, zero, thousand, width, precision, val, missing)
 	case 'f', 'e', 'E', 'g', 'G':
 		return sqliteFormatFloat(verb, leftJustify, prefix, alt, alt2, zero, thousand, width, precision, val, missing)
-	case 's', 'z', 'J', 'j':
+	case 's', 'z':
 		return sqliteFormatString(leftJustify, alt, alt2, zero, width, precision, val, missing)
+	case 'J', 'j':
+		return sqliteFormatJSONString(verb, leftJustify, alt2, width, precision, val, missing)
 	case 'q', 'Q', 'w':
 		return sqliteFormatEscape(verb, leftJustify, alt, alt2, width, precision, val, missing)
 	case '%':
