@@ -2853,3 +2853,11 @@ everywhere; go vet + go build clean.
   file; `make quality` remains red on the repo-wide campaign debt (baseline
   at HEAD fails identically), but the change adds no new staticcheck or
   file-size violations.
+- **Full parity gate needs 12 shards under a 300s per-command limit**: one
+  process for the whole suite (and even 3- or 6-way shards) exceeded the
+  tool timeout; `FRIGOLITE_SHARD_INDEX=i FRIGOLITE_SHARD_COUNT=12` with one
+  process per command finishes each shard within ~160s. A `nohup` background
+  script does NOT survive the tool call's process-group kill — only the
+  shards already marked complete in the status file are valid evidence.
+  Merge `--- FAIL: TestSQLiteSuite/<family>/<leaf>` names from all shards
+  before comparing with the durable baseline; GONE is fine, NEW must be 0.

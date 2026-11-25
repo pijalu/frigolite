@@ -103,4 +103,9 @@ Evidence: S66 verify command passes; `go test ./internal/... -count=1` green;
 focused `temptable2` fail-name diff vs `/tmp/s66_head_fails.txt` NEW=0 after
 superseding `4.1.4`/`5.1.2`; focused `index` and `btree` family diffs vs
 HEAD NEW=0; deterministic guard `integrity_check=ok`, page_count 304 (293
-before the size-array fix; SQLite 3.54: 279).
+before the size-array fix; SQLite 3.54: 279). Final full parity gate (12
+shards, one process per shard): 1024 leaf failures, NEW=0 vs
+`/tmp/t30_full_gate.log`; GONE=4 (resetdb-100/300 flakes + the two
+superseded density leaves). The three bestindexF names that look NEW vs
+the older s35g list are pre-existing at HEAD 5b5472021. With this gate the
+TODO queue is closed.

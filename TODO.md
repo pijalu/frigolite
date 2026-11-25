@@ -20,7 +20,7 @@
 
 `close all gaps with sqlite — functional first, then performance.`
 
-## State (2026-11-26, feature/perf @ c1cc2486e — S43 slices 1-6 + S44-S65 landed: hexlit 2→0, literal-1.5.* 3→0, literal-4.x 3→0, printf-20.* 14→0, quote 7→0, unhex 5→0, interleaved row callback 4→0, pager1 VFS delete 2→0, S34 journal/close cards 2→0, multi-word expr fixture fidelity 2→0; FULL gate 1220 leaves NEW=0 vs t28/t10; all other NEW=0)
+## State (2026-11-25, feature/perf @ ec5683fc4 — S43 slices 1-6 + S44-S66 landed: hexlit 2→0, literal-1.5.* 3→0, literal-4.x 3→0, printf-20.* 14→0, quote 7→0, unhex 5→0, interleaved row callback 4→0, pager1 VFS delete 2→0, S34 journal/close cards 2→0, multi-word expr fixture fidelity 2→0, S66 recursive parent cascade accepted). Full parity gate re-run in 12 shards: 1024 leaf failures, NEW=0 vs `/tmp/t30_full_gate.log`; GONE=4 (resetdb-100/300 documented flakes + the two superseded tempting2 density leaves). vs the older s35g baseline the only 3 NEW names (bestindexF 2.8.0/2.9.0/2.10.0) are pre-existing at HEAD 5b5472021. TODO queue CLOSED.
 
 Full-suite truth **1190 failing leaves** (the s35g gate baseline
 portplan/baselines/s35g_gate_fails.txt minus the three walfault leaves
