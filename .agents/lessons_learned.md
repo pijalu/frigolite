@@ -3059,3 +3059,17 @@ Details: `portplan/HANDOFF_2026-11-25_DERIVED_COLLATION.md`.
 - Scope discipline: math-extension functions (`exp`, `sin`) leave BLOB as NULL
   in SQLite (`math1Func`), but core `abs`/`round` use `sqlite3_value_double`
   and still diverge in Frigolite. Separate unit; do not conflate with SUM.
+
+## Core-function BLOB coercion (2026-11-26)
+
+- `sqlite3_value_double` is not a single gate: `func.c absFunc` (default arm)
+  and `roundFunc` call it unconditionally for non-NULL, so BLOB bytes must go
+  through `sqlite3AtoF`; `numeric_type`-gated functions (`math1Func`,
+  `ceilingFunc`, `logFunc`, `signFunc`, pow/mod) return NULL for BLOB. The fix
+  added `sqliteValueDouble` (BLOB via shared `value.RealValuePrefix`) and used
+  it ONLY at the two unconditional call sites — no global `toFloat64` change.
+- Pin asserted both sides: abs/round BLOB values match SQLite 3.54, and
+  exp/sign/radians/pow/mod/log over `x'31'` remain NULL.
+- New gap found and queued as its own goal: TEXT numeric prefix
+  (`abs('31abc')`=31.0 in SQLite) — `toFloat64` parses the whole string.
+  Recorded rather than mixed into the BLOB unit.

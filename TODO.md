@@ -151,8 +151,13 @@ a regression from `ec5683fc4`/`a06dba606`. Result-affecting items come first.
    `TestSumBlobCoercion`; stale `TestAggFeedValueDynamics` BLOB expectation
    corrected to the oracle (23.5). Detail:
    `portplan/HANDOFF_2026-11-26_SUM_BLOB_COERCION.md`.
-   Still open (separate core-function path): `abs(x'31')` / `round(x'31')`
-   BLOB coercion.
+   DONE 2026-11-26: `sqliteValueDouble` maps BLOB through the shared
+   `value.RealValuePrefix` scanner for abs/round only; numeric_type-gated
+   functions (exp/sign/radians/pow/mod/log) keep NULL. Pin
+   `TestCoreFuncBlobCoercion`. Detail:
+   `portplan/HANDOFF_2026-11-26_COREFUNC_BLOB.md`.
+   Still open (queued goal): `abs('31abc')` / `round('31abc')` TEXT
+   numeric-prefix coercion (sqlite3AtoF prefix vs whole-string parse).
 1. **QUALITY — repo-wide gate debt**: `tools/quality_gate.sh` exits 1 with 10
    staticcheck findings, 221 functions over gocognit 15, 204 over gocyclo 12,
    and 18 files over the 1000-line hard limit. Baseline at HEAD fails the same
