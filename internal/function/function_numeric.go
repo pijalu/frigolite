@@ -173,19 +173,22 @@ func percentSameValue(a, b float64) bool {
 	return d >= -0.001 && d <= 0.001
 }
 
-// sqliteValueDouble converts BLOB arguments the way func.c's absFunc and
-// roundFunc do when they call sqlite3_value_double directly: vdbemem.c
-// memRealValue runs sqlite3AtoF over the blob bytes. The BLOB arm uses the
-// shared value.RealValuePrefix scanner; other types keep their existing
-// toFloat64 behavior (TEXT numeric-prefix conversion is a separate gap).
-// Functions that gate on sqlite3_value_numeric_type (math extensions,
-// pow/mod/sign) must NOT use this helper — they return NULL for BLOB.
+// sqliteValueDouble converts TEXT/BLOB arguments the way func.c's absFunc
+// and roundFunc do when they call sqlite3_value_double directly: vdbemem.c
+// memRealValue runs sqlite3AtoF over the value's bytes (longest numeric
+// prefix, leading whitespace accepted, dangling exponent ignored, no digits
+// => 0.0). The scanner is shared with comparison/CAST. INTEGER/REAL keep
+// their exact values. Functions that gate on sqlite3_value_numeric_type
+// (math extensions, pow/mod/sign) must NOT use this helper.
 func sqliteValueDouble(v interface{}) (float64, error) {
 	if cv, ok := v.(*util.ColumnValue); ok {
 		v = cv.Value
 	}
-	if b, ok := v.([]byte); ok {
-		return value.RealValuePrefix(string(b)), nil
+	switch x := v.(type) {
+	case []byte:
+		return value.RealValuePrefix(string(x)), nil
+	case string:
+		return value.RealValuePrefix(x), nil
 	}
 	return toFloat64(v)
 }
@@ -660,9 +663,12 @@ func fnPOW(args []interface{}) (interface{}, error) {
 	if args[0] == nil || args[1] == nil {
 		return nil, nil
 	}
-	f1, err1 := toFloat64(args[0])
-	f2, err2 := toFloat64(args[1])
-	if err1 != nil || err2 != nil {
+	// pow is a math2Func: both args gate on sqlite3_value_numeric_type, so
+	// non-numeric TEXT and BLOB return NULL (unlike abs/round's unconditional
+	// sqlite3_value_double). numericArg implements that gate.
+	f1, ok1 := numericArg(args[0])
+	f2, ok2 := numericArg(args[1])
+	if !ok1 || !ok2 {
 		return nil, nil
 	}
 	r := math.Pow(f1, f2)
