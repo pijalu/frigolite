@@ -46,11 +46,11 @@ jobs:
     - name: Complexity debt ratchet
       run: tools/check_complexity_debt.sh
 
-    - name: Race tests (non-harness)
-      # The JSON harness is sharded separately: running all 1,002 files in
-      # one race process exceeds a 30m step on current engines. Internal
-      # packages (notably btree) still need a generous per-package timeout.
-      run: FRIGOLITE_TEST=__none__ go test -timeout 30m -race -count=1 -run "^Test[^C]" ./...
+    - name: Native race tests (6 shards)
+      # One go test process over all native tests exceeds the 30m go-test
+      # timeout on CI runners. Shard by test-name prefix; the JSON harness
+      # has its own 12-shard race step below.
+      run: tools/run_native_race_shards.sh
 
     - name: Race JSON harness (12 shards)
       run: |

@@ -30,8 +30,12 @@
    harness for race and coverage, and checks NEW harness leaves against a
    checked-in baseline (with an explicit stochastic-leaf list). The
    random-blob TCL list panic and two WAL data races exposed by -race are
-   fixed. Validation and restart detail:
-   `portplan/HANDOFF_2026-11-26_CI_STATICCHECK.md`. Complexity and coverage
+   fixed. The single native `-race` step is now split into six bounded
+   name-prefix shards (`tools/run_native_race_shards.sh`); the partition is
+   verified over all packages so no `TestC*` tests are dropped. Validation and
+   restart detail:
+   `portplan/HANDOFF_2026-11-26_CI_STATICCHECK.md` and
+   `portplan/PLAN_2026-11-26_NATIVE_RACE_SHARDS.md`. Complexity and coverage
    debt reductions are queued as the next goals.
 
 Every native failure below reproduces identically at HEAD `5b5472021`; none is

@@ -3127,3 +3127,8 @@ Details: `portplan/HANDOFF_2026-11-25_DERIVED_COLLATION.md`.
   return -1 or 0). Keep a small explicit stochastic-leaf list, report those
   leaves, and track their investigation as a goal rather than hiding them in
   the baseline or failing CI randomly.
+  - When sharding tests by name, verify the partition from
+    `go test -list '^Test' ./...` across **all packages**, not from a hand-written
+    exclusion or the root package only. A first draft of the native race shards
+    used `^Test[A-BD-F]` and silently dropped every `TestC*` test; the correct
+    first shard is `^Test[A-F]`.

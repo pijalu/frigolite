@@ -112,4 +112,13 @@ Pinned staticcheck, complexity ratchet, `go build`, `go vet`, SOLID,
 cross-engine/coercion/TCL pins: PASS. Full non-harness `-race` step after the
 WAL fix: PASS. Post-WAL 12-shard harness: current=1015, baseline=1028,
 NEW=0, GONE=13. Sharded coverage gate: harness NEW=0, 48.3% against the 48.3%
-baseline. CI/CD monitoring follows the push of this unit.
+baseline.
+
+First push run `45828442878` completed staticcheck and the complexity gate,
+then stayed in the single native race step past 36m (locally that step takes
+~21m). It was cancelled. `tools/run_native_race_shards.sh` now runs native
+tests in six test-name shards, each with a 30m go-test timeout; the partition
+was verified over all 2,001 `Test*` functions as exactly-once. This also
+restores `TestC*` to the race gate; a focused C-group `-race` probe passes
+with and without sqlite3 on PATH. Detail:
+`portplan/PLAN_2026-11-26_NATIVE_RACE_SHARDS.md`.
