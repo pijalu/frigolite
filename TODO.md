@@ -42,9 +42,10 @@
    five FTS oracle `.db` fixtures were hidden by `*.db`; they are regenerated
    with the declared sqlite3 3.54 oracle, committed with a narrow exception,
    and checked for absence before `pager.Open`. The sharded race harness then
-      hit the 30m per-shard timeout on five shards; CI now passes
-      `FRIGOLITE_SHARD_TIMEOUT=60m` to the race and coverage steps, and the
-      coverage runner honors that override. Validation and restart detail:
+   hit the 30m per-shard timeout on five shards; CI now passes
+   `FRIGOLITE_SHARD_TIMEOUT=60m` to the race and coverage steps, and the
+   coverage runner honors that override. The job itself also hit GitHub's
+   default 60m limit and now declares 180m. Validation and restart detail:
    `portplan/HANDOFF_2026-11-26_CI_STATICCHECK.md` and
    `portplan/PLAN_2026-11-26_NATIVE_RACE_SHARDS.md`. Complexity and coverage
    debt reductions are queued as the next goals.

@@ -12,6 +12,7 @@ jobs:
   quality-and-test:
     name: Quality Gates + Tests
     runs-on: ubuntu-latest
+    timeout-minutes: 180
     strategy:
       matrix:
         # go.mod requires Go 1.24 (t.Chdir); older legs only trigger the Go

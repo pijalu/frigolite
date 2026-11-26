@@ -3114,7 +3114,9 @@ Details: `portplan/HANDOFF_2026-11-25_DERIVED_COLLATION.md`.
   A per-shard `-test.timeout` is not a leaf failure: five race-harness shards
   hit 30m on CI and locally. Raise `FRIGOLITE_SHARD_TIMEOUT` to 60m for the
   race/coverage steps and let `run_coverage_gate.sh` honor that env; keep the
-  timeout/panic rejection in `check_harness_leaves.sh`.
+  timeout/panic rejection in `check_harness_leaves.sh`. Also check the JOB
+  timeout: with native race (~35m) plus race harness and coverage, GitHub's
+  default 60m kills the step with exit 143; declare a larger job budget.
 - Random blob data exposed a Tcl list parser bug: a trailing `\` made
   `readListPlain` skip past the string end. Guard the escape advance; add a
   byte-level pin, because focused runs only reproduce it probabilistically.

@@ -179,3 +179,13 @@ timeout fired locally. CI now sets `FRIGOLITE_SHARD_TIMEOUT=60m` for the race
 harness and sharded coverage steps, and `tools/run_coverage_gate.sh` forwards
 the environment override instead of hard-coding 30m. The 60m local harness
 rerun and the next push run are in flight.
+
+Ninth push run `45899751381` passed all lint/quality steps and all ten native
+race shards, then the race harness step was killed with exit 143 after the
+job had run ~66m: GitHub's default 60m job timeout, not a test failure. The
+quality job now declares `timeout-minutes: 180` (native race ~35m + race
+harness up to 60m + sharded coverage up to 60m). The local 60m race harness
+completed every shard except `vacuummem/1.0`, which hit its own 60m timeout;
+a diagnostic leaf comparison showed eight NEW `temptable2` leaves, while the
+full `temptable2` file passed five consecutive non-race runs. Race-focused
+reproduction is still in progress; the next push run is pending.
