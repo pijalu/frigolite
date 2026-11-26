@@ -132,6 +132,21 @@ a regression from `ec5683fc4`/`a06dba606`. Result-affecting items come first.
    Remaining SQLite gaps (indexed SELECT ~4×, UPDATE ~4×, scan ~3.7×) are
    still open; full-gate result in
    `portplan/HANDOFF_2026-11-25_INDEX_COMPARE_ALLOCS.md`.
+  2026-11-26 progress (general-engine units, no per-case hacks):
+   - CREATE INDEX column-parse memo (query/planner `DatabaseContext`
+     surface): removed `ParseIndexColumns` 100,032 allocs (17.98%) from the
+     indexed-SELECT profile; paired indexed-SELECT 1.145×.
+   - Typed aggregate lane wired into the general table scan: `SUM/COUNT/
+     AVG/TOTAL/MIN/MAX` feed straight from record bytes, no `interface{}`
+     boxing. Scan allocs 1.999M → 11.4k; paired `scan` 1.937× (tight
+     1.914–1.963). Pin `TestScanAggTypedFeed`.
+   - DML index-def cache + precomputed key collations on `indexDef`:
+     indexed-UPDATE allocs -26%; paired indexed-UPDATE 1.182×,
+     indexed-DELETE 1.210×.
+   Guideline §1j (no per-case hacks) and §1j-a (minimize Go boxing) added to
+   `plan/GUIDELINES.md`. Detail: `portplan/HANDOFF_2026-11-26_GENERAL_PERF.md`.
+   Separate correctness gap found (not fixed here): `SUM(BLOB)` coercion —
+   SQLite's `sqlite3_value_numeric_type` maps `x'31'`→1, Frigolite→0.
 1. **QUALITY — repo-wide gate debt**: `tools/quality_gate.sh` exits 1 with 10
    staticcheck findings, 221 functions over gocognit 15, 204 over gocyclo 12,
    and 18 files over the 1000-line hard limit. Baseline at HEAD fails the same

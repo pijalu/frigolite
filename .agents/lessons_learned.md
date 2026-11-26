@@ -3015,3 +3015,30 @@ Details: `portplan/HANDOFF_2026-11-25_DERIVED_COLLATION.md`.
   of the SAME binary produce different index page layouts. Compare logical
   row sets and integrity_check instead. Details:
   `portplan/HANDOFF_2026-11-25_INDEX_COMPARE_ALLOCS.md`.
+
+## General engine optimization, not per-case (2026-11-26)
+
+- User directive, now binding `plan/GUIDELINES.md §1j/§1j-a`: profile and fix
+  the SHARED mechanism (value representation, decoder, content-keyed schema
+  memo, comparison primitive), never a literal SQL string / function name /
+  benchmark phase. A phase that cannot call the changed code is not evidence
+  for it.
+- Go's `interface{}` boxes every non-small int64/float64. On a full scan
+  (`sum(b)`) the alloc profile was 81% `decodeBigEndianInt` + 18% `decodeValue`
+  — SQLite's tagged `Mem` union never allocates here. The existing
+  `typedAggLane` (built for covered rowid seeks) already fed aggregates
+  unboxed from record bytes; wiring that SAME lane into the general scan when
+  there is no row predicate cut scan allocs 1.999M → 11.4k and paired
+  throughput 1.937×. Prefer extending an existing general mechanism over
+  inventing a per-query fast path.
+- Immutable CREATE INDEX SQL is a perfect content-key: memoize its parse once
+  per engine (`idxColsMemo` for the planner, `indexDefsInCached` + `KeyColls`
+  on `indexDef` for DML seeks). Both query-side and DML-side re-parsed the
+  same text on every statement; both profiles showed the parse helpers as
+  top allocators before the memo.
+- Measurement: paired/interleaved (8 pairs, reps=3) against a frozen
+  baseline is mandatory — single runs span 0.85–1.25 even for untouched
+  phases. Attribute each ratio to the mechanism it can actually affect.
+- Separate gap found while pinning (not folded into perf): SQLite's
+  `sqlite3_value_numeric_type` coerces BLOB to numeric in SUM
+  (`sum(x'31')`=1.0); Frigolite's `sumNumericArg` leaves BLOB as 0.0.
