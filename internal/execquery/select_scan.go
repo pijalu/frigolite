@@ -566,6 +566,13 @@ func newScanState(e *SelectEngine, s *sql.SelectStmt, colDefs []sql.ColumnDef, n
 		st.flatStride = len(bareSlots)
 	}
 	st.initDirectDecode(feed, plan)
+	// A simple aggregate feed with no per-row predicate has no consumer of a
+	// decoded StructRow: step straight from the record bytes through the same
+	// typed lane the covered rowid seek uses. Every other shape (WHERE, joins,
+	// grouped feed, non-typeable aggregator) keeps the decoded feed path.
+	if feed != nil && !hasJoins && plan.whereExpr == nil {
+		st.typed = e.compileTypedAggLane(feed, colDefs)
+	}
 	return st
 }
 

@@ -295,6 +295,32 @@ or dependencies outside the repository — not for solutions that merely
 require more implementation effort. If the fix spans multiple sessions,
 commit per-slice progress with precise handover notes and continue.
 
+## 1j. General engine optimization — no per-case hacks (mandatory)
+
+Performance work must target the **general engine mechanism**, not a single
+query shape, test, or benchmark phase. A fix keyed to a literal SQL string,
+one function name, one `PRAGMA`, or one harness family is a per-case hack and
+is rejected: it does not close the SQLite gap and it rots the moment the shape
+changes. Profile, identify the shared root cause, and fix it where all callers
+benefit (a value representation, a decoder, a cache keyed on immutable schema
+content, a comparison primitive). "No per case" also applies to perf evidence:
+a phase that cannot possibly call the changed code is not evidence for the
+fix; measure paired/interleaved and attribute each change to the mechanism it
+touches.
+
+### 1j-a. Avoid Go boxing/unboxing (mandatory for parity)
+
+SQLite stores SQL values in a fixed-size tagged `Mem` union — no per-value
+heap allocation. Frigolite's `interface{}` value model boxes every int64,
+float64 and wrapper outside Go's small-int cache; `alloc_objects` profiles
+consistently show `decodeBigEndianInt` / `decodeValue` boxing dominating
+full-scan and index-descent allocations. General boxing reduction (typed
+scratch decoders, reusable typed slots, content-keyed caches that return the
+same boxed value, avoiding unwrap→rewrap round-trips) is therefore a
+first-class correctness-of-performance goal, not a micro-optimization. Do not
+introduce new `interface{}` allocations in hot paths when a typed equivalent
+exists.
+
 ## 1h. Performance parity with SQLite (mandatory)
 
 Performance, duration, and memory usage should follow SQLite's profile:

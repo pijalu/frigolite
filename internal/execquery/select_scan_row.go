@@ -18,7 +18,24 @@ func (st *scanState) scanRow(payload []byte, rowID int64, tableOffset int64, tab
 	if st.barePassthrough {
 		return st.scanRowBarePassthrough(payload, rowID)
 	}
+	if st.typed != nil {
+		return st.scanRowTyped(payload, rowID)
+	}
 	return st.scanRowDecoded(payload, rowID)
+}
+
+// scanRowTyped feeds a whole scanned cell straight into the compiled simple
+// aggregate lane: parse the record header once into reusable buffers, then
+// step every call from its value bytes without boxing any interface value.
+// A corrupt header falls back to the decoded feed path, which reproduces the
+// historical silent-truncation semantics exactly.
+func (st *scanState) scanRowTyped(payload []byte, rowID int64) error {
+	types, offs, dataStart, err := parseRecordSerialTypesOffsetsInto(payload, st.typedSerial[:0], st.typedOffs[:0])
+	if err != nil {
+		return st.scanRowDecoded(payload, rowID)
+	}
+	st.typedSerial, st.typedOffs = types, offs
+	return st.typed.stepDirect(payload, dataStart, types, offs, rowID)
 }
 
 // scanRowDecoded runs the general decode → WHERE → feed/output pipeline for
@@ -134,6 +151,13 @@ type scanState struct {
 	// count is exact exactly when it is below this ceiling; at or above it
 	// every requested slot is present in the record.
 	directSlotCeil int
+	// typed owns the whole per-row path for a simple aggregate whose scan has
+	// no row predicate: it feeds every call straight from the record bytes
+	// (no decode, no boxing), the table-scan counterpart of the covered
+	// rowid-range typed lane in rowid_range.go. nil keeps the decoded feed.
+	typed         *typedAggLane
+	typedSerial   []uint64
+	typedOffs     []int32
 	// barePassthrough marks the pure all-bare-refs scan (initBarePassthrough):
 	// decode lands straight in the flat output buffer, skipping the reused
 	// row's slot round-trip and the output unwrap.
