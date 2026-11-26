@@ -222,6 +222,14 @@ func (t *BTree) indexBalanceRoom(plan *indexBalanceParentPlan) bool {
 // prepareIndexBalanceParent encodes every new boundary cell before any child
 // page write. A payload that spills gets a fresh chain owned by the parent.
 func (t *BTree) prepareIndexBalanceParent(plan *indexBalanceParentPlan) error {
+	// Child chains consumed by a leaf-level balance were already released by
+	// freeConsumedLeafDividerChains; cascade plans have no such chains.
+	for _, idx := range plan.remove {
+		off := int(binary.BigEndian.Uint16(plan.parentPg.Data[plan.ptrBase+idx*2 : plan.ptrBase+idx*2+2]))
+		if _, err := t.abandonDividerCell(plan.parentPg, off); err != nil {
+			return err
+		}
+	}
 	for i := range plan.boundaries {
 		b := &plan.boundaries[i]
 		cell, err := t.encodeDividerCell(b.leftChild, leafSplitResult{medianPayload: b.payload}, plan.parentPg.PageNum)
@@ -234,8 +242,8 @@ func (t *BTree) prepareIndexBalanceParent(plan *indexBalanceParentPlan) error {
 }
 
 // commitIndexBalanceParent rebuilds the parent from exact survivor images and
-// the prepared boundary cells, frees only the replaced dividers' chains, and
-// rewrites the right pointer that follows the gathered window.
+// the prepared boundary cells (whose replaced chains were freed in prepare),
+// and rewrites the right pointer that follows the gathered window.
 func (t *BTree) commitIndexBalanceParent(plan *indexBalanceParentPlan) error {
 	for _, b := range plan.boundaries {
 		if len(b.encoded) == 0 {
@@ -277,12 +285,6 @@ func (t *BTree) commitIndexBalanceParent(plan *indexBalanceParentPlan) error {
 	rightmost := binary.BigEndian.Uint32(plan.parentPg.Data[plan.parentCo+8 : plan.parentCo+12])
 	if plan.trailing == -1 {
 		rightmost = plan.rightmost
-	}
-	for _, idx := range plan.remove {
-		off := int(binary.BigEndian.Uint16(plan.parentPg.Data[plan.ptrBase+idx*2 : plan.ptrBase+idx*2+2]))
-		if _, err := t.abandonDividerCell(plan.parentPg, off); err != nil {
-			return err
-		}
 	}
 	t.pager.PrepareWrite(plan.parentPg)
 	for i := plan.parentCo + 1; i < int(t.pageSize); i++ {

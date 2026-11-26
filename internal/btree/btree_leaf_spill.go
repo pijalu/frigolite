@@ -311,9 +311,12 @@ func (t *BTree) precheckSpillRekey(w *spillLeafWindow) (bool, error) {
 	if int(w.parent.CellContent)-need < rekeyPtrEnd {
 		return false, nil // the parent cannot take the wider divider
 	}
-	rekeyed, eerr := t.encodeDividerCell(w.leftPgno, leafSplitResult{medianPayload: w.all[w.boundary].key}, w.parentPg.PageNum)
-	if eerr != nil {
-		return false, eerr
+	// Release the replaced chains BEFORE encoding the new divider: our
+	// encoder allocates a fresh chain (btree.c insertCell inherits the old
+	// one in place), so freeing first lets the new chain reclaim the pages
+	// instead of leaving a freelist residue after a full vacuum.
+	if _, aerr := t.abandonDividerCell(w.parentPg, w.divOff); aerr != nil {
+		return false, aerr
 	}
 	// The boundary entry moves UP as the parent's divider: its leaf-form
 	// cell dies with the page rewrite and its chain dies with it (clearCell
@@ -322,6 +325,10 @@ func (t *BTree) precheckSpillRekey(w *spillLeafWindow) (bool, error) {
 		if ferr := t.freeOverflowChain(w.all[w.boundary].cell.Overflow); ferr != nil {
 			return false, ferr
 		}
+	}
+	rekeyed, eerr := t.encodeDividerCell(w.leftPgno, leafSplitResult{medianPayload: w.all[w.boundary].key}, w.parentPg.PageNum)
+	if eerr != nil {
+		return false, eerr
 	}
 	w.rekeyed = rekeyed
 	return true, nil
@@ -382,13 +389,9 @@ func (t *BTree) writeSpillLeafHalf(pg *pager.Page, co int, entries []splitEntry)
 // boundary key (the precheck-encoded cell), repacks the abandoned divider
 // bytes and persists the parent.
 func (t *BTree) finishSpillRekey(w *spillLeafWindow) error {
-	// The parent re-key's encode + room check ran BEFORE the page writes
-	// (the hoisted precheck); the old divider's chain frees with the abandon
-	// here (clearCell parity).
+	// The parent re-key was encoded (and the replaced chains released) in
+	// precheckSpillRekey; this function only repacks and persists the parent.
 	t.pager.PrepareWrite(w.parentPg)
-	if _, aerr := t.abandonDividerCell(w.parentPg, w.divOff); aerr != nil {
-		return aerr
-	}
 	rekeyPtrEnd := w.ptrBase + int(w.parent.CellCount)*2 + 2
 	rkStart := int(w.parent.CellContent) - len(w.rekeyed)
 	if rkStart < rekeyPtrEnd {

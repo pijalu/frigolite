@@ -3154,3 +3154,10 @@ Details: `portplan/HANDOFF_2026-11-25_DERIVED_COLLATION.md`.
     GC dropped the pooled cursor. Pin the finalizer/registration contract
     directly (zero regKey + invoke the finalizer on the recycled object),
     not the pool's incidental identity.
+  - Index-balance divider overflow chains must be released BEFORE the
+    replacement parent chains are encoded: this engine copies payloads while
+    btree.c's insertCell inherits the chain in place, so free-after-encode
+    leaves a nondeterministic 1–2 page freelist residue (incrvacuum3 oracle
+    sequence, ~2% of runs). Apply the ordering to leaf balance, parent-boundary
+    rebuild, and spill-leaf rekey. Keep the complexity ratchet clean by
+    removing a redundant guard rather than raising a baseline score.

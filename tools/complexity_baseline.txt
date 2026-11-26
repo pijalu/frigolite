@@ -57,7 +57,7 @@ gocyclo	23	btree	(*BTree).gatherIndexInteriorOverride	./internal/btree/btree_ind
 gocyclo	22	btree	(*BTree).balanceIndexInteriorSplit	./internal/btree/btree_index_balance_interior.go
 gocyclo	20	btree	(*BTree).balanceIndexLeafSplit	./internal/btree/btree_index_balance_leaf.go
 gocyclo	22	btree	packIndexBalance	./internal/btree/btree_index_balance_pack.go
-gocyclo	19	btree	(*BTree).commitIndexBalanceParent	./internal/btree/btree_index_balance_window.go
+gocyclo	17	btree	(*BTree).commitIndexBalanceParent	./internal/btree/btree_index_balance_window.go
 gocyclo	22	btree	(*BTree).gatherIndexBalancePages	./internal/btree/btree_index_balance_window.go
 gocyclo	16	btree	(*BTree).indexBalanceRoom	./internal/btree/btree_index_balance_window.go
 gocyclo	18	exec	(*Engine).Exec	./internal/exec/engine_core.go

@@ -138,3 +138,20 @@ gitignored repository-root `test.db2` artifact. The test now calls
 `t.Chdir(t.TempDir())` and creates its own sentinel before checking that a
 fixture ATTACH leaves it untouched. This preserves the path-isolation
 contract without requiring local residue.
+
+Fourth push run `45844082228` failed at the two incrvacuum2 fixture-reference
+tests: the unanchored `orafixture` gitignore rule hid `tools/orafixture/`, so
+the generator never reached CI. The rule is now `/orafixture` and the two
+generator files are committed; fresh-worktree reproduction showed the exact
+missing-directory failure. Fifth push run `45872755024` failed at
+`TestCursorFinalizerSafetyNet`: the test asserted `sync.Pool` pointer identity
+across Close/OpenCursor, which GC may drop (11/100 local `-race` runs). It now
+pins the finalizer contract directly. Sixth push run `45877224961` failed at
+`TestP8IncrVacuum3OracleSequence`: consumed index-divider overflow chains
+were freed AFTER the replacement parent chains were encoded, so occasional
+runs left a 1–2 page freelist residue where SQLite inherits those chains in
+place. The frees now precede the replacement allocations in index leaf
+balance, parent-boundary rebuild, and spill-leaf rekey; the complexity ratchet
+records the reduced `commitIndexBalanceParent` score (19→17). Validation:
+300 consecutive `-race` runs of the oracle sequence green, full btree package
+green, staticcheck/SOLID/pins green, ratchet exit 0.

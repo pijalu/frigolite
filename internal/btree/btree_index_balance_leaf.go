@@ -30,9 +30,6 @@ func (t *BTree) balanceIndexLeafSplit(pg *pager.Page, page *storage.BTreePage, p
 	if err != nil {
 		return false, nil, err
 	}
-	if parent.PageType != storage.PageTypeInteriorIndex {
-		return false, nil, nil
-	}
 	ptrBase := parentCo + cellPtrOffset(parent.PageType)
 	g, ok, err := t.gatherIndexBalancePages(parentPg, parent, parentCo, ptrBase, pg.PageNum, bulk)
 	if !ok || err != nil {
@@ -50,6 +47,13 @@ func (t *BTree) balanceIndexLeafSplit(pg *pager.Page, page *storage.BTreePage, p
 	}
 	levels, fits, err := t.planIndexBalanceCascade(w.parentPlan)
 	if err != nil || !fits {
+		return false, nil, err
+	}
+	// Planning copied every boundary payload. Release the consumed cells'
+	// overflow chains BEFORE replacement parent dividers are encoded so their
+	// allocation reclaims those pages (btree.c insertCell inherits the chain
+	// in place; free-then-realloc has the same net effect).
+	if err := t.freeConsumedLeafDividerChains(w); err != nil {
 		return false, nil, err
 	}
 	// All room checks passed. Allocate and encode only now so an atomic bail
@@ -263,9 +267,29 @@ func prepareLeafWindowPages(t *BTree, w *indexLeafWindow) error {
 	return nil
 }
 
-// writeIndexLeafPages writes every output leaf page with its cntNew run and
-// frees the overflow chains of dividers consumed into the parent. It does not
-// touch the parent — the caller commits the topmost parent plan.
+// freeConsumedLeafDividerChains releases the overflow pages of cells that
+// become parent boundaries, after planning copied their payloads and before
+// the replacement dividers allocate new chains. The freed pages are then
+// reclaimed by those allocations, matching SQLite's in-place chain inheritance
+// without leaving a residue on the freelist.
+func (t *BTree) freeConsumedLeafDividerChains(w *indexLeafWindow) error {
+	for p := 0; p < len(w.cntNew)-1; p++ {
+		e := &w.all[w.cntNew[p]]
+		if e.cell.Overflow == 0 {
+			continue
+		}
+		if err := t.freeOverflowChain(e.cell.Overflow); err != nil {
+			return err
+		}
+		e.cell.Overflow = 0
+	}
+	return nil
+}
+
+// writeIndexLeafPages writes every output leaf page with its cntNew run. The
+// consumed dividers' chains were already released before the parent was
+// rebuilt. It does not touch the parent — the caller commits the topmost
+// parent plan.
 func (t *BTree) writeIndexLeafPages(w *indexLeafWindow) error {
 	if err := t.prepareLeafDividerChains(w); err != nil {
 		return err
@@ -274,14 +298,6 @@ func (t *BTree) writeIndexLeafPages(w *indexLeafWindow) error {
 		start, end, _, _ := indexBalanceRun(w.cntNew, p, len(w.all))
 		if err := t.writeSpillLeafHalf(lp, w.outCo[p], w.all[start:end]); err != nil {
 			return err
-		}
-	}
-	for p := 0; p < len(w.cntNew)-1; p++ {
-		entry := &w.all[w.cntNew[p]]
-		if entry.cell.Overflow != 0 {
-			if err := t.freeOverflowChain(entry.cell.Overflow); err != nil {
-				return err
-			}
 		}
 	}
 	return nil
