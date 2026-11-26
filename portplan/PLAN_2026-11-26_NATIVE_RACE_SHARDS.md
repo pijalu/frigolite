@@ -49,6 +49,8 @@ test. The corrected partition includes C and is checked across
   -timeout 10m -race -count=1 -run '^TestC' ./...`: exit 0 both with the normal
   PATH and with sqlite3 removed from PATH. No `TestCompat*` functions exist;
   C tests that need the oracle use `exec.LookPath` and skip when it is absent.
-- A local `-race -count=1` execution of each shard is required before relying
-  on CI as the sole gate.
+- Local `tools/run_native_race_shards.sh` completed all ten shards: 10 shard
+  headers, 0 FAIL/race/panic markers. Root-package shard times were
+  16s/1s/355s/3s/338s/270s/58s/41s/81s/20s; the slowest package was
+  `internal/btree` at 571s in `^TestB[Tt]`, below the 30m go-test timeout.
 - Push and confirm CI/CD quality-and-test reaches completion.

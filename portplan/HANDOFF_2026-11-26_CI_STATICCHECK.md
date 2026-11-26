@@ -131,3 +131,10 @@ fixtures under `backupconformance/`, `walconformance/`, and
 `recoverconformance/` were silently excluded by the global `*.db` gitignore,
 so only the main worktree had them. They are now explicitly unignored and
 committed; tests still assert against the oracle outputs, no skip was added.
+
+Third push run `45839637834` failed the native race step at
+`TestFixtureAttachPathIsolationPreservesRootArtifact`: the test read the
+gitignored repository-root `test.db2` artifact. The test now calls
+`t.Chdir(t.TempDir())` and creates its own sentinel before checking that a
+fixture ATTACH leaves it untouched. This preserves the path-isolation
+contract without requiring local residue.

@@ -36,7 +36,8 @@
    `TestC*` tests are dropped. The newly exposed `TestBackupConformance`
    failure was a packaging gap, not an engine bug: 25 deterministic oracle
    fixture files were gitignored, so CI had no fixtures. Those fixtures are now
-   explicitly unignored and committed. Validation and
+   explicitly unignored and committed; the root-artifact path-isolation test
+   now creates its own sentinel in a temp working directory. Validation and
    restart detail:
    `portplan/HANDOFF_2026-11-26_CI_STATICCHECK.md` and
    `portplan/PLAN_2026-11-26_NATIVE_RACE_SHARDS.md`. Complexity and coverage

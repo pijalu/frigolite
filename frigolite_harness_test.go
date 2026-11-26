@@ -2033,10 +2033,13 @@ func TestFixtureLifecyclePathUsesNamedDatabaseFilename(t *testing.T) {
 }
 
 func TestFixtureAttachPathIsolationPreservesRootArtifact(t *testing.T) {
+	// Use a private working directory so the sentinel is present in fresh
+	// checkouts; test.db2 is a gitignored harness artifact in the repo root.
+	t.Chdir(t.TempDir())
 	rootPath := filepath.Join(".", "test.db2")
-	before, err := os.ReadFile(rootPath)
-	if err != nil {
-		t.Fatalf("read repository-root test.db2: %v", err)
+	before := []byte("fixture-attach-sentinel")
+	if err := os.WriteFile(rootPath, before, 0o600); err != nil {
+		t.Fatalf("create root sentinel test.db2: %v", err)
 	}
 	fixtureDir := t.TempDir()
 	db, err := Open(":memory:")
@@ -2053,10 +2056,10 @@ func TestFixtureAttachPathIsolationPreservesRootArtifact(t *testing.T) {
 	}
 	got, err := os.ReadFile(rootPath)
 	if err != nil {
-		t.Fatalf("read repository-root test.db2 after attach: %v", err)
+		t.Fatalf("read working-directory test.db2 after attach: %v", err)
 	}
 	if string(got) != string(before) {
-		t.Fatal("repository-root test.db2 changed during fixture ATTACH")
+		t.Fatal("working-directory test.db2 changed during fixture ATTACH")
 	}
 	if _, err := os.Stat(filepath.Join(fixtureDir, "test.db2")); err != nil {
 		t.Fatalf("isolated fixture database missing: %v", err)
