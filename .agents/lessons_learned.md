@@ -3149,3 +3149,8 @@ Details: `portplan/HANDOFF_2026-11-25_DERIVED_COLLATION.md`.
     root-binary rule (`/orafixture`) and commit the generator, never skip the
     oracle test. Reproduce with a fresh `git worktree add --detach` before
     fixing: it exposes exactly the CI-visible missing directory.
+  - `sync.Pool` does not guarantee pointer reuse: asserting `cur2 == cur`
+    across Close/OpenCursor flaked under `-race` (11/100 local runs) when
+    GC dropped the pooled cursor. Pin the finalizer/registration contract
+    directly (zero regKey + invoke the finalizer on the recycled object),
+    not the pool's incidental identity.

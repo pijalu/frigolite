@@ -212,15 +212,18 @@ func TestCursorRecycleRegistrationContract(t *testing.T) {
 // and a closed or recycled cursor (zero regKey) must unregister nothing.
 // Registered cursors are pinned by the registry itself: a wrapper that is
 // never closed keeps its cursors registered (and reachable) forever — the
-// finalizer is a no-op guard, not a reaper.
+// finalizer is a no-op guard, not a reaper. The recycled-object path is driven
+// by firing cursorRegistryFinalizer on the closed cursor directly: sync.Pool
+// does not promise pointer reuse, so asserting identity between OpenCursor
+// calls flakes whenever the runtime drops the pooled cursor.
 func TestCursorFinalizerSafetyNet(t *testing.T) {
 	pg, root := buildPoolTestTree(t, 50)
 	key := cursorTreeKey{pg: pg, root: root}
 
 	// A properly closed + recycled cursor must never be unregistered by a
-	// late-queued finalizer: close it (key zeroed), let GC churn the pool and
-	// any queued specials, re-register the recycled cursor, and verify the
-	// registration survives further GC + finalizer draining.
+	// late-queued finalizer: close it (key zeroed), fire the allocation-time
+	// finalizer on that recycled object, then verify a live registration
+	// survives further GC + finalizer draining.
 	tree := NewBTree(pg, root, true)
 	cur, err := tree.OpenCursor()
 	if err != nil {
@@ -230,15 +233,23 @@ func TestCursorFinalizerSafetyNet(t *testing.T) {
 	if got := registeredCursorCount(key); got != 0 {
 		t.Fatalf("registry holds %d cursors after Close, want 0", got)
 	}
-	// Re-acquire BEFORE any GC so the pool hands back the same wrapper (and
-	// its cursor free list); then churn the GC over the live registration.
+	if cur.regKey != (cursorTreeKey{}) {
+		t.Fatalf("recycled cursor kept registry key %v", cur.regKey)
+	}
+	// Mirrors a finalizer queued while this cursor sat in a dropped pool
+	// batch: it must find no live registration to unregister.
+	cursorRegistryFinalizer(cur)
+	if got := registeredCursorCount(key); got != 0 {
+		t.Fatalf("finalizer on recycled cursor unregistered a live cursor (registry holds %d)", got)
+	}
+	// Open a fresh live registration, then churn the GC over it.
 	tree2 := NewBTree(pg, root, true)
 	cur2, err := tree2.OpenCursor()
 	if err != nil {
 		t.Fatalf("re-OpenCursor: %v", err)
 	}
-	if cur2 != cur {
-		t.Fatalf("expected the recycled cursor to be reused (fresh=%p recycled=%p)", cur2, cur)
+	if cur2.regKey != key {
+		t.Fatalf("new cursor registry key = %v, want %v", cur2.regKey, key)
 	}
 	for i := 0; i < 3; i++ {
 		runtime.GC()
