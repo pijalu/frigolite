@@ -163,7 +163,7 @@ func TestAggFeedValueDynamics(t *testing.T) {
 		{"SELECT SUM(s), COUNT(s) FROM tr",
 			"SUM(s)|COUNT(s) ;; float64:1.8446744073709552e+19,int64:10;"},
 		{"SELECT SUM(b), COUNT(b) FROM tr",
-			"SUM(b)|COUNT(b) ;; float64:0,int64:8;"},
+			"SUM(b)|COUNT(b) ;; float64:23.5,int64:8;"},
 		{"SELECT SUM(n), COUNT(n), AVG(n) FROM tr",
 			"ERR: integer overflow"},
 		{"SELECT SUM(r) FROM tr WHERE id BETWEEN 2 AND 6",

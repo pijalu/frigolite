@@ -11,6 +11,7 @@ import (
 	"strings"
 
 	"github.com/pijalu/frigolite/internal/util"
+	"github.com/pijalu/frigolite/internal/value"
 )
 
 // --- Aggregate implementations ---
@@ -118,14 +119,21 @@ func absF(f float64) float64 {
 }
 
 // sumNumericArg ports vdbeapi.c sqlite3_value_numeric_type as called by
-// func.c sumStep: only TEXT values are converted, to the numeric type their
-// text denotes — integer-looking, lossless int64 text becomes INTEGER;
-// other numeric text (decimal point, exponent, or beyond int64 range)
-// becomes REAL (applyNumericAffinity with bTryForInt=0 never folds a whole
-// float back to integer). Everything else passes through unchanged.
+// func.c sumStep, plus the BLOB arm of vdbemem.c sqlite3VdbeRealValue:
+//   - TEXT: applyNumericAffinity converts integer-looking, lossless int64
+//     text to INTEGER; other numeric text (decimal point, exponent, beyond
+//     int64 range) to REAL (bTryForInt=0 never folds a whole float back).
+//   - BLOB: sqlite3_value_numeric_type leaves the type BLOB, so sumStep
+//     takes its non-integer approx branch and calls sqlite3_value_double —
+//     memRealValue runs sqlite3AtoF over the blob's bytes (longest numeric
+//     prefix, no integer classification), yielding a REAL even for '31'.
+// Everything else passes through unchanged.
 func sumNumericArg(v interface{}) interface{} {
 	if cv, ok := v.(*util.ColumnValue); ok {
 		v = cv.Value
+	}
+	if b, ok := v.([]byte); ok {
+		return value.RealValuePrefix(string(b))
 	}
 	s, ok := v.(string)
 	if !ok {
@@ -167,8 +175,9 @@ func (s *sumAgg) Step(args []interface{}) error {
 	// func.c sumStep classifies every input with
 	// sqlite3_value_numeric_type before accumulating: a TEXT column holding
 	// numeric text feeds the exact integer path (misc1-2.2: sum(one) over
-	// '1','2',... stays INTEGER), while BLOBs and non-numeric text count as
-	// 0.0 on the approx path.
+	// '1','2',... stays INTEGER), while a BLOB feeds the approx path through
+	// sqlite3_value_double (sqlite3AtoF over its bytes) and non-numeric text
+	// counts as 0.0 on the approx path.
 	arg := sumNumericArg(args[0])
 	if arg == nil {
 		return nil
