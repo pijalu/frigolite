@@ -3138,6 +3138,11 @@ Details: `portplan/HANDOFF_2026-11-25_DERIVED_COLLATION.md`.
     worktree residue. `TestBackupConformance` failed in CI because 25
     deterministic fixture files were hidden by the global `*.db` gitignore;
     fix by explicitly unignoring and committing them, not by skipping the test.
+    `TestSegviewOracleX6InteriorNodes` failed the same way: the FTS oracle
+    `.db` files were ignored, `pager.Open` created an empty file, and the
+    cursor reported `database disk image is malformed`. Commit fixtures with a
+    narrow `!internal/fts/testdata/ftsconformance/*.db` exception and fail
+    explicitly on missing/empty fixtures before opening them.
   - A harness test that merely needs a sentinel at the working-directory root
     should use `t.Chdir(t.TempDir())` and create the sentinel. Requiring the
     gitignored repo-root `test.db2` made

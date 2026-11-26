@@ -155,3 +155,18 @@ balance, parent-boundary rebuild, and spill-leaf rekey; the complexity ratchet
 records the reduced `commitIndexBalanceParent` score (19→17). Validation:
 300 consecutive `-race` runs of the oracle sequence green, full btree package
 green, staticcheck/SOLID/pins green, ratchet exit 0.
+
+Seventh push run `45885377121` failed at `TestSegviewOracleX6InteriorNodes`
+with `database disk image is malformed` from `OpenCursor`. A fresh detached
+worktree reproduced it: the five FTS conformance `.db` fixtures were hidden by
+the global `*.db` gitignore, so the checkout had no oracle database and
+`pager.Open` created an empty file. The main worktree only passed because it
+held ignored local artifacts generated with sqlite3 3.51.0 while
+`ORACLE_VERSION` declared 3.54.0. Regenerated all five fixtures with the
+current 3.54.0 oracle (`go run ./tools/orafixture
+internal/fts/testdata/ftsconformance`), verified byte-identical regeneration,
+and committed them with a narrow gitignore exception (commit `51bbb49ee`).
+`TestSegviewOracleX6InteriorNodes` now checks for a missing/empty fixture
+before opening it. Pristine-worktree validation: `orafixture -check` OK,
+10x the exact failing race shard green, full fts package `-race` green,
+staticcheck/SOLID/pins/ratchet green.
