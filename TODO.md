@@ -156,8 +156,11 @@ a regression from `ec5683fc4`/`a06dba606`. Result-affecting items come first.
    functions (exp/sign/radians/pow/mod/log) keep NULL. Pin
    `TestCoreFuncBlobCoercion`. Detail:
    `portplan/HANDOFF_2026-11-26_COREFUNC_BLOB.md`.
-   Still open (queued goal): `abs('31abc')` / `round('31abc')` TEXT
-   numeric-prefix coercion (sqlite3AtoF prefix vs whole-string parse).
+   DONE 2026-11-26: `sqliteValueDouble` now uses `value.RealValuePrefix`
+   for both TEXT and BLOB at the abs/round sqlite3_value_double sites;
+   `pow` gates both args via `numericArg` (NULL for non-numeric TEXT/BLOB).
+   Pin `TestCoreFuncTextPrefix`. Detail:
+   `portplan/HANDOFF_2026-11-26_COREFUNC_TEXT_PREFIX.md`.
 1. **QUALITY — repo-wide gate debt**: `tools/quality_gate.sh` exits 1 with 10
    staticcheck findings, 221 functions over gocognit 15, 204 over gocyclo 12,
    and 18 files over the 1000-line hard limit. Baseline at HEAD fails the same

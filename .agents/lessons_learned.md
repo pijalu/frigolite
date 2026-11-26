@@ -3073,3 +3073,16 @@ Details: `portplan/HANDOFF_2026-11-25_DERIVED_COLLATION.md`.
 - New gap found and queued as its own goal: TEXT numeric prefix
   (`abs('31abc')`=31.0 in SQLite) — `toFloat64` parses the whole string.
   Recorded rather than mixed into the BLOB unit.
+
+## Core TEXT numeric-prefix coercion (2026-11-26)
+
+- The same `sqliteValueDouble` helper now gives TEXT and BLOB the shared
+  `value.RealValuePrefix` (sqlite3AtoF) scan for abs/round. Whole-string
+  `toFloat64` stays only for INTEGER/REAL and gated functions.
+- Pin exposed a second gated-path bug: `pow('31abc',2)` returned 0 because
+  `fnPOW` used `toFloat64`; SQLite's `math2Func` gates both args on
+  `sqlite3_value_numeric_type`. Switching `fnPOW` to `numericArg` restores
+  NULL without touching abs/round's unconditional conversion.
+- Rule reinforced: TEXT/BLOB coercion differs by SQLite call site. Check the
+  C source's gate (`sqlite3_value_double` vs `sqlite3_value_numeric_type`)
+  before changing a shared converter.
