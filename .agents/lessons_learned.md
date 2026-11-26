@@ -3143,3 +3143,9 @@ Details: `portplan/HANDOFF_2026-11-25_DERIVED_COLLATION.md`.
     gitignored repo-root `test.db2` made
     `TestFixtureAttachPathIsolationPreservesRootArtifact` fail in fresh
     checkouts despite the path-isolation logic being correct.
+  - An unanchored `.gitignore` name (e.g. `orafixture`) hides every same-named
+    path, including a needed source tool (`tools/orafixture/`). A green local
+    tree with untracked generator code masked the CI failure; anchor the
+    root-binary rule (`/orafixture`) and commit the generator, never skip the
+    oracle test. Reproduce with a fresh `git worktree add --detach` before
+    fixing: it exposes exactly the CI-visible missing directory.

@@ -67,7 +67,7 @@ testgen/swarmvtab/remote_test.db*
 
 # Local build artifacts
 /tcl2go
-orafixture
+/orafixture
 
 # perfbench built binaries
 benchmarks/perfbench/frigolite/frigolite
