@@ -3111,6 +3111,10 @@ Details: `portplan/HANDOFF_2026-11-25_DERIVED_COLLATION.md`.
   output directory must exist).
 - When a suite has known failures, gate on NEW leaf names, not process exit.
   Checked-in leaf baseline + panic/timeout detection keeps the gate honest.
+  A per-shard `-test.timeout` is not a leaf failure: five race-harness shards
+  hit 30m on CI and locally. Raise `FRIGOLITE_SHARD_TIMEOUT` to 60m for the
+  race/coverage steps and let `run_coverage_gate.sh` honor that env; keep the
+  timeout/panic rejection in `check_harness_leaves.sh`.
 - Random blob data exposed a Tcl list parser bug: a trailing `\` made
   `readListPlain` skip past the string end. Guard the escape advance; add a
   byte-level pin, because focused runs only reproduce it probabilistically.

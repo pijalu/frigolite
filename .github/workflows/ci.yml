@@ -53,6 +53,8 @@ jobs:
       run: tools/run_native_race_shards.sh
 
     - name: Race JSON harness (12 shards)
+      env:
+        FRIGOLITE_SHARD_TIMEOUT: 60m
       run: |
         mkdir -p "$RUNNER_TEMP/frigolite-race"
         go test -c -race -o "$RUNNER_TEMP/frigolite-race/frigolite.test" .
@@ -67,6 +69,8 @@ jobs:
         tools/check_harness_leaves.sh "$run_dir"
 
     - name: Test coverage (sharded)
+      env:
+        FRIGOLITE_SHARD_TIMEOUT: 60m
       run: tools/run_coverage_gate.sh
 
   profile-full-suite:

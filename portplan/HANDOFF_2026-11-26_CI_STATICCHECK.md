@@ -170,3 +170,12 @@ and committed them with a narrow gitignore exception (commit `51bbb49ee`).
 before opening it. Pristine-worktree validation: `orafixture -check` OK,
 10x the exact failing race shard green, full fts package `-race` green,
 staticcheck/SOLID/pins/ratchet green.
+
+Eighth push run `45890155183` passed staticcheck, the complexity ratchet,
+build/vet and all ten native race shards, then failed the 12-shard race
+harness: five shards reached `panic: test timed out after 30m0s`, so the leaf
+checker correctly rejected timeouts before comparing leaves. The same default
+timeout fired locally. CI now sets `FRIGOLITE_SHARD_TIMEOUT=60m` for the race
+harness and sharded coverage steps, and `tools/run_coverage_gate.sh` forwards
+the environment override instead of hard-coding 30m. The 60m local harness
+rerun and the next push run are in flight.

@@ -17,7 +17,7 @@ go test -c -covermode=set -cover -o "$work/frigolite.test" .
 
 echo "== run sharded JSON harness with coverage =="
 set +e
-FRIGOLITE_COVERDATA=1 FRIGOLITE_SHARD_TIMEOUT=30m \
+FRIGOLITE_COVERDATA=1 FRIGOLITE_SHARD_TIMEOUT="${FRIGOLITE_SHARD_TIMEOUT:-30m}" \
   bash tools/run_json_shards.sh "$work/frigolite.test" 12 >"$work/runner.log" 2>&1
 runner_status=$?
 set -e
