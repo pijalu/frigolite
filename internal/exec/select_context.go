@@ -201,7 +201,7 @@ func (e *Engine) IndexColumnCount(idxName string) int {
 }
 
 func (e *Engine) ParseIndexColumns(sqlStr string) []string {
-	return parseIndexColumns(sqlStr)
+	return e.parseIndexColumnsCached(sqlStr)
 }
 
 func (e *Engine) HasWithoutRowidKeyword(upperSQL string) bool {

@@ -32,8 +32,21 @@ func hasWithoutRowidKeyword(upperSQL string) bool {
 	return execdml.HasWithoutRowidKeyword(upperSQL)
 }
 
-func parseIndexColumns(sqlStr string) []string {
-	return execdml.ParseIndexColumns(sqlStr)
+// parseIndexColumnsCached parses indexed column names with a single-entry
+// content-keyed memo. Planner, EXPLAIN and ANALYZE paths re-parse the same
+// CREATE INDEX text on every statement; the SQL text is immutable for an
+// index's lifetime, so a matching SQL key always yields the same columns and
+// the memo needs no DDL invalidation.
+//
+// The returned slice is treated as read-only by all callers (matching the
+// previous fresh-parse behavior, whose slices were also never mutated).
+func (e *Engine) parseIndexColumnsCached(sqlStr string) []string {
+	if cols, ok := e.caches.idxColsMemo.get("", sqlStr); ok {
+		return cols
+	}
+	cols := execdml.ParseIndexColumns(sqlStr)
+	e.caches.idxColsMemo.put("", sqlStr, cols)
+	return cols
 }
 
 func buildColumnIndex(colDefs []sql.ColumnDef) map[string]int {

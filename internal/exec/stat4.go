@@ -262,7 +262,7 @@ func stat4SampleBetterPost(candidate, old stat4Sample, col int) bool {
 }
 
 func compareIndexPrefix(a, b []interface{}, n int, indexSQL string, defs []sql.ColumnDef, e *Engine) int {
-	cols := parseIndexColumns(indexSQL)
+	cols := e.parseIndexColumnsCached(indexSQL)
 	colIndex := buildColumnIndex(defs)
 	colIdx := make([]int, 0, len(cols))
 	for _, col := range cols {

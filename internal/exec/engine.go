@@ -614,6 +614,10 @@ type tableCaches struct {
 	// keep the per-statement hot path off the map and its string key.
 	tcMemo         schemaMemo[[]sql.TableConstraint]
 	colMemo        schemaMemo[[]sql.ColumnDef]
+	// idxColsMemo is a single-entry content-keyed memo over CREATE INDEX SQL
+	// text (the key is the SQL itself, so DDL cannot make a cached parse
+	// stale). Planner and ANALYZE paths re-parse the same index repeatedly.
+	idxColsMemo schemaMemo[[]string]
 	stmtCache      map[string][]sql.Stmt        // prepared statement cache (sqlText -> parsed stmts)
 	tableRootPages map[tableRootKey]uint32      // tracked root pages (updated after splits)
 	tableCache     map[string]*cachedTableEntry // cached table entry lookups

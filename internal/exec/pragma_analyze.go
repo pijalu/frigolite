@@ -444,7 +444,7 @@ func (e *Engine) stat4IndexContext(table string) *DatabaseContext {
 }
 
 func (e *Engine) stat4IndexColumns(index *schema.Entry) []string {
-	cols := parseIndexColumns(index.SQL)
+	cols := e.parseIndexColumnsCached(index.SQL)
 	if len(cols) == 0 && index.SQL == "" {
 		return e.selectEngine.AutoindexColumnsForAnalyze(index.TblName, index.Name)
 	}
@@ -668,7 +668,7 @@ func (e *Engine) countTableRows(rootPage uint32) int64 {
 // SQLite's format: nRow, ceil(nRow/distinct1), ceil(nRow/distinct2), ...
 func (e *Engine) computeIndexStat(tableEntry *schema.Entry, idxEntry *schema.Entry, nRow int64) string {
 	// Parse index columns from SQL
-	colNames := parseIndexColumns(idxEntry.SQL)
+	colNames := e.parseIndexColumnsCached(idxEntry.SQL)
 	nCols := len(colNames)
 	if nCols == 0 && idxEntry.SQL == "" && idxEntry.Type == "index" {
 		// Autoindex entry (sqlite_autoindex_*): derive columns from the
@@ -886,7 +886,7 @@ func (e *Engine) indexColumnCount(idxName string) int {
 	}
 	for _, entry := range entries {
 		if entry.Type == "index" && entry.Name == idxName {
-			return len(parseIndexColumns(entry.SQL))
+			return len(e.parseIndexColumnsCached(entry.SQL))
 		}
 	}
 	return 0
