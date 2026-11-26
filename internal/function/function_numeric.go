@@ -173,6 +173,23 @@ func percentSameValue(a, b float64) bool {
 	return d >= -0.001 && d <= 0.001
 }
 
+// sqliteValueDouble converts BLOB arguments the way func.c's absFunc and
+// roundFunc do when they call sqlite3_value_double directly: vdbemem.c
+// memRealValue runs sqlite3AtoF over the blob bytes. The BLOB arm uses the
+// shared value.RealValuePrefix scanner; other types keep their existing
+// toFloat64 behavior (TEXT numeric-prefix conversion is a separate gap).
+// Functions that gate on sqlite3_value_numeric_type (math extensions,
+// pow/mod/sign) must NOT use this helper — they return NULL for BLOB.
+func sqliteValueDouble(v interface{}) (float64, error) {
+	if cv, ok := v.(*util.ColumnValue); ok {
+		v = cv.Value
+	}
+	if b, ok := v.([]byte); ok {
+		return value.RealValuePrefix(string(b)), nil
+	}
+	return toFloat64(v)
+}
+
 func fnABS(args []interface{}) (interface{}, error) {
 	if args[0] == nil {
 		return nil, nil
@@ -195,7 +212,7 @@ func fnABS(args []interface{}) (interface{}, error) {
 		// absFunc default case: "Abs(X) returns 0.0 if X is a string or
 		// blob that cannot be converted to a numeric value" — func-4.4.2
 		// expects 0.0, the REAL rendering, for text values).
-		r, err := toFloat64(v)
+		r, err := sqliteValueDouble(v)
 		if err != nil {
 			return 0.0, nil
 		}
@@ -212,7 +229,7 @@ func fnROUND(args []interface{}) (interface{}, error) {
 	if len(args) > 1 && args[1] == nil {
 		return nil, nil
 	}
-	f, err := toFloat64(args[0])
+	f, err := sqliteValueDouble(args[0])
 	if err != nil {
 		return args[0], nil
 	}
