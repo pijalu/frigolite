@@ -15,6 +15,10 @@
 > are accepted engine-only variance, with cross-engine file compatibility
 > proven by `TestS66SQLiteFileCompatibility` and the two density leaves
 > superseded in `harnessSkipSubtests`. See the S66 handoff §Resolution.
+> Current CI/CD recovery note: push run `45908617554` exposed a stochastic
+> `temptable2` malformed-image failure from the INSERT ... SELECT growth guard.
+> Root cause and fix are recorded at the end of
+> `portplan/HANDOFF_2026-11-26_CI_STATICCHECK.md`.
 
 ## Goal
 

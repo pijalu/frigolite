@@ -219,6 +219,13 @@ func (m *Manager) walkRootPage(rootPage uint32) error {
 // tolerated (SQLite's findCell masks the pointer; a garbage cell offset is
 // not fatal — fts3corrupt4 10.2: an interior cell at offset 0 yields an
 // out-of-range child), and children are bounded by the page count.
+//
+// The interior cell pointer array starts at coff+12: coff+8 holds the
+// rightmost child pointer (btree.c checkTreePage's
+// cellStart = hdr+12-4*leaf). Reading it at coff+8 treated the right child's
+// low 16 bits as a cell offset and followed a bogus child — often page 2,
+// the auto-vacuum pointer-map page — making a healthy INSERT ... SELECT fail
+// its growth guard. The pointer is masked with pageSize-1 like findCell.
 func (m *Manager) appendCheckedInteriorChildren(stack []uint32, data []byte, coff int) []uint32 {
 	right := binary.BigEndian.Uint32(data[coff+8 : coff+12])
 	if right > 0 {
@@ -226,11 +233,11 @@ func (m *Manager) appendCheckedInteriorChildren(stack []uint32, data []byte, cof
 	}
 	ncell := int(binary.BigEndian.Uint16(data[coff+3 : coff+5]))
 	for i := 0; i < ncell; i++ {
-		if coff+8+2*i+2 > len(data) {
+		if coff+14+2*i > len(data) {
 			continue
 		}
-		cellOff := int(binary.BigEndian.Uint16(data[coff+8+2*i : coff+10+2*i]))
-		if cellOff >= 8 && cellOff+4 <= len(data) {
+		cellOff := int(binary.BigEndian.Uint16(data[coff+12+2*i:coff+14+2*i]) & uint16(len(data)-1))
+		if cellOff >= coff+12 && cellOff+4 <= len(data) {
 			child := binary.BigEndian.Uint32(data[cellOff : cellOff+4])
 			if child > 0 && child <= m.pager.NumPages() {
 				stack = append(stack, child)
@@ -301,24 +308,33 @@ func (m *Manager) freeSpaceWalk(rootPage uint32, seen map[uint32]bool) int64 {
 		if len(pg.Data) < coff+8 {
 			continue
 		}
-		switch pg.Data[coff] {
-		case storage.PageTypeInteriorTable:
-			if len(pg.Data) < coff+12 {
-				continue
-			}
-			stack = appendInteriorChildren(stack, pg.Data, coff)
-		case storage.PageTypeLeafTable, storage.PageTypeLeafIndex:
-			ncell := int(binary.BigEndian.Uint16(pg.Data[coff+3 : coff+5]))
-			cc := int(binary.BigEndian.Uint16(pg.Data[coff+5 : coff+7]))
-			cpe := coff + 8 + 2*ncell
-			if cc >= cpe && cc <= int(m.pager.PageSize()) {
-				free += int64(cc - cpe)
-			}
-		case 0x00:
-			free += int64(m.pager.PageSize())
-		}
+		pageFree, children := freeSpacePage(pg.Data, coff, int(m.pager.PageSize()))
+		free += pageFree
+		stack = append(stack, children...)
 	}
 	return free
+}
+
+// freeSpacePage returns a page's cell-content gap and the children its
+// interior b-tree header points to. Callers pass a page buffer with at least
+// coff+8 bytes; an interior page shorter than coff+12 has no child pointers.
+func freeSpacePage(data []byte, coff, pageSize int) (int64, []uint32) {
+	switch data[coff] {
+	case storage.PageTypeInteriorTable:
+		if len(data) >= coff+12 {
+			return 0, appendInteriorChildren(nil, data, coff)
+		}
+	case storage.PageTypeLeafTable, storage.PageTypeLeafIndex:
+		ncell := int(binary.BigEndian.Uint16(data[coff+3 : coff+5]))
+		cc := int(binary.BigEndian.Uint16(data[coff+5 : coff+7]))
+		cpe := coff + 8 + 2*ncell
+		if cc >= cpe && cc <= pageSize {
+			return int64(cc - cpe), nil
+		}
+	case 0x00:
+		return int64(pageSize), nil
+	}
+	return 0, nil
 }
 
 // appendInteriorChildren pushes an interior table page's rightmost pointer
@@ -332,11 +348,11 @@ func appendInteriorChildren(stack []uint32, data []byte, coff int) []uint32 {
 	ncell := int(binary.BigEndian.Uint16(data[coff+3 : coff+5]))
 	ps := len(data)
 	for i := 0; i < ncell; i++ {
-		if coff+8+2*i+2 > len(data) {
+		if coff+14+2*i > ps {
 			continue
 		}
-		cellOff := int(binary.BigEndian.Uint16(data[coff+8+2*i : coff+10+2*i]))
-		if cellOff >= 0 && cellOff+4 <= ps {
+		cellOff := int(binary.BigEndian.Uint16(data[coff+12+2*i:coff+14+2*i]) & uint16(ps-1))
+		if cellOff >= coff+12 && cellOff+4 <= ps {
 			child := binary.BigEndian.Uint32(data[cellOff : cellOff+4])
 			if child > 0 {
 				stack = append(stack, child)

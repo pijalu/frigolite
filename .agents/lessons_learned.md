@@ -3172,3 +3172,21 @@ Details: `portplan/HANDOFF_2026-11-25_DERIVED_COLLATION.md`.
     sequence, ~2% of runs). Apply the ordering to leaf balance, parent-boundary
     rebuild, and spill-leaf rekey. Keep the complexity ratchet clean by
     removing a redundant guard rather than raising a baseline score.
+  - A healthy INSERT ... SELECT can fail its growth guard with
+    `database disk image is malformed` when an interior TABLE page's cell
+    pointer array is read at header+8: +8 is the RIGHTMOST CHILD pointer, so
+    its high 16 bits were treated as a cell offset, the bytes there yielded a
+    bogus child (often page 2, the auto-vacuum pointer-map page), and the
+    schema-root walk declared corruption. btree.c checkTreePage uses
+    `cellStart = hdr+12-4*leaf`; use +12 for interior pages and mask the
+    pointer with pageSize-1 like findCell. The same bug was in the
+    free-space estimator's interior walk; fix both. Trace such stochastic
+    guard failures with env-gated stack logging at error constructors, then
+    REVERT the instrumentation before editing; `PRAGMA integrity_check`
+    passing points at the guard, not the btree. Pin the +12 offset with a
+    byte-level native test (RED before fix, GREEN after).
+  - The installed pre-commit quality gate checks the WHOLE staged non-test
+    file, so a pre-existing gocognit debt (freeSpaceWalk 16 > 15) blocks an
+    unrelated small fix in that file. Extract a pure page-summary helper to
+    bring the function under threshold; do not raise thresholds or bypass
+    the hook.

@@ -189,3 +189,32 @@ completed every shard except `vacuummem/1.0`, which hit its own 60m timeout;
 a diagnostic leaf comparison showed eight NEW `temptable2` leaves, while the
 full `temptable2` file passed five consecutive non-race runs. Race-focused
 reproduction is still in progress; the next push run is pending.
+
+## Tenth run `45908617554` — growth-guard false positive fixed
+
+A pure-Go in-memory reproducer (`PRAGMA auto_vacuum=1`, cache_size=15,
+`tx(a,b)` + two indexes, repeated DELETE/INSERT churn) failed stochastically
+at cycle 35–500 with `database disk image is malformed`; integrity_check
+passed after every phase. Env-gated stack logging at the malformed-error
+constructors traced the failure to `insertSelectGrowthGuard` →
+`ValidateAllTableRoots` → `schema.walkRootPage`, with inner error
+`storage: unknown page type: 0x01` on page 2 (the auto-vacuum pointer-map
+page). The walk read an interior TABLE page's cell pointer array at coff+8,
+which is SQLite's 4-byte rightmost-child field. btree.c's checkTreePage uses
+`cellStart = hdr+12-4*leaf`; the wrong offset made the right child's high
+16 bits look like a cell offset, and the bytes at that offset supplied a
+bogus child page 2. Both `appendCheckedInteriorChildren` (validation) and
+`appendInteriorChildren` (free-space estimate) had this bug.
+
+Fix: read interior cell pointers at coff+12, mask with pageSize-1 like
+`findCell`, and ignore pointers that resolve back into the header. Added
+`TestInteriorTableCellPointersStartAtHeader12`, a byte-level native pin that
+fails on the old code (`[right,2]` instead of `[right,10]`) and passes with
+the fix. The pre-commit quality gate also required reducing a pre-existing
+gocognit 16 in `freeSpaceWalk`; extracted pure `freeSpacePage`, preserving
+behavior. Validation: RED→GREEN pin, 1000/1000 reproducer cycles with
+integrity checks, `go test ./internal/schema`, targeted `-race` pin, verify
+command, staticcheck, ratchet, and `quality_gate.sh
+internal/schema/schema_tail.go` all green. The 12-shard non-race harness
+completed with leaf diff `NEW=0` vs t30 (`GONE=13`). The next push run will
+verify the sharded race harness.
