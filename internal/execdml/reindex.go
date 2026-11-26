@@ -252,7 +252,7 @@ func (e *DMLExecutor) indexDefForEntry(ctx *DatabaseContext, tableEntry *schema.
 	if len(cols) == 0 {
 		return nil
 	}
-	def := &indexDef{Name: indexEntry.Name, Cols: cols, RootPage: indexEntry.RootPage, Ctx: ctx, SQL: indexSQL}
+	def := &indexDef{Name: indexEntry.Name, Cols: cols, KeyColls: parseIndexKeyCollations(colText), RootPage: indexEntry.RootPage, Ctx: ctx, SQL: indexSQL}
 	if wm := indexWhereRe.FindStringSubmatch(indexSQL); wm != nil {
 		def.Where = strings.TrimSpace(wm[1])
 	}

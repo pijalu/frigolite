@@ -233,7 +233,7 @@ func plainIndexDef(ctx *DatabaseContext, ent *schema.Entry) (def indexDef, ok bo
 	if len(cols) == 0 {
 		return def, false
 	}
-	def = indexDef{Name: ent.Name, Cols: cols, RootPage: ent.RootPage, Ctx: ctx, SQL: ent.SQL}
+	def = indexDef{Name: ent.Name, Cols: cols, KeyColls: parseIndexKeyCollations(colText), RootPage: ent.RootPage, Ctx: ctx, SQL: ent.SQL}
 	if wm := indexWhereRe.FindStringSubmatch(ent.SQL); wm != nil {
 		def.Where = strings.TrimSpace(wm[1])
 	}

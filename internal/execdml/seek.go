@@ -229,7 +229,7 @@ func (e *DMLExecutor) seekIndexFor(tableName, col string, colIdx int, colDefs []
 		if ctx == nil {
 			continue
 		}
-		for _, def := range e.indexDefsIn(ctx, tableName) {
+		for _, def := range e.indexDefsInCached(ctx, tableName) {
 			if dmlIndexProbeEligible(def, col) {
 				d := def
 				return &d
@@ -253,22 +253,10 @@ func dmlIndexProbeEligible(def indexDef, col string) bool {
 	if strings.ContainsAny(def.Cols[0], "(.") {
 		return false
 	}
-	coll := seekKeyCollation(def.SQL, 0)
-	return coll == "" || coll == "BINARY"
-}
-
-// seekKeyCollation returns the explicit COLLATE of the idx-th key of a CREATE
-// INDEX statement ("" when none).
-func seekKeyCollation(indexSQL string, idx int) string {
-	colText := indexColumnListText(indexSQL)
-	if colText == "" {
-		return ""
+	if len(def.KeyColls) > 0 && def.KeyColls[0] != "" {
+		return strings.EqualFold(def.KeyColls[0], "BINARY")
 	}
-	colls := parseIndexKeyCollations(colText)
-	if idx < len(colls) {
-		return strings.ToUpper(colls[idx])
-	}
-	return ""
+	return true
 }
 
 // seekCandidateRowIDs resolves a plan to the ascending list of candidate
@@ -327,7 +315,12 @@ func (e *DMLExecutor) scanIndexCandidates(plan *dmlSeekPlan, colDefs []sql.Colum
 // collation (BINARY for every currently eligible index — see
 // dmlIndexProbeEligible) and ASC sort order.
 func dmlIndexSeekProbes(plan *dmlSeekPlan) []*btree.UnpackedIndexKey {
-	ki := btree.NewKeyInfo(1, []string{seekKeyCollation(plan.index.SQL, 0)}, nil)
+	var colls []string
+	if len(plan.index.KeyColls) > 0 && plan.index.KeyColls[0] != "" {
+		// seekKeyCollation uppercased the name; keep BINARY spelling exact.
+		colls = []string{strings.ToUpper(plan.index.KeyColls[0])}
+	}
+	ki := btree.NewKeyInfo(1, colls, nil)
 	var probes []*btree.UnpackedIndexKey
 	for _, p := range plan.probe {
 		if p == nil {

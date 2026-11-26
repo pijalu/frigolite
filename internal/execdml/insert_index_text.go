@@ -170,7 +170,8 @@ func parseIndexKeyCols(colText string) []string {
 type indexDef struct {
 	Name     string
 	Cols     []string
-	Where    string // partial-index predicate ("" for full indexes)
+	KeyColls []string // explicit COLLATE per key, parsed once from the immutable CREATE INDEX text
+	Where    string   // partial-index predicate ("" for full indexes)
 	RootPage uint32
 	Ctx      *DatabaseContext
 	SQL      string // stored CREATE INDEX statement (key collation resolution)
