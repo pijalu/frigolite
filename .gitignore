@@ -18,6 +18,14 @@ coverage.out
 *.test
 *.out
 
+# Deterministic oracle fixtures required by self-contained tests.
+!testdata/backupconformance/*.db
+!testdata/walconformance/*.db
+!testdata/walconformance/*.db-journal
+!testdata/walconformance/*.db-wal
+!testdata/walconformance/*.db-shm
+!testdata/recoverconformance/*.db
+
 # IDE
 .idea/
 .vscode/

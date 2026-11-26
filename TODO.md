@@ -33,7 +33,10 @@
    fixed. The single native `-race` step is now split into ten bounded
    name-prefix shards (`tools/run_native_race_shards.sh`), with the long Btree
    churn tests isolated; the partition is verified over all packages so no
-   `TestC*` tests are dropped. Validation and
+   `TestC*` tests are dropped. The newly exposed `TestBackupConformance`
+   failure was a packaging gap, not an engine bug: 25 deterministic oracle
+   fixture files were gitignored, so CI had no fixtures. Those fixtures are now
+   explicitly unignored and committed. Validation and
    restart detail:
    `portplan/HANDOFF_2026-11-26_CI_STATICCHECK.md` and
    `portplan/PLAN_2026-11-26_NATIVE_RACE_SHARDS.md`. Complexity and coverage

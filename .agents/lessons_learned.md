@@ -3134,3 +3134,7 @@ Details: `portplan/HANDOFF_2026-11-25_DERIVED_COLLATION.md`.
     partition includes C. Also balance shards by measured runtime: the first
     `^Test[A-F]` shard was still running after 6m locally because it held the
     long Btree churn tests, so `^TestB[Tt]` is now isolated.
+  - A test that depends on committed oracle fixtures must not rely on local
+    worktree residue. `TestBackupConformance` failed in CI because 25
+    deterministic fixture files were hidden by the global `*.db` gitignore;
+    fix by explicitly unignoring and committing them, not by skipping the test.

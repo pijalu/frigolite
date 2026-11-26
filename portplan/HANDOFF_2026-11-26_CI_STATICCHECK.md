@@ -123,3 +123,11 @@ churn tests are isolated from the other B/F tests. This also restores
 `TestC*` to the race gate; a focused C-group `-race` probe passes with and
 without sqlite3 on PATH. Detail:
 `portplan/PLAN_2026-11-26_NATIVE_RACE_SHARDS.md`.
+
+Second push run `45838162504` failed the native race step at
+`TestBackupConformance`: `no oracle dest fixtures found in
+testdata/backupconformance`. The 25 deterministic `.db`/`-wal`/`-journal`
+fixtures under `backupconformance/`, `walconformance/`, and
+`recoverconformance/` were silently excluded by the global `*.db` gitignore,
+so only the main worktree had them. They are now explicitly unignored and
+committed; tests still assert against the oracle outputs, no skip was added.
