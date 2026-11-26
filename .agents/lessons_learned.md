@@ -3042,3 +3042,20 @@ Details: `portplan/HANDOFF_2026-11-25_DERIVED_COLLATION.md`.
 - Separate gap found while pinning (not folded into perf): SQLite's
   `sqlite3_value_numeric_type` coerces BLOB to numeric in SUM
   (`sum(x'31')`=1.0); Frigolite's `sumNumericArg` leaves BLOB as 0.0.
+
+## SUM BLOB coercion (2026-11-26)
+
+- `sqlite3_value_numeric_type` leaves BLOB type unchanged, so `sumStep` takes
+  the approx branch and calls `sqlite3_value_double`; vdbemem.c's
+  `memRealValue` runs `sqlite3AtoF` over the BLOB BYTES. Frigolite's
+  `sumNumericArg` now maps `[]byte` through `value.RealValuePrefix` — the same
+  shared scanner comparison/CAST already use. BLOB numeric text always yields
+  REAL (no integer classification), including a longest-prefix parse and
+  embedded NUL => 0.0.
+- Oracle-first pin discipline paid off again: an existing `TestAggFeedValueDynamics`
+  expectation (`SUM(b)=0`) encoded the old bug; SQLite 3.54 says 23.5 for the
+  fixture (`x'31'`=1, `x'32332e35'`=23.5, `x'2d31'`=-1). Corrected the pin to the
+  oracle — that is a fix, not a weakening.
+- Scope discipline: math-extension functions (`exp`, `sin`) leave BLOB as NULL
+  in SQLite (`math1Func`), but core `abs`/`round` use `sqlite3_value_double`
+  and still diverge in Frigolite. Separate unit; do not conflate with SUM.

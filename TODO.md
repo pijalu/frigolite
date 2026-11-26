@@ -145,8 +145,14 @@ a regression from `ec5683fc4`/`a06dba606`. Result-affecting items come first.
      indexed-DELETE 1.210×.
    Guideline §1j (no per-case hacks) and §1j-a (minimize Go boxing) added to
    `plan/GUIDELINES.md`. Detail: `portplan/HANDOFF_2026-11-26_GENERAL_PERF.md`.
-   Separate correctness gap found (not fixed here): `SUM(BLOB)` coercion —
-   SQLite's `sqlite3_value_numeric_type` maps `x'31'`→1, Frigolite→0.
+   DONE 2026-11-26: `sumNumericArg` now converts BLOB through
+   `value.RealValuePrefix` (sqlite3VdbeRealValue/sqlite3AtoF on the bytes),
+   so SUM/AVG/TOTAL match SQLite (`sum(x'31')`=1.0). Pin
+   `TestSumBlobCoercion`; stale `TestAggFeedValueDynamics` BLOB expectation
+   corrected to the oracle (23.5). Detail:
+   `portplan/HANDOFF_2026-11-26_SUM_BLOB_COERCION.md`.
+   Still open (separate core-function path): `abs(x'31')` / `round(x'31')`
+   BLOB coercion.
 1. **QUALITY — repo-wide gate debt**: `tools/quality_gate.sh` exits 1 with 10
    staticcheck findings, 221 functions over gocognit 15, 204 over gocyclo 12,
    and 18 files over the 1000-line hard limit. Baseline at HEAD fails the same
