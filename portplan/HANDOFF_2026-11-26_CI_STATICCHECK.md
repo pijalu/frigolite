@@ -117,8 +117,9 @@ baseline.
 First push run `45828442878` completed staticcheck and the complexity gate,
 then stayed in the single native race step past 36m (locally that step takes
 ~21m). It was cancelled. `tools/run_native_race_shards.sh` now runs native
-tests in six test-name shards, each with a 30m go-test timeout; the partition
-was verified over all 2,001 `Test*` functions as exactly-once. This also
-restores `TestC*` to the race gate; a focused C-group `-race` probe passes
-with and without sqlite3 on PATH. Detail:
+tests in ten test-name shards, each with a 30m go-test timeout; the partition
+was verified over all 2,001 `Test*` functions as exactly-once. The long Btree
+churn tests are isolated from the other B/F tests. This also restores
+`TestC*` to the race gate; a focused C-group `-race` probe passes with and
+without sqlite3 on PATH. Detail:
 `portplan/PLAN_2026-11-26_NATIVE_RACE_SHARDS.md`.

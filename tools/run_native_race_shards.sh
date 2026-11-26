@@ -8,7 +8,11 @@ ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$ROOT"
 
 shards=(
-  '^Test[A-F]'
+  '^TestA'
+  '^TestB[a-su-z]'
+  '^TestB[Tt]'
+  '^TestC'
+  '^Test[D-F]'
   '^Test[G-M]'
   '^Test[N-O]'
   '^TestP'

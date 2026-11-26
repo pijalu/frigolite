@@ -3131,4 +3131,6 @@ Details: `portplan/HANDOFF_2026-11-25_DERIVED_COLLATION.md`.
     `go test -list '^Test' ./...` across **all packages**, not from a hand-written
     exclusion or the root package only. A first draft of the native race shards
     used `^Test[A-BD-F]` and silently dropped every `TestC*` test; the correct
-    first shard is `^Test[A-F]`.
+    partition includes C. Also balance shards by measured runtime: the first
+    `^Test[A-F]` shard was still running after 6m locally because it held the
+    long Btree churn tests, so `^TestB[Tt]` is now isolated.
