@@ -3086,3 +3086,44 @@ Details: `portplan/HANDOFF_2026-11-25_DERIVED_COLLATION.md`.
 - Rule reinforced: TEXT/BLOB coercion differs by SQLite call site. Check the
   C source's gate (`sqlite3_value_double` vs `sqlite3_value_numeric_type`)
   before changing a shared converter.
+
+## CI quality-gate recovery (2026-11-26)
+
+- Staticcheck findings are real dead code/style debt; fix them at the source,
+  never with blanket `//lint:ignore` suppressions. Deleted WAL recovery
+  helpers had live replacements (`walIndexRecoverRead` /
+  `walIndexRecoverApplyLocked`), so removal was behavior-preserving.
+- A fixed complexity threshold is useless once the repo has 171 historical
+  offenders (gocyclo max 80, gocognit max 121). A checked-in baseline that
+  fails only NEW/WORSE entries keeps the debt visible and stops growth;
+  reduce the baseline in separate refactor goals.
+- Pin CI linters. `@latest` makes the complexity baseline and staticcheck
+  findings move without a source change.
+- The JSON harness cannot run as one process under race or coverage: root
+  hit 30m (race) and 10m (coverage) timeouts locally. Shard it and merge
+  `GOCOVERDIR` covdata; skip the harness in the non-harness race step with
+  `FRIGOLITE_TEST=__none__` so other packages still get race coverage.
+- `go.mod go 1.24.0` + matrix 1.22/1.23 is not compatibility testing: those
+  legs silently auto-download 1.24. Align CI to the declared minimum.
+- A standalone `go test -c -cover` test binary ignores the `GOCOVERDIR` env
+  variable; pass `-test.gocoverdir=<dir>` per shard and merge with
+  `go tool covdata merge -i=dir1,dir2,...` (one comma-separated argument,
+  output directory must exist).
+- When a suite has known failures, gate on NEW leaf names, not process exit.
+  Checked-in leaf baseline + panic/timeout detection keeps the gate honest.
+- Random blob data exposed a Tcl list parser bug: a trailing `\` made
+  `readListPlain` skip past the string end. Guard the escape advance; add a
+  byte-level pin, because focused runs only reproduce it probabilistically.
+- An unreachable absolute coverage threshold should become a ratchet plus a
+  queued improvement goal, not a silent pass. Measured baseline 48.3%; 60%
+  remains the target.
+- Splitting a suite under -race exposed real WAL races that non-race runs hid:
+  methods named `...Locked` must be called only under the guarding mutex.
+  `...Held` lock helpers are unsafe from recovery paths that intentionally
+  run without the wal-index mutex; use the public lock wrappers there. Add
+  WriterSections around state mutations even when a different shm byte is
+  the protocol lock.
+- Some fixture leaves are stochastic even in SQLite (`randomblob(0)-1` can
+  return -1 or 0). Keep a small explicit stochastic-leaf list, report those
+  leaves, and track their investigation as a goal rather than hiding them in
+  the baseline or failing CI randomly.

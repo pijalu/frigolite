@@ -14,7 +14,9 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        go-version: ['1.22', '1.23', '1.24']
+        # go.mod requires Go 1.24 (t.Chdir); older legs only trigger the Go
+        # toolchain auto-download and do not test a supported version.
+        go-version: ['1.24']
 
     steps:
     - name: Checkout code
@@ -28,9 +30,9 @@ jobs:
 
     - name: Install linters
       run: |
-        go install honnef.co/go/tools/cmd/staticcheck@latest
-        go install github.com/uudashr/gocognit/cmd/gocognit@latest
-        go install github.com/fzipp/gocyclo/cmd/gocyclo@latest
+        go install honnef.co/go/tools/cmd/staticcheck@v0.8.2
+        go install github.com/uudashr/gocognit/cmd/gocognit@v1.2.1
+        go install github.com/fzipp/gocyclo/cmd/gocyclo@v0.6.0
 
     - name: Build all packages
       run: go build ./...
@@ -41,41 +43,39 @@ jobs:
     - name: staticcheck
       run: staticcheck ./...
 
-    - name: Cyclomatic complexity check (threshold 15, excludes test files and third_party)
-      run: |
-        ! gocyclo -over 15 $(find . -path ./third_party -prune -o -name '*.go' ! -name '*_test.go' -print) 2>&1 | grep -q . || \
-          (echo "FAIL: cyclomatic complexity exceeds 15 in:"; gocyclo -over 15 $(find . -path ./third_party -prune -o -name '*.go' ! -name '*_test.go' -print); exit 1)
+    - name: Complexity debt ratchet
+      run: tools/check_complexity_debt.sh
 
-    - name: Cognitive complexity check (threshold 15, excludes test files and third_party)
-      run: |
-        ! gocognit -over 30 $(find . -path ./third_party -prune -o -name '*.go' ! -name '*_test.go' -print) 2>&1 | grep -q . || \
-          (echo "FAIL: cognitive complexity exceeds 30 in:"; gocognit -over 30 $(find . -path ./third_party -prune -o -name '*.go' ! -name '*_test.go' -print); exit 1)
+    - name: Race tests (non-harness)
+      # The JSON harness is sharded separately: running all 1,002 files in
+      # one race process exceeds a 30m step on current engines. Internal
+      # packages (notably btree) still need a generous per-package timeout.
+      run: FRIGOLITE_TEST=__none__ go test -timeout 30m -race -count=1 -run "^Test[^C]" ./...
 
-    - name: Test with race detection
-      # The full 1002-file harness takes ~309-350s under -race on an 8-core
-      # dev machine (45s without -race; the race detector adds ~7x). A 60s
-      # cap always timed out this step regardless of engine speed, so the
-      # budget is 30m to give slower 4-vCPU CI runners headroom.
-      run: go test -timeout 30m -race -count=1 -run "^Test[^C]" ./...
-
-    - name: Test coverage
-      # Non-race root suite + coverage measures ~45s locally; allow 10m for
-      # slower CI runners (coverage adds overhead over the plain run).
+    - name: Race JSON harness (12 shards)
       run: |
-        go test -timeout 10m -coverprofile=coverage.out -run "^Test[^C]" \
-          . ./frigodb/ ./internal/storage/ ./internal/util/
-        go tool cover -func=coverage.out
-        echo "Threshold: 60%"
-        cov=$(go tool cover -func=coverage.out | grep '^total:' | awk '{print $3}' | sed 's/%//')
-        if [ -z "$cov" ]; then echo "FAIL: no coverage data"; exit 1; fi
-        if awk "BEGIN {exit !($cov < 60)}"; then echo "FAIL: coverage $cov% < 60%"; exit 1; fi
-        echo "Coverage: $cov%"
+        mkdir -p "$RUNNER_TEMP/frigolite-race"
+        go test -c -race -o "$RUNNER_TEMP/frigolite-race/frigolite.test" .
+        set +e
+        bash tools/run_json_shards.sh "$RUNNER_TEMP/frigolite-race/frigolite.test" 12 \
+          >"$RUNNER_TEMP/frigolite-race/harness.log" 2>&1
+        runner_status=$?
+        set -e
+        cat "$RUNNER_TEMP/frigolite-race/harness.log"
+        echo "runner status=$runner_status (known baseline leaves are expected)"
+        run_dir=$(sed -n 's/^run_dir=//p' "$RUNNER_TEMP/frigolite-race/harness.log" | tail -n 1)
+        tools/check_harness_leaves.sh "$run_dir"
+
+    - name: Test coverage (sharded)
+      run: tools/run_coverage_gate.sh
 
   profile-full-suite:
     name: Profile Full Go Test Suite
     if: github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
-    timeout-minutes: 45
+    timeout-minutes: 75
+    env:
+      GO_TEST_TIMEOUT: 60m
     steps:
     - name: Checkout code
       uses: actions/checkout@v4

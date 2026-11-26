@@ -63,7 +63,6 @@ func TestWalPadToSectorBoundary(t *testing.T) {
 		return db
 	}
 	const pageSize = int64(1024)
-	const frameSize = pageSize + 24
 
 	t.Run("pso off pads to sector boundary", func(t *testing.T) {
 		path := filepath.Join(t.TempDir(), "test.db")

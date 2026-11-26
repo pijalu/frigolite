@@ -356,9 +356,11 @@ func (w *walWriter) walRecoverWithWriterLock() error {
 	// WRITER + RECOVER locks held and the wal-index mutex NOT held (the
 	// hash tables are built in private buffers) — a slow recovering reader
 	// (walsetlk_recover's parked fixture callback) stalls the recovery lock
-	// without blocking other connections' index probes. The apply (the hash
-	// populate + the header publish) takes the writer section.
-	if err := w.shmTryLockHeld(walLockCkpt, walLockRecover+1-walLockCkpt, true); err != nil {
+	// without blocking other connections' index probes. The lock calls must
+	// therefore be the public non-held variants: the in-process aLock shadow
+	// is part of WALIndex.mu's guarded state. The apply (the hash populate +
+	// the header publish) takes the writer section.
+	if err := w.shmTryLock(walLockCkpt, walLockRecover+1-walLockCkpt, true); err != nil {
 		w.walUnlockExclusive(walLockWrite, 1)
 		w.writeLock = false
 		return w.busyToRetryOrRecovery(err)
@@ -369,7 +371,7 @@ func (w *walWriter) walRecoverWithWriterLock() error {
 			return w.walIndexRecoverApplyLocked(parsed)
 		})
 	}
-	w.shmUnlockHeld(walLockCkpt, walLockRecover+1-walLockCkpt, true)
+	w.shmUnlock(walLockCkpt, walLockRecover+1-walLockCkpt, true)
 	w.walUnlockExclusive(walLockWrite, 1)
 	w.writeLock = false
 	if rerr != nil && errors.Is(rerr, errWalBusy) {
@@ -1091,8 +1093,13 @@ func (w *walWriter) ckptBackfillPass(mxFrame, mxSafeFrame uint32, session *walBu
 	// wal.c:2260 — sync the WAL before copying its frames into the db
 	// (CKPT_SYNC_FLAGS run at synchronous=NORMAL and FULL).
 	w.p.vfsSync(w.path, walCkptSyncBits(w.p.walSyncFlags))
-	// wal.c:2257 — nBackfillAttempted before the copyback.
-	w.wi.setCkptInfoLocked(func(ci *WalCkptInfo) { ci.NBackfillAttempted = mxSafeFrame })
+	// wal.c:2257 — nBackfillAttempted before the copyback. The checkpoint
+	// state lives in wal-index page 0, so its mutation takes the writer
+	// section even though the copyback below runs under READ_LOCK(0) only.
+	w.wi.WriterSection(func() error {
+		w.wi.setCkptInfoLocked(func(ci *WalCkptInfo) { ci.NBackfillAttempted = mxSafeFrame })
+		return nil
+	})
 	// The copyback itself holds NO wal-index writer section: C's backfill
 	// runs under the READ_LOCK(0) shm byte only, and its xWrite/xSync
 	// callbacks re-enter OTHER connections (e_walckpt's tvfs_callback
@@ -1100,10 +1107,13 @@ func (w *walWriter) ckptBackfillPass(mxFrame, mxSafeFrame uint32, session *walBu
 	// the wal-index mutex themselves. The pager state the loop mutates is
 	// guarded by p.mu (held by CheckpointMode throughout).
 	berr := w.backfillLocked(nBackfill0, mxSafeFrame, mxFrame)
-	w.wi.setCkptInfoLocked(func(ci *WalCkptInfo) {
-		if berr == nil {
-			ci.NBackfill = mxSafeFrame
-		}
+	w.wi.WriterSection(func() error {
+		w.wi.setCkptInfoLocked(func(ci *WalCkptInfo) {
+			if berr == nil {
+				ci.NBackfill = mxSafeFrame
+			}
+		})
+		return nil
 	})
 	if berr == nil && mxSafeFrame == mxFrame {
 		// wal.c:2309-2316 — the database-file truncate and sync happen only

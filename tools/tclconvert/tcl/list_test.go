@@ -25,6 +25,18 @@ func TestSplitListUnescapesUnicode(t *testing.T) {
 	}
 }
 
+// TestSplitListTrailingBackslashFromBlob pins vacuum3's random-blob
+// expectation: a substituted blob may end in a backslash, which must stay in
+// the final element instead of walking the parser past the string end.
+func TestSplitListTrailingBackslashFromBlob(t *testing.T) {
+	in := "1 2 3 " + string([]byte{0xa3, '\\'})
+	got := SplitList(in)
+	want := []string{"1", "2", "3", string([]byte{0xa3, '\\'})}
+	if !reflect.DeepEqual(got, want) {
+		t.Fatalf("SplitList(%q) = %#v, want %#v", in, got, want)
+	}
+}
+
 // TestSplitCommandMatchesTcl pins `split` semantics used by pragma4.test
 // (`lindex [split $sql =] 0`): any separator character splits, empty elements
 // are preserved, the default separator is whitespace, and an empty separator

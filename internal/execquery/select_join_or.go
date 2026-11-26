@@ -332,28 +332,6 @@ func (e *SelectEngine) walkAndSpine(expr sql.Expr, visit func(sql.Expr)) {
 	visit(expr)
 }
 
-// joinOperandColumnSide returns the column name when one side of the
-// equality references a bare column of the right operand.
-func (e *SelectEngine) joinOperandColumnSide(bop *sql.BinaryOp, rightNames map[string]bool, rightTokens []string) string {
-	for _, side := range []sql.Expr{bop.Left, bop.Right} {
-		ref, isRef := side.(*sql.ColumnRef)
-		if !isRef || ref.Name == "*" {
-			continue
-		}
-		if ref.Table != "" {
-			tok := strings.ToLower(schemaStrippedName(ref.Table))
-			if joinTokensContain(rightTokens, tok) {
-				return ref.Name
-			}
-			continue
-		}
-		if rightNames[strings.ToLower(ref.Name)] {
-			return ref.Name
-		}
-	}
-	return ""
-}
-
 // joinColumnHasIndex reports whether the column is reachable through an
 // index of the table: any secondary index (unique or not) containing it,
 // the INTEGER PRIMARY KEY alias, a WITHOUT ROWID PRIMARY KEY column, or a

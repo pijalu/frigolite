@@ -577,7 +577,7 @@ func commandSet(i *Interp, rawWords []rawWord, args []string, localVars map[stri
 	// hex string the record-verification UDFs compare against. The file's
 	// bytes exist only at run time: record a load_hex_file step and defer F
 	// to the harness's runtime variables.
-	if len(args) >= 2 && len(rawWords) >= 3 && strings.HasPrefix(args[0], "::") == false {
+	if len(args) >= 2 && len(rawWords) >= 3 && !strings.HasPrefix(args[0], "::") {
 		text := strings.TrimSpace(rawWords[2].Text)
 		if strings.HasPrefix(text, "[loadhex ") && strings.HasSuffix(text, "]") {
 			path := strings.TrimSpace(strings.TrimSuffix(strings.TrimPrefix(text, "[loadhex "), "]"))
@@ -1902,8 +1902,6 @@ func commandSQLite3(i *Interp, rawWords []rawWord, args []string, localVars map[
 			i.stmts = append(i.stmts, Stmt{Type: "open_empty_db", TestName: i.curTest})
 		} else if filename == ":memory:" {
 			i.stmts = append(i.stmts, Stmt{Type: "open_named_db", SQL: filename, Database: name, TestName: i.curTest})
-		} else if name == "db" {
-			i.stmts = append(i.stmts, Stmt{Type: "close_named_db", Database: name})
 		} else {
 			// `sqlite3 tmp ""` (temptable2-8.2): an empty filename opens a
 			// private temporary database on the named connection — NOT a

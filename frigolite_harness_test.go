@@ -114,15 +114,6 @@ func rtgeomObserver(g *vtab.RtreeGeometry, nParam int, aCoord []float64) {
 	rtgeomBox.syncVars(interp)
 }
 
-// procName returns the current box_geom proc's body hash-ish tag (the debug
-// attribution: which body the recorder is executing).
-func (r *rtgeomBoxFixture) procName() string {
-	if p, ok := r.procs["box_geom"]; ok {
-		return fmt.Sprintf("%d:%s", len(p.Body), p.Body[:min(20, len(p.Body))])
-	}
-	return "none"
-}
-
 // interpFor builds the callback interpreter once and (re)loads the CURRENT
 // proc into it — the rebind point for every rtgeom_proc update step.
 func (r *rtgeomBoxFixture) interpFor() *tcl.Interp {
@@ -8491,27 +8482,25 @@ func registerInterpDBCommands(interp *tcl.Interp, mainDB *DB, namedDBs map[strin
 	interp.RegisterCallbackCommand("db", func(args []string) (string, error) {
 		return adapter(mainDB, args)
 	})
-	if namedDBs != nil {
-		for name := range namedDBs {
-			if name == "" {
-				continue
-			}
-			n := name
-			interp.RegisterCallbackCommand(n, func(args []string) (string, error) {
-				conn := namedDBs[n]
-				if conn == nil {
-					return "", fmt.Errorf("database %s is not open", n)
-				}
-				if len(args) >= 1 && args[0] == "close" {
-					if !conn.closedFlag {
-						_ = conn.Close()
-					}
-					delete(namedDBs, n)
-					return "", nil
-				}
-				return adapter(conn, args)
-			})
+	for name := range namedDBs {
+		if name == "" {
+			continue
 		}
+		n := name
+		interp.RegisterCallbackCommand(n, func(args []string) (string, error) {
+			conn := namedDBs[n]
+			if conn == nil {
+				return "", fmt.Errorf("database %s is not open", n)
+			}
+			if len(args) >= 1 && args[0] == "close" {
+				if !conn.closedFlag {
+					_ = conn.Close()
+				}
+				delete(namedDBs, n)
+				return "", nil
+			}
+			return adapter(conn, args)
+		})
 	}
 	interp.RegisterDefaultCallbackCommand(func(name string, args []string) (string, error, bool) {
 		if namedDBs == nil || name == "" || name == "db" {

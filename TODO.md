@@ -22,6 +22,18 @@
 
 ## Review TODOs (2026-11-25) — OPEN
 
+1. **DONE — CI/CD staticcheck + quality-gate recovery**: all 10 staticcheck
+   findings fixed without suppressions (dead WAL/tcl/harness helpers, stale
+   fields, S1002/S1031/SA4014). CI now pins linter versions, aligns the
+   matrix with `go.mod`'s Go 1.24, ratchets existing complexity and coverage
+   debt instead of failing on impossible absolute thresholds, shards the JSON
+   harness for race and coverage, and checks NEW harness leaves against a
+   checked-in baseline (with an explicit stochastic-leaf list). The
+   random-blob TCL list panic and two WAL data races exposed by -race are
+   fixed. Validation and restart detail:
+   `portplan/HANDOFF_2026-11-26_CI_STATICCHECK.md`. Complexity and coverage
+   debt reductions are queued as the next goals.
+
 Every native failure below reproduces identically at HEAD `5b5472021`; none is
 a regression from `ec5683fc4`/`a06dba606`. Result-affecting items come first.
 

@@ -119,7 +119,7 @@ func readListPlain(s string, pos int) (string, int) {
 	braceDepth := 0
 	for pos < len(s) {
 		c := s[pos]
-		if c == '\\' {
+		if c == '\\' && pos+1 < len(s) {
 			pos += 2
 			continue
 		}

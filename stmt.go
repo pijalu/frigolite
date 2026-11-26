@@ -87,9 +87,8 @@ type Stmt struct {
 	// Prepare; a Step that fails after the stamp moved is the tkt1644
 	// shape: sqlite3_step fails SQLITE_ERROR (the auto-reprepare found the
 	// table gone) and sqlite3_finalize reports SQLITE_SCHEMA.
-	prepareStamp   uint64
-	schemaChanged  bool
-	finalizeCodeOV string
+	prepareStamp  uint64
+	schemaChanged bool
 
 	// bound mirrors args as a slot-indexed table (bound[i] = parameter i+1)
 	// so the per-call fast path projects bindings without iterating the

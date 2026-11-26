@@ -20,8 +20,16 @@ pids=()
 for ((i = 0; i < shards; i++)); do
   (
     cd "$root/shard-$i"
-    FRIGOLITE_SHARD_INDEX="$i" FRIGOLITE_SHARD_COUNT="$shards" \
-      "$binary" -test.run '^TestSQLiteSuite$' -test.v >"$root/shard-$i.log" 2>&1
+    common_args=(-test.run '^TestSQLiteSuite$' -test.v -test.timeout="${FRIGOLITE_SHARD_TIMEOUT:-30m}")
+    if [ -n "${FRIGOLITE_COVERDATA:-}" ]; then
+      coverdir="$root/shard-$i/coverdata"
+      mkdir -p "$coverdir"
+      FRIGOLITE_SHARD_INDEX="$i" FRIGOLITE_SHARD_COUNT="$shards" \
+        "$binary" "${common_args[@]}" -test.gocoverdir="$coverdir" >"$root/shard-$i.log" 2>&1
+    else
+      FRIGOLITE_SHARD_INDEX="$i" FRIGOLITE_SHARD_COUNT="$shards" \
+        "$binary" "${common_args[@]}" >"$root/shard-$i.log" 2>&1
+    fi
   ) &
   pids+=("$!")
 done
@@ -35,6 +43,10 @@ for pid in "${pids[@]}"; do
 done
 for ((i = 0; i < shards; i++)); do
   printf '%s\n' "${statuses[$i]}" >"$root/shard-$i.status"
+  if [[ ${statuses[$i]} -ne 0 ]]; then
+    echo "=== shard $i failed (last 80 lines) ===" >&2
+    tail -n 80 "$root/shard-$i.log" >&2
+  fi
 done
 printf 'run_dir=%s\n' "$root"
 exit "$result"

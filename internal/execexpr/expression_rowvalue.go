@@ -846,22 +846,6 @@ func (ev *Evaluator) evalLikeOp(left, right interface{}, negated bool) interface
 // probeOperatorOverload invokes a user-registered override of like/glob/
 // regexp for its side effects when an opted-in vtab scan feeds the current
 // statement; the override's result never influences filtering.
-// userBinaryOperatorOverload dispatches a binary operator to a user
-// function registered under the operator's name (func-36.x: `db func ->
-// ptr1` redefines "->"). handled is false when no such function exists and
-// the built-in semantics apply.
-func (ev *Evaluator) userBinaryOperatorOverload(left, right interface{}, op string) (interface{}, error, bool) {
-	if !ev.ctx.OverloadProbe() {
-		return nil, nil, false
-	}
-	fn, ok := ev.ctx.Functions().Find(op)
-	if !ok || fn.ScalarFn == nil {
-		return nil, nil, false
-	}
-	res, err := fn.ScalarFn([]interface{}{util.UnwrapColumnValue(left), util.UnwrapColumnValue(right)})
-	return res, err, true
-}
-
 // userArrowOperatorOverload resolves the "->"/"->>" operators through the
 // function registry without the LIKE/GLOB/REGEXP OverloadProbe gate:
 // parse.y compiles `a -> b` into the function call "->"(a, b)
