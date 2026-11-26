@@ -25,6 +25,7 @@ coverage.out
 !testdata/walconformance/*.db-wal
 !testdata/walconformance/*.db-shm
 !testdata/recoverconformance/*.db
+!internal/fts/testdata/ftsconformance/*.db
 
 # IDE
 .idea/

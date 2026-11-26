@@ -1,6 +1,7 @@
 package fts
 
 import (
+	"os"
 	"testing"
 
 	"github.com/pijalu/frigolite/internal/btree"
@@ -137,9 +138,16 @@ func TestSegviewDecodeTruncatedErrors(t *testing.T) {
 // TestSegviewOracleX6InteriorNodes validates the decoders against the
 // committed oracle fixture (UCL rule U1): the x6 growth scenario must show
 // interior nodes at blockids 2155 (986 B) and 2156 (754 B), both height 1,
-// per /usr/bin/sqlite3 3.51.0 output recorded at fixture generation time.
+// per the sqlite3 output recorded in the committed fixture (ORACLE_VERSION).
 func TestSegviewOracleX6InteriorNodes(t *testing.T) {
 	const dbPath = "testdata/ftsconformance/fts-x6-growth.db"
+	st, err := os.Stat(dbPath)
+	if err != nil {
+		t.Fatalf("oracle fixture missing: %v", err)
+	}
+	if st.Size() == 0 {
+		t.Fatalf("oracle fixture is empty: %s", dbPath)
+	}
 	pg, err := pager.Open(dbPath, 1024)
 	if err != nil {
 		t.Skipf("oracle fixture not available: %v", err)
