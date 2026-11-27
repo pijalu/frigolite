@@ -26,7 +26,12 @@
 > that test now pins uniqueness/key-space/integrity instead of a minimum row
 > count. A rerun then lost the race harness step twice to SIGTERM with no
 > leaf output; the shard runner now caps concurrency (6) and streams
-> heartbeat/log output. See the CI handoff.
+> heartbeat/log output. A later run exposed `database disk image is malformed`
+> in `TestNativeThreadReaderDuringWrites`: an autocommit reader had no
+> statement-lifetime SHARED lock, so a writer could flush new pages into its
+> scan. The reader now takes SHARED for the statement and the writer arms
+> PENDING atomically before flushing; the test accepts SQLite's busy outcome.
+> See the CI handoff.
 
 ## Goal
 

@@ -741,6 +741,15 @@ func (e *Engine) execFlushAutocommit(stmt sql.Stmt, res *Result, isDML bool) *Re
 	// surfaces SQLITE_IOERR, mirroring SQLite's "commit fails → transaction
 	// rolled back" semantics (a swallowed error would leave the statement
 	// reporting success while nothing reached durable storage).
+	// SQLite's commit upgrades RESERVED to EXCLUSIVE before database pages are
+	// touched (pager.c sqlite3PagerExclusiveLock / pager_write_pagelist). The
+	// gate arms PENDING for the flush window so a reader cannot join a snapshot
+	// the writer is about to overwrite.
+	releasePending, pendingResult := e.armAutocommitCommitPending()
+	if pendingResult != nil {
+		return pendingResult
+	}
+	defer releasePending()
 	if e.pager != nil {
 		if err := e.pager.Flush(); err != nil {
 			if os.Getenv("QDBG4") != "" {

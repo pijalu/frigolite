@@ -428,6 +428,48 @@ func (r *Registry) SetSharedTx(path string, connID int64, on bool) {
 	}
 }
 
+// TrySetSharedTx atomically records connID as holding a transaction-level
+// SHARED lock on every path, returning false without changing any state when
+// another connection holds RESERVED (writeTx), PENDING or EXCLUSIVE on one of
+// them. It implements an autocommit reader's SHARED acquisition:
+// sqlite3PagerSharedLock refuses a new SHARED while a writer is in PENDING or
+// EXCLUSIVE, while SHARED is compatible with another reader's SHARED.
+func (r *Registry) TrySetSharedTx(paths []string, connID int64) bool {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	if !r.sharedPathsFreeLocked(paths, connID) {
+		return false
+	}
+	for _, path := range paths {
+		set := r.sharedTx[path]
+		if set == nil {
+			set = make(map[int64]bool)
+			r.sharedTx[path] = set
+		}
+		if !set[connID] {
+			set[connID] = true
+			r.markOn(connID)
+		}
+	}
+	return true
+}
+
+// sharedPathsFreeLocked checks the atomic SHARED-acquire precondition for
+// TrySetSharedTx. RESERVED (writeTx) is compatible with SHARED in SQLite — the
+// writer only conflicts when it arms PENDING for its EXCLUSIVE upgrade. The
+// caller holds r.mu.
+func (r *Registry) sharedPathsFreeLocked(paths []string, connID int64) bool {
+	for _, path := range paths {
+		if holder, ok := r.exclusive[path]; ok && holder != connID {
+			return false
+		}
+		if holder, ok := r.pending[path]; ok && holder != connID {
+			return false
+		}
+	}
+	return true
+}
+
 // SetWALFileShared records (on=true) or clears (on=false) the persistent
 // WAL-mode file-SHARED hold on path for connID (pager.c:2158-2162's skipped
 // pager_end_transaction unlock; see the walFileShared field comment).
@@ -543,6 +585,75 @@ func (r *Registry) SetPending(path string, connID int64, on bool) {
 		delete(r.pending, path)
 		r.markOff(connID)
 	}
+}
+
+// TrySetPending atomically arms PENDING on every path for connID, refusing
+// without changing any state if another connection holds SHARED, prepared-
+// read, persistent-SHARED, RESERVED or EXCLUSIVE. It implements the writer's
+// RESERVED→EXCLUSIVE upgrade: once armed, no new reader can join the snapshot
+// while the writer flushes database pages.
+func (r *Registry) TrySetPending(paths []string, connID int64) bool {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	if !r.pendingPathsFreeLocked(paths, connID) {
+		return false
+	}
+	for _, path := range paths {
+		if holder, ok := r.pending[path]; ok && holder == connID {
+			continue
+		}
+		if holder, ok := r.pending[path]; ok {
+			r.markOff(holder)
+		}
+		r.pending[path] = connID
+		r.markOn(connID)
+	}
+	return true
+}
+
+// pendingPathsFreeLocked checks TrySetPending's upgrade precondition. The
+// caller holds r.mu.
+func (r *Registry) pendingPathsFreeLocked(paths []string, connID int64) bool {
+	for _, path := range paths {
+		if holder, ok := r.exclusive[path]; ok && holder != connID {
+			return false
+		}
+		for id := range r.writeTx[path] {
+			if id != connID {
+				return false
+			}
+		}
+		if !r.sharedReadersFreeLocked(path, connID) {
+			return false
+		}
+	}
+	return true
+}
+
+// sharedReadersFreeLocked reports whether no other connection holds a reader
+// mark on path that blocks an EXCLUSIVE upgrade. The caller holds r.mu.
+func (r *Registry) sharedReadersFreeLocked(path string, connID int64) bool {
+	for id := range r.sharedTx[path] {
+		if id != connID {
+			return false
+		}
+	}
+	for id := range r.readTx[path] {
+		if id != connID {
+			return false
+		}
+	}
+	for id := range r.persistentShared[path] {
+		if id != connID {
+			return false
+		}
+	}
+	for id := range r.walFileShared[path] {
+		if id != connID {
+			return false
+		}
+	}
+	return true
 }
 
 // PendingByOther reports whether another connection holds a PENDING lock on

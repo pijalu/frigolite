@@ -94,9 +94,10 @@ func TestNativeThreadConcurrentWritersSerialize(t *testing.T) {
 }
 
 // TestNativeThreadReaderDuringWrites pins the reader/writer coexistence the
-// thread005/notify2 families exercise: readers can run throughout a writer's
-// workload and always observe a consistent prefix of committed rows (never
-// torn or duplicated data).
+// thread005/notify2 families exercise: a reader observes a consistent prefix
+// of committed rows while a writer runs (never torn or duplicated data). The
+// writer may lose individual INSERTs to SQLITE_BUSY with busy_timeout=0, as
+// SQLite does when the reader holds SHARED at the commit upgrade.
 func TestNativeThreadReaderDuringWrites(t *testing.T) {
 	path := filepath.Join(t.TempDir(), "thrr.db")
 	w, err := Open(path)
@@ -115,28 +116,52 @@ func TestNativeThreadReaderDuringWrites(t *testing.T) {
 	}
 
 	const total = 300
+	// Seed one committed row synchronously so the reader always has a real
+	// snapshot to observe, even if it wins the first lock race.
+	inserted := 1
+	if r := w.Exec("INSERT INTO t VALUES(1)"); r.Error != nil {
+		t.Fatal(r.Error)
+	}
 	done := make(chan struct{})
+	var writerErr error
 	go func() {
 		defer close(done)
-		for i := 1; i <= total; i++ {
-			if r := w.Exec(fmt.Sprintf("INSERT INTO t VALUES(%d)", i)); r.Error != nil {
-				t.Errorf("writer: %v", r.Error)
-				return
+		for i := 2; i <= total; i++ {
+			r := w.Exec(fmt.Sprintf("INSERT INTO t VALUES(%d)", i))
+			if r.Error == nil {
+				inserted++
+				continue
 			}
+			// SQLite's writer uses busy_timeout=0 here: a reader holding
+			// SHARED makes the commit's EXCLUSIVE upgrade fail with
+			// SQLITE_BUSY, which is a clean outcome, not a failure.
+			if r.Error.Error() != "database is locked" {
+				writerErr = r.Error
+			}
+			return
 		}
 	}()
 
 	consistent := true
+	var readerErr error
+	var last int64
 	for {
 		select {
 		case <-done:
+			if writerErr != nil {
+				t.Fatalf("writer: %v", writerErr)
+			}
+			if readerErr != nil {
+				t.Fatalf("reader: %v", readerErr)
+			}
 			r := rd.Query("SELECT count(*), max(a) FROM t")
 			if r.Error != nil {
 				t.Fatalf("final reader: %v", r.Error)
 			}
 			count, _ := r.Rows[0][0].(int64)
-			if count != total {
-				t.Fatalf("final count=%d want %d", count, total)
+			maxRowID, _ := r.Rows[0][1].(int64)
+			if count != int64(inserted) || maxRowID != int64(inserted) {
+				t.Fatalf("final count=%d max=%d want %d", count, maxRowID, inserted)
 			}
 			if !consistent {
 				t.Fatalf("saw an inconsistent snapshot mid-run")
@@ -148,11 +173,17 @@ func TestNativeThreadReaderDuringWrites(t *testing.T) {
 				if r.Error.Error() == "database is locked" {
 					continue // a locked read is a clean outcome
 				}
-				t.Fatalf("reader: %v", r.Error)
+				readerErr = r.Error
+				<-done
+				t.Fatalf("reader: %v", readerErr)
 			}
-			if c, _ := r.Rows[0][0].(int64); c < 0 {
+			c, _ := r.Rows[0][0].(int64)
+			if c < last {
 				consistent = false
+				<-done
+				t.Fatalf("reader count went backwards: %d after %d", c, last)
 			}
+			last = c
 		}
 	}
 }

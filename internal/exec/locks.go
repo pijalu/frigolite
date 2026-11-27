@@ -362,6 +362,39 @@ func (e *Engine) anyWALModePager() bool {
 	return false
 }
 
+// autocommitReadLockKey resolves the file a top-level autocommit SELECT must
+// hold SHARED on for its statement lifetime (sqlite3PagerSharedLock). WAL
+// readers take no file SHARED that blocks a writer — the WAL read mark is the
+// snapshot — and shared-cache / no-lock connections use their own protocols.
+func (e *Engine) autocommitReadLockKey(stmt sql.Stmt) string {
+	write, schemaName := lockAccessForStmt(stmt)
+	if write || schemaName == "" || e.lockStyle == LockStyleNone || e.sharableConn() {
+		return ""
+	}
+	if e.stmtWALMode(stmt, schemaName) {
+		return ""
+	}
+	return e.stmtLockKey(stmt, schemaName, false)
+}
+
+// acquireAutocommitReadLock takes the statement-lifetime SHARED mark for an
+// autocommit SELECT. It returns a no-op unlock for statements that take no
+// file SHARED (writes, explicit transactions, WAL, shared-cache, no-lock).
+func (e *Engine) acquireAutocommitReadLock(stmt sql.Stmt) (func(), *Result) {
+	noop := func() {}
+	if e.tx.execDepth != 1 || e.tx.inTransaction {
+		return noop, nil
+	}
+	key := e.autocommitReadLockKey(stmt)
+	if key == "" {
+		return noop, nil
+	}
+	if !lockreg.Global.TrySetSharedTx([]string{key}, e.connID) {
+		return noop, &Result{Error: fmt.Errorf("database is locked")}
+	}
+	return func() { lockreg.Global.SetSharedTx(key, e.connID, false) }, nil
+}
+
 // noteStmtReadLock records the SHARED lock a read statement takes on its
 // target database inside an explicit transaction (pager.c
 // sqlite3PagerSharedLock, PRAGMA lock_status "shared"). A deferred BEGIN
@@ -915,6 +948,33 @@ func (e *Engine) commitLockError() error {
 			return fmt.Errorf("database is locked")
 		}
 	}
+}
+
+// armAutocommitCommitPending runs the autocommit EXCLUSIVE upgrade gate and
+// atomically arms PENDING on the dirty files before their pages are flushed.
+// PENDING blocks any new SHARED acquisition during the flush window, so a
+// reader cannot join a snapshot the writer is about to overwrite. The caller
+// must invoke the returned release after the flush.
+func (e *Engine) armAutocommitCommitPending() (func(), *Result) {
+	noop := func() {}
+	if !e.WriteTxOpen() {
+		return noop, nil
+	}
+	if err := e.commitLockError(); err != nil {
+		return noop, &Result{Error: err}
+	}
+	keys, walMode := e.commitDirtyKeys()
+	if walMode || len(keys) == 0 {
+		return noop, nil
+	}
+	if !lockreg.Global.TrySetPending(keys, e.connID) {
+		return noop, &Result{Error: fmt.Errorf("database is locked")}
+	}
+	return func() {
+		for _, key := range keys {
+			lockreg.Global.SetPending(key, e.connID, false)
+		}
+	}, nil
 }
 
 // commitUpgradeBlocked reports whether any key a COMMIT must upgrade is held

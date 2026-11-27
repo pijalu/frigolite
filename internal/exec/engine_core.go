@@ -798,6 +798,16 @@ func (e *Engine) Exec(stmt sql.Stmt) *Result {
 		return res
 	}
 	defer e.execDepthLeave()
+	// An autocommit SELECT holds SHARED on the file for the whole statement
+	// (pager.c sqlite3PagerSharedLock), so a writer cannot write database pages
+	// while this scan is in flight. The acquisition is atomic against a
+	// writer's RESERVED mark: a reader that starts after a writer has reserved
+	// the file gets SQLITE_BUSY instead of a half-flushed page image.
+	unlockReadLock, lockResult := e.acquireAutocommitReadLock(stmt)
+	if lockResult != nil {
+		return lockResult
+	}
+	defer unlockReadLock()
 	// The autocommit statement's implicit transaction ends here: release its
 	// shared-cache table locks and fire the blocked connections' unlock-notify
 	// callbacks (explicit transactions release in releaseTransactionLocks).
@@ -898,20 +908,7 @@ func (e *Engine) Exec(stmt sql.Stmt) *Result {
 		return res
 	}
 	res := e.execDispatch(stmt)
-	// A nested eval()/trigger ran ROLLBACK mid-statement: the enclosing
-	// statement fails with "abort due to ROLLBACK" (SQLite SQLITE_ABORT_ROLLBACK).
-	// This only applies at the outermost Exec level; nested Exec calls inside
-	// the statement must not consume the flag. When the enclosing statement
-	// already failed with its own error (e.g. an OR ROLLBACK constraint
-	// violation whose shadow-table write propagated the rollback), SQLite
-	// reports the original error, not the abort (spellfix.test 7.4.2/7.5.2:
-	// "constraint failed" with autocommit restored).
-	if e.tx.execDepth == 1 && e.tx.rollbackAborted && !isRollbackStmt(stmt) {
-		e.tx.rollbackAborted = false
-		if res.Error == nil {
-			res = &Result{Error: fmt.Errorf("abort due to ROLLBACK")}
-		}
-	}
+	res = e.applyNestedRollbackAbort(stmt, res)
 	res = e.execPostFK(stmt, res, isDML)
 	res = e.execRollbackOnError(stmt, res, snaps, isDML)
 	e.execTrackChanges(res, isDML)
@@ -941,6 +938,20 @@ func (e *Engine) Exec(stmt sql.Stmt) *Result {
 		if err := e.fireWalCallbacks(); err != nil {
 			return &Result{Error: err}
 		}
+	}
+	return res
+}
+
+// applyNestedRollbackAbort converts a nested ROLLBACK into the enclosing
+// statement's SQLITE_ABORT_ROLLBACK error at the outermost Exec level only.
+// An error the statement already produced wins (spellfix.test 7.4.2/7.5.2).
+func (e *Engine) applyNestedRollbackAbort(stmt sql.Stmt, res *Result) *Result {
+	if e.tx.execDepth != 1 || !e.tx.rollbackAborted || isRollbackStmt(stmt) {
+		return res
+	}
+	e.tx.rollbackAborted = false
+	if res.Error == nil {
+		return &Result{Error: fmt.Errorf("abort due to ROLLBACK")}
 	}
 	return res
 }

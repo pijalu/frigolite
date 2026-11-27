@@ -3208,3 +3208,12 @@ Details: `portplan/HANDOFF_2026-11-25_DERIVED_COLLATION.md`.
     the job log with a periodic heartbeat; keep per-shard logs and the strict
     leaf checker. Do not mistake this infrastructure SIGTERM for an engine
     failure.
+  - An autocommit SELECT must hold SHARED for the whole statement: without it
+    a writer can flush new b-tree pages into the scan and the reader's stale
+    `numPages` reports `database disk image is malformed`. Mirror SQLite's two
+    atomic phases — reader SHARED (compatible with RESERVED) and writer PENDING
+    armed before the flush (blocks new SHARED) — instead of refusing readers
+    whenever RESERVED is held (attach2-2.6 pins the compatibility). A
+    goroutine that calls `t.Errorf` after `t.Fatalf` returned is a test
+    lifetime bug: wait for the writer before failing, and count only
+    successful INSERTs because busy_timeout=0 drops writes by design.

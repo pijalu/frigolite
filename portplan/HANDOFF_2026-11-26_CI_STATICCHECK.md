@@ -266,3 +266,42 @@ heartbeat. The race harness and coverage CI steps now `tee` the runner output
 into the job log instead of swallowing it, so leaves/heartbeats are visible
 and an idle-step kill cannot hide progress. Shell syntax, YAML parsing, and a
 2-shard/parallel-1 smoke run verified the runner change.
+
+## Fourteenth run `45942885577` — autocommit reader SHARED lock fixed
+
+The native race shard failed with `reader: database disk image is malformed`
+in `TestNativeThreadReaderDuringWrites`, followed by a secondary
+`Fail in goroutine after Test ... has completed` panic. Env-gated stack
+logging at the malformed constructors traced the read to
+`Pager.readPageLocked`: the reader's cached `numPages` predated a writer
+commit, so the new interior child page 3 was rejected as beyond the file.
+The secondary panic was a test-lifetime artifact: `t.Fatalf` returned while
+the writer goroutine was still running, so TempDir cleanup deleted the file
+under it and the writer then saw `attempt to write a readonly database`.
+
+SQLite's pager holds SHARED for the whole read statement
+(pager.c `sqlite3PagerSharedLock`) and a writer must upgrade RESERVED→EXCLUSIVE
+before `pager_write_pagelist` touches database pages. Frigolite's autocommit
+SELECT took no file mark, so a writer could flush mid-scan. Fixed by:
+- `lockreg.Registry.TrySetSharedTx` / `TrySetPending` — atomic check-and-set
+  for the two phases. SHARED is compatible with RESERVED (attach2-2.6 pins
+  this); PENDING blocks new SHARED acquisitions.
+- `Engine.acquireAutocommitReadLock` takes SHARED for the top-level SELECT's
+  statement lifetime, skipped for WAL, shared-cache and no-lock modes.
+- `Engine.armAutocommitCommitPending` runs the existing COMMIT upgrade gate
+  and arms PENDING atomically before the autocommit flush, releasing it
+  after; this closes the check→flush race window.
+- `TestNativeThreadReaderDuringWrites` now accepts `database is locked` as
+  the oracle-valid busy outcome, seeds one committed row synchronously, waits
+  for the writer before failing, and pins monotonic counts plus final
+  count/max against the number of successful INSERTs.
+
+Validation so far: 5000 `-race` iterations of the reader test and 500 of the
+writer test pass; `attach2`, `lock2`, `lock3`, `lock7`, `sharedcache`, `wal6`,
+SOLID, the cross-engine/coercion pins, `staticcheck ./...` and the complexity
+ratchet are green. `Exec` complexity was reduced by extracting
+`applyNestedRollbackAbort`; new helpers stay under the ratchet. The full
+12-shard non-race harness leaf comparison is clean: current=1015,
+baseline=1028, NEW=0, STOCHASTIC=0, GONE=13 (the same 13 known superseded
+leaves as before). The runner itself exits 1 on the known baseline leaves, as
+expected; CI's leaf checker is the gate.
