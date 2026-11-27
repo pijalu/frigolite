@@ -305,3 +305,18 @@ ratchet are green. `Exec` complexity was reduced by extracting
 baseline=1028, NEW=0, STOCHASTIC=0, GONE=13 (the same 13 known superseded
 leaves as before). The runner itself exits 1 on the known baseline leaves, as
 expected; CI's leaf checker is the gate.
+
+## Pipeline split — manageable CI jobs
+
+The monolithic `quality-and-test` job serialized build/lint, fast pins, ten
+native race shards, twelve harness race shards and coverage behind one 360m
+job; downstream build/compat could not start until every long shard finished.
+The workflow now has independent jobs: `lint` (build, vet, staticcheck,
+complexity ratchet), `fast-tests` (SOLID + cross-engine/coercion pins),
+`native-race` (10 shards), `harness-race` (12 shards + strict leaf checker),
+`coverage` (sharded coverage gate), and `ci-gates` (aggregate gate). `build-cli`
+and `compat-test` depend only on the fast jobs, so CD artifacts are produced
+while the long shards run; `release` waits for `ci-gates` plus both downstream
+jobs. Each long job has its own timeout and the harness job uploads per-shard
+logs. Gate coverage is unchanged: no threshold, lint rule, shard, leaf baseline
+or downstream check was removed. The superseded in-flight run was cancelled.

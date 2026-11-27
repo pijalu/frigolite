@@ -3217,3 +3217,9 @@ Details: `portplan/HANDOFF_2026-11-25_DERIVED_COLLATION.md`.
     goroutine that calls `t.Errorf` after `t.Fatalf` returned is a test
     lifetime bug: wait for the writer before failing, and count only
     successful INSERTs because busy_timeout=0 drops writes by design.
+  - A single CI job that chains lint, fast pins, native race, harness race and
+    coverage hides progress and blocks CD artifacts for the duration of every
+    shard. Split into independent jobs with an explicit aggregate gate: fast
+    build/compat can start early, long shards get separate timeouts, and the
+    release still waits for all gates. Keep the strict leaf checker and shard
+    baselines unchanged when restructuring.

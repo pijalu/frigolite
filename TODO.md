@@ -31,7 +31,9 @@
 > statement-lifetime SHARED lock, so a writer could flush new pages into its
 > scan. The reader now takes SHARED for the statement and the writer arms
 > PENDING atomically before flushing; the test accepts SQLite's busy outcome.
-> See the CI handoff.
+> The CI workflow is now split into lint, fast native pins, native race,
+> harness race, coverage, downstream build/compat and a final gate aggregator;
+> long shards no longer block fast jobs. See the CI handoff.
 
 ## Goal
 
