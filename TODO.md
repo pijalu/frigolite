@@ -41,8 +41,11 @@
 > (`ubuntu-latest`); jobs now pin `ubuntu-24.04`. Run 45979684762 still
 > lost the coverage job (three times, always 3-4 minutes into the heavy
 > shard batch 6..8) and race group 1 to external runner shutdowns on 24.04;
-> long jobs now run two shards at a time with a 1500 MiB per-shard heap cap
+> long jobs ran two shards at a time with a 1500 MiB per-shard heap cap
 > and 240m budgets. Local shard leaves are unchanged by that cap.
+> Run 46014619524 still lost the coverage job twice in batch 8..9 (exit 143,
+> runner shutdown) while race group 0, native race, builds and compat passed;
+> coverage shards now run one at a time (`FRIGOLITE_SHARD_PARALLEL=1`).
 > See the CI handoff.
 
 ## Goal

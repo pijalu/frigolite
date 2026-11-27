@@ -381,3 +381,21 @@ does not hide any regression. Both long CI jobs now run two shards at a time
 with that 1500 MiB heap cap, keep the 120m per-shard timeout and strict leaf
 checker, and get 240m job budgets for the extra batches. No shard, baseline,
 timeout marker or gate was removed.
+
+## Run `46014619524` — infra kills again, rerun in flight
+
+That run passed lint, fast pins, native race (34m), harness group 0 (45m,
+`NEW=0`), all five CLI builds and compat. The coverage job died 22m in at
+batch 8..9 with `Process completed with exit code 143` plus `The runner has
+received a shutdown signal`; harness group 1 died at 1h49m with `hosted runner
+lost communication with the server`. Neither job emitted a leaf verdict,
+timeout or panic — both were external runner terminations. A `gh run rerun
+--failed` re-queued only those two jobs; previously successful jobs were
+retained. Coverage then died again on the rerun, also at batch 8..9, also
+with exit 143 (`The runner has received a shutdown signal`). The raw job log
+places both kills 2-3 minutes after the `batch 8..9` heartbeat, so two
+concurrent heavy coverage shards are the common factor. Coverage shards now
+run one at a time (`FRIGOLITE_SHARD_PARALLEL=1`) while keeping the 120m shard
+timeout, strict leaf checker and coverage ratchet. If a kill recurs with a
+single shard, split coverage across matrix jobs and merge coverdata artifacts
+rather than relax any gate.

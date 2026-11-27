@@ -141,9 +141,11 @@ jobs:
     name: Sharded Coverage Gate
     runs-on: ubuntu-24.04
     timeout-minutes: 240
+    # Shards must run one at a time: two concurrent heavy coverage shards
+    # (batch 8..9) repeatedly got the hosted runner SIGTERM'd at ~18-22m.
     env:
       FRIGOLITE_SHARD_TIMEOUT: 120m
-      FRIGOLITE_SHARD_PARALLEL: 2
+      FRIGOLITE_SHARD_PARALLEL: 1
       FRIGOLITE_MEM_LIMIT: '1500'
     steps:
     - name: Checkout code
