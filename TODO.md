@@ -18,7 +18,10 @@
 > Current CI/CD recovery note: push run `45908617554` exposed a stochastic
 > `temptable2` malformed-image failure from the INSERT ... SELECT growth guard.
 > Root cause and fix are recorded at the end of
-> `portplan/HANDOFF_2026-11-26_CI_STATICCHECK.md`.
+> `portplan/HANDOFF_2026-11-26_CI_STATICCHECK.md`. Push run `45912946408`
+> then failed in the race harness after ~106m; the local `vacuummem/1.0`
+> race leaf had already run 51m35s when its 60m shard timed out. CI now uses
+> 120m shard timeouts and a 360m job budget.
 
 ## Goal
 

@@ -216,5 +216,21 @@ behavior. Validation: RED→GREEN pin, 1000/1000 reproducer cycles with
 integrity checks, `go test ./internal/schema`, targeted `-race` pin, verify
 command, staticcheck, ratchet, and `quality_gate.sh
 internal/schema/schema_tail.go` all green. The 12-shard non-race harness
-completed with leaf diff `NEW=0` vs t30 (`GONE=13`). The next push run will
-verify the sharded race harness.
+completed with leaf diff `NEW=0` vs t30 (`GONE=13`). The focused race run
+`FRIGOLITE_TEST=temptable2 go test -race -run '^TestSQLiteSuite$' -count=1 .`
+was also green (0 failing leaves, 307s).
+
+## Eleventh run `45912946408` — race harness timeout raised
+
+Push run `45912946408` passed staticcheck, ratchet, vet, build and all ten
+native race shards, then failed during the race JSON harness after ~106m. The
+job step was still marked in-progress when the job failed and the job log had
+already been purged, but the local 60m race log
+(`frigolite-shards.I8up2B/shard-11.log`) showed
+`panic: test timed out after 1h0m0s` with `TestSQLiteSuite/vacuummem/1.0`
+running for 51m35s — the shard spent its first 8m25s on earlier leaves. This
+is the same timeout class as the eighth run, not a new engine failure: the
+per-shard budget was too small for one race leaf. CI now sets
+`FRIGOLITE_SHARD_TIMEOUT=120m` for the race harness and coverage steps and
+`timeout-minutes: 360` on the quality job. The strict leaf checker is
+unchanged: timeouts still fail the gate.

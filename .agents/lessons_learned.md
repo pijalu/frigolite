@@ -3190,3 +3190,8 @@ Details: `portplan/HANDOFF_2026-11-25_DERIVED_COLLATION.md`.
     unrelated small fix in that file. Extract a pure page-summary helper to
     bring the function under threshold; do not raise thresholds or bypass
     the hook.
+  - Race-shard timeouts must be measured from the leaf, not the shard's
+    start: a local 60m shard timed out with `vacuummem/1.0` already at 51m35s
+    after 8m25s of earlier leaves. Raising the per-shard test timeout (60m→
+    120m) and the job budget (180m→360m) is the right fix when the slow leaf
+    is legitimate; keep the leaf checker's timeout/panic rejection intact.

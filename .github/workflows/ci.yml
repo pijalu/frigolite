@@ -12,7 +12,7 @@ jobs:
   quality-and-test:
     name: Quality Gates + Tests
     runs-on: ubuntu-latest
-    timeout-minutes: 180
+    timeout-minutes: 360
     strategy:
       matrix:
         # go.mod requires Go 1.24 (t.Chdir); older legs only trigger the Go
@@ -55,7 +55,7 @@ jobs:
 
     - name: Race JSON harness (12 shards)
       env:
-        FRIGOLITE_SHARD_TIMEOUT: 60m
+        FRIGOLITE_SHARD_TIMEOUT: 120m
       run: |
         mkdir -p "$RUNNER_TEMP/frigolite-race"
         go test -c -race -o "$RUNNER_TEMP/frigolite-race/frigolite.test" .
@@ -71,7 +71,7 @@ jobs:
 
     - name: Test coverage (sharded)
       env:
-        FRIGOLITE_SHARD_TIMEOUT: 60m
+        FRIGOLITE_SHARD_TIMEOUT: 120m
       run: tools/run_coverage_gate.sh
 
   profile-full-suite:
