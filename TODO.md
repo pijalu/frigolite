@@ -38,7 +38,12 @@
 > 6-shard matrix groups with a slice-aware shard runner. Follow-up run
 > 45970225473 showed more 6-way runner shutdowns, so CI shard parallelism is
 > now 3. Run 45976415270 traced repeated exit-143 shutdowns to Ubuntu 26.04
-> (`ubuntu-latest`); jobs now pin `ubuntu-24.04`. See the CI handoff.
+> (`ubuntu-latest`); jobs now pin `ubuntu-24.04`. Run 45979684762 still
+> lost the coverage job (three times, always 3-4 minutes into the heavy
+> shard batch 6..8) and race group 1 to external runner shutdowns on 24.04;
+> long jobs now run two shards at a time with a 1500 MiB per-shard heap cap
+> and 240m budgets. Local shard leaves are unchanged by that cap.
+> See the CI handoff.
 
 ## Goal
 

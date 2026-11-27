@@ -363,3 +363,21 @@ floating `ubuntu-latest` label; repeated shutdowns across unrelated jobs on
 that image are infrastructure, not engine verdicts. Every workflow job now
 pins `ubuntu-24.04`, keeping the two harness halves, three-way shard cap,
 120m shard timeout, strict leaf checker and coverage ratchet unchanged.
+
+## Runner shutdowns on pinned Ubuntu 24.04
+
+Run `45979684762` (current main, `2d85b6200`) passed lint, fast pins, native
+race, group-0 harness, all CLI builds and compat. The coverage job died three
+times (attempts 1-3) with exit 143 and no log blob; each log that survived
+placed the kill 3-4 minutes into the shard batch 6..8, never in batch 0..2.
+Race harness group 1 also died twice with the same external shutdown signal.
+No leaf, timeout, panic or engine verdict came from those jobs.
+
+Local measurements with the coverage binary: shard 6 peaks at ~1.1 GB RSS,
+shard 8 at ~2.0 GB, so the heavy 6/7/8 batch loads a two-vCPU hosted runner
+far more than the light 0/1/2 batch. Re-running shards 6 and 8 with
+`FRIGOLITE_MEM_LIMIT=1500` produced byte-identical FAIL-leaf sets, so the cap
+does not hide any regression. Both long CI jobs now run two shards at a time
+with that 1500 MiB heap cap, keep the 120m per-shard timeout and strict leaf
+checker, and get 240m job budgets for the extra batches. No shard, baseline,
+timeout marker or gate was removed.

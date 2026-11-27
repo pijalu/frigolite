@@ -83,7 +83,7 @@ jobs:
   harness-race:
     name: Race JSON Harness (group ${{ matrix.group }})
     runs-on: ubuntu-24.04
-    timeout-minutes: 150
+    timeout-minutes: 240
     strategy:
       fail-fast: false
       matrix:
@@ -109,7 +109,8 @@ jobs:
       id: harness
       env:
         FRIGOLITE_SHARD_TIMEOUT: 120m
-        FRIGOLITE_SHARD_PARALLEL: 3
+        FRIGOLITE_SHARD_PARALLEL: 2
+        FRIGOLITE_MEM_LIMIT: '1500'
       run: |
         mkdir -p "$RUNNER_TEMP/frigolite-race" "artifacts/harness-race-${{ matrix.group }}"
         go test -c -race -o "$RUNNER_TEMP/frigolite-race/frigolite.test" .
@@ -139,10 +140,11 @@ jobs:
   coverage:
     name: Sharded Coverage Gate
     runs-on: ubuntu-24.04
-    timeout-minutes: 180
+    timeout-minutes: 240
     env:
       FRIGOLITE_SHARD_TIMEOUT: 120m
-      FRIGOLITE_SHARD_PARALLEL: 3
+      FRIGOLITE_SHARD_PARALLEL: 2
+      FRIGOLITE_MEM_LIMIT: '1500'
     steps:
     - name: Checkout code
       uses: actions/checkout@v4

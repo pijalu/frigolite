@@ -3241,3 +3241,9 @@ Details: `portplan/HANDOFF_2026-11-25_DERIVED_COLLATION.md`.
     exit-143 shutdowns on `ubuntu-latest` resolved to `Image: ubuntu-26.04`.
     Pin CI jobs to a stable image (`ubuntu-24.04`) instead of a floating label
     when runner service termination recurs across unrelated jobs.
+  - If exit-143 shutdowns persist after pinning the image and always strike
+    the batch containing the heaviest harness shards, lower per-runner shard
+    concurrency (3→2) and cap each shard's Go heap (`FRIGOLITE_MEM_LIMIT`,
+    measured in MiB) below the runner budget. Verify the cap does not change
+    the harness leaf set locally before relying on it; extend job timeouts for
+    the extra batches rather than dropping shards or leaves.
