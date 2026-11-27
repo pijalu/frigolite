@@ -45,7 +45,9 @@
 > and 240m budgets. Local shard leaves are unchanged by that cap.
 > Run 46014619524 still lost the coverage job twice in batch 8..9 (exit 143,
 > runner shutdown) while race group 0, native race, builds and compat passed;
-> coverage shards now run one at a time (`FRIGOLITE_SHARD_PARALLEL=1`).
+> coverage shards now run one at a time (`FRIGOLITE_SHARD_PARALLEL=1`), and
+> the race harness runs one shard per matrix job; both keep the 120m shard
+> timeout, memory cap and strict leaf checker.
 > See the CI handoff.
 
 ## Goal

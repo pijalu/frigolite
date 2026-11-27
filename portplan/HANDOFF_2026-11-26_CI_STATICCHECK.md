@@ -399,3 +399,12 @@ run one at a time (`FRIGOLITE_SHARD_PARALLEL=1`) while keeping the 120m shard
 timeout, strict leaf checker and coverage ratchet. If a kill recurs with a
 single shard, split coverage across matrix jobs and merge coverdata artifacts
 rather than relax any gate.
+
+The rerun's race harness group 1 also died with exit 143, at batch 10..11 after
+1h12m — the raw log shows the same `runner has received a shutdown signal`.
+Two-shard groups simply run long enough for hosted runners to reclaim them.
+The race harness is now a 12-entry matrix with one shard per job, still using
+the global 12-way partition, `FRIGOLITE_MEM_LIMIT=1500` and the strict leaf
+checker. Each job runs a single shard, so no job keeps a runner busy for over
+an hour; artifacts are keyed by shard index. No leaf, shard or timeout check
+was removed.

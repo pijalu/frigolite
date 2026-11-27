@@ -80,20 +80,19 @@ jobs:
     - name: Native race tests (10 shards)
       run: tools/run_native_race_shards.sh
 
+  # One shard per job: a two-shard group ran long enough (>1h) that hosted
+  # runners repeatedly SIGTERM'd it mid-batch. A single shard keeps every job
+  # short while preserving the global 12-way partition and leaf gate.
   harness-race:
-    name: Race JSON Harness (group ${{ matrix.group }})
+    name: Race JSON Harness (shard ${{ matrix.shard }})
     runs-on: ubuntu-24.04
     timeout-minutes: 240
     strategy:
       fail-fast: false
       matrix:
-        include:
-          - group: 0
-            offset: 0
-          - group: 1
-            offset: 6
+        shard: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]
     env:
-      FRIGOLITE_SHARD_OFFSET: ${{ matrix.offset }}
+      FRIGOLITE_SHARD_OFFSET: ${{ matrix.shard }}
       FRIGOLITE_SHARD_TOTAL: '12'
     steps:
     - name: Checkout code
@@ -105,25 +104,25 @@ jobs:
         go-version: '1.24'
         cache: true
 
-    - name: Race JSON harness (6 of 12 shards)
+    - name: Race JSON harness (1 of 12 shards)
       id: harness
       env:
         FRIGOLITE_SHARD_TIMEOUT: 120m
-        FRIGOLITE_SHARD_PARALLEL: 2
+        FRIGOLITE_SHARD_PARALLEL: 1
         FRIGOLITE_MEM_LIMIT: '1500'
       run: |
-        mkdir -p "$RUNNER_TEMP/frigolite-race" "artifacts/harness-race-${{ matrix.group }}"
+        mkdir -p "$RUNNER_TEMP/frigolite-race" "artifacts/harness-race-${{ matrix.shard }}"
         go test -c -race -o "$RUNNER_TEMP/frigolite-race/frigolite.test" .
         set +e
-        bash tools/run_json_shards.sh "$RUNNER_TEMP/frigolite-race/frigolite.test" 6 \
+        bash tools/run_json_shards.sh "$RUNNER_TEMP/frigolite-race/frigolite.test" 1 \
           2>&1 | tee "$RUNNER_TEMP/frigolite-race/harness.log"
         runner_status=${PIPESTATUS[0]}
         set -e
         echo "runner status=$runner_status (known baseline leaves are expected)"
         run_dir=$(sed -n 's/^run_dir=//p' "$RUNNER_TEMP/frigolite-race/harness.log" | tail -n 1)
-        cp "$RUNNER_TEMP/frigolite-race/harness.log" "artifacts/harness-race-${{ matrix.group }}/harness.log"
+        cp "$RUNNER_TEMP/frigolite-race/harness.log" "artifacts/harness-race-${{ matrix.shard }}/harness.log"
         if [ -n "$run_dir" ]; then
-          cp "$run_dir"/shard-*.log "artifacts/harness-race-${{ matrix.group }}/" || true
+          cp "$run_dir"/shard-*.log "artifacts/harness-race-${{ matrix.shard }}/" || true
         fi
         echo "run_dir=$run_dir" >> "$GITHUB_OUTPUT"
         tools/check_harness_leaves.sh "$run_dir"
@@ -132,8 +131,8 @@ jobs:
       if: always()
       uses: actions/upload-artifact@v4
       with:
-        name: harness-race-logs-${{ matrix.group }}-${{ github.run_id }}
-        path: artifacts/harness-race-${{ matrix.group }}/*
+        name: harness-race-logs-${{ matrix.shard }}-${{ github.run_id }}
+        path: artifacts/harness-race-${{ matrix.shard }}/*
         if-no-files-found: warn
         retention-days: 7
 
