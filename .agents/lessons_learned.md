@@ -3233,3 +3233,7 @@ Details: `portplan/HANDOFF_2026-11-25_DERIVED_COLLATION.md`.
     Split heavy sharded work into independent shorter matrix jobs; give the
     runner a contiguous shard slice but keep the global shard count for
     partitioning, and run the same strict leaf checker on each half.
+  - Runner shutdown signals (exit 143) hit two of three 6-way parallel race
+    shard jobs in one run while other jobs continued; halve per-job shard
+    concurrency before adding retries or weakening a gate. Preserve global
+    shard count for partitioning and keep every leaf/time-out check.

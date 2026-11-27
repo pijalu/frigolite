@@ -26,7 +26,7 @@ if ((last > total)); then
 fi
 
 # GitHub-hosted runners have far less memory than the dev box. Cap the number
-# of concurrent -race test binaries; CI sets 6. The default keeps local runs
+# of concurrent -race test binaries; CI sets 3. The default keeps local runs
 # unchanged. Shards still run in index order and every status is recorded.
 parallel=${FRIGOLITE_SHARD_PARALLEL:-$shards}
 if ! [[ $parallel =~ ^[1-9][0-9]*$ ]]; then

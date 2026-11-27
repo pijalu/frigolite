@@ -347,3 +347,12 @@ shard partitioning is unchanged. Each half keeps the strict
 A quick no-leaf smoke test of shards 6..11 produced six shard-6..shard-11 status
 and log files, all statuses zero; `bash -n` and YAML parse passed. No baseline,
 timeout marker, leaf pattern or shard count was relaxed.
+
+Run `45970225473` verified the split: lint/fast pins/native pins/build matrix/
+compat passed, harness group 0 completed with `NEW=0` and 363 leaves for its
+half, but coverage and harness group 1 both received external runner shutdown
+signals (exit 143) while running six shards at once. Group 1's GitHub job then
+remained `in_progress` with a completed log, so the run was cancelled. CI now
+sets `FRIGOLITE_SHARD_PARALLEL=3` for both harness halves and coverage, halving
+peak per-runner `-race` processes while preserving shard partitioning and all
+gates.

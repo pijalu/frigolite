@@ -35,7 +35,9 @@
 > harness race, coverage, downstream build/compat and a final gate aggregator;
 > long shards no longer block fast jobs. Run 45962617221 lost the 12-shard
 > harness job to runner shutdown after ~52m; race harness now runs as two
-> 6-shard matrix groups with a slice-aware shard runner. See the CI handoff.
+> 6-shard matrix groups with a slice-aware shard runner. Follow-up run
+> 45970225473 showed more 6-way runner shutdowns, so CI shard parallelism is
+> now 3. See the CI handoff.
 
 ## Goal
 
