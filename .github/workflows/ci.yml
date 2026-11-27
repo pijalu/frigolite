@@ -81,9 +81,20 @@ jobs:
       run: tools/run_native_race_shards.sh
 
   harness-race:
-    name: Race JSON Harness
+    name: Race JSON Harness (group ${{ matrix.group }})
     runs-on: ubuntu-latest
-    timeout-minutes: 180
+    timeout-minutes: 150
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - group: 0
+            offset: 0
+          - group: 1
+            offset: 6
+    env:
+      FRIGOLITE_SHARD_OFFSET: ${{ matrix.offset }}
+      FRIGOLITE_SHARD_TOTAL: '12'
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
@@ -94,24 +105,24 @@ jobs:
         go-version: '1.24'
         cache: true
 
-    - name: Race JSON harness (12 shards)
+    - name: Race JSON harness (6 of 12 shards)
       id: harness
       env:
         FRIGOLITE_SHARD_TIMEOUT: 120m
         FRIGOLITE_SHARD_PARALLEL: 6
       run: |
-        mkdir -p "$RUNNER_TEMP/frigolite-race" artifacts/harness-race
+        mkdir -p "$RUNNER_TEMP/frigolite-race" "artifacts/harness-race-${{ matrix.group }}"
         go test -c -race -o "$RUNNER_TEMP/frigolite-race/frigolite.test" .
         set +e
-        bash tools/run_json_shards.sh "$RUNNER_TEMP/frigolite-race/frigolite.test" 12 \
+        bash tools/run_json_shards.sh "$RUNNER_TEMP/frigolite-race/frigolite.test" 6 \
           2>&1 | tee "$RUNNER_TEMP/frigolite-race/harness.log"
         runner_status=${PIPESTATUS[0]}
         set -e
         echo "runner status=$runner_status (known baseline leaves are expected)"
         run_dir=$(sed -n 's/^run_dir=//p' "$RUNNER_TEMP/frigolite-race/harness.log" | tail -n 1)
-        cp "$RUNNER_TEMP/frigolite-race/harness.log" artifacts/harness-race/harness.log
+        cp "$RUNNER_TEMP/frigolite-race/harness.log" "artifacts/harness-race-${{ matrix.group }}/harness.log"
         if [ -n "$run_dir" ]; then
-          cp "$run_dir"/shard-*.log artifacts/harness-race/ || true
+          cp "$run_dir"/shard-*.log "artifacts/harness-race-${{ matrix.group }}/" || true
         fi
         echo "run_dir=$run_dir" >> "$GITHUB_OUTPUT"
         tools/check_harness_leaves.sh "$run_dir"
@@ -120,8 +131,8 @@ jobs:
       if: always()
       uses: actions/upload-artifact@v4
       with:
-        name: harness-race-logs-${{ github.run_id }}
-        path: artifacts/harness-race/*
+        name: harness-race-logs-${{ matrix.group }}-${{ github.run_id }}
+        path: artifacts/harness-race-${{ matrix.group }}/*
         if-no-files-found: warn
         retention-days: 7
 

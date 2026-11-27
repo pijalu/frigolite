@@ -11,6 +11,19 @@ if ! [[ $shards =~ ^[1-9][0-9]*$ ]]; then
   echo "shard count must be positive" >&2
   exit 2
 fi
+# Split runs execute a contiguous slice of a larger shard set: CI uses two
+# 6-shard jobs for the 12-shard race harness so neither job outlives a runner.
+offset=${FRIGOLITE_SHARD_OFFSET:-0}
+total=${FRIGOLITE_SHARD_TOTAL:-$shards}
+if ! [[ $offset =~ ^[0-9]+$ ]] || ! [[ $total =~ ^[1-9][0-9]*$ ]]; then
+  echo "FRIGOLITE_SHARD_OFFSET / FRIGOLITE_SHARD_TOTAL must be non-negative / positive integers" >&2
+  exit 2
+fi
+last=$((offset + shards))
+if ((last > total)); then
+  echo "shard slice exceeds FRIGOLITE_SHARD_TOTAL" >&2
+  exit 2
+fi
 
 # GitHub-hosted runners have far less memory than the dev box. Cap the number
 # of concurrent -race test binaries; CI sets 6. The default keeps local runs
@@ -22,7 +35,7 @@ if ! [[ $parallel =~ ^[1-9][0-9]*$ ]]; then
 fi
 
 root=$(mktemp -d "${TMPDIR:-/tmp}/frigolite-shards.XXXXXX")
-for ((i = 0; i < shards; i++)); do
+for ((i = offset; i < last; i++)); do
   mkdir "$root/shard-$i"
   ln -s "$PWD/testdata" "$root/shard-$i/testdata"
 done
@@ -37,10 +50,10 @@ cleanup() {
 }
 trap cleanup EXIT
 
-for ((start = 0; start < shards; start += parallel)); do
+for ((start = offset; start < last; start += parallel)); do
   end=$((start + parallel))
-  if ((end > shards)); then
-    end=$shards
+  if ((end > last)); then
+    end=$last
   fi
   batch_pids=()
   for ((i = start; i < end; i++)); do
@@ -50,10 +63,10 @@ for ((start = 0; start < shards; start += parallel)); do
       if [ -n "${FRIGOLITE_COVERDATA:-}" ]; then
         coverdir="$root/shard-$i/coverdata"
         mkdir -p "$coverdir"
-        FRIGOLITE_SHARD_INDEX="$i" FRIGOLITE_SHARD_COUNT="$shards" \
+        FRIGOLITE_SHARD_INDEX="$i" FRIGOLITE_SHARD_COUNT="$total" \
           "$binary" "${common_args[@]}" -test.gocoverdir="$coverdir" >"$root/shard-$i.log" 2>&1
       else
-        FRIGOLITE_SHARD_INDEX="$i" FRIGOLITE_SHARD_COUNT="$shards" \
+        FRIGOLITE_SHARD_INDEX="$i" FRIGOLITE_SHARD_COUNT="$total" \
           "$binary" "${common_args[@]}" >"$root/shard-$i.log" 2>&1
       fi
     ) &
@@ -89,7 +102,7 @@ for ((start = 0; start < shards; start += parallel)); do
   heartbeat_pid=""
 done
 
-for ((i = 0; i < shards; i++)); do
+for ((i = offset; i < last; i++)); do
   printf '%s\n' "${statuses[$i]}" >"$root/shard-$i.status"
   if [[ ${statuses[$i]} -ne 0 ]]; then
     echo "=== shard $i failed (last 80 lines) ===" >&2

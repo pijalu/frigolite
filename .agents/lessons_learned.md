@@ -3228,3 +3228,8 @@ Details: `portplan/HANDOFF_2026-11-25_DERIVED_COLLATION.md`.
     root module and drop checksums for locally replaced modules, and split
     POSIX-only `syscall` helpers behind build tags with a Win32 implementation
     (kernel32 `LockFileEx` via lazy DLL keeps the no-dependency rule).
+  - When a hosted runner kills a long matrix job by signal (exit 143) without
+    producing leaf artifacts, treat it as infrastructure, not an engine result.
+    Split heavy sharded work into independent shorter matrix jobs; give the
+    runner a contiguous shard slice but keep the global shard count for
+    partitioning, and run the same strict leaf checker on each half.

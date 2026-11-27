@@ -332,3 +332,18 @@ lock is now split into `wallocks_flock.go` (`!windows`) and
 DLL, no new dependency). Both map conflicts to `errWalBusy`. All five CLI
 matrix targets cross-build; pager `-race`, `staticcheck`, complexity ratchet,
 SOLID and WAL leaf comparison against the baseline are green.
+
+## Harness split into two CI jobs
+
+Run `45962617221` passed lint/fast pins/native race/build/compat but lost the
+12-shard race harness to an external runner shutdown (exit 143) after ~52m;
+coverage was cancelled in the same run. No engine or leaf verdict came from
+that job. The harness is now a `fail-fast: false` matrix with two 6-shard
+groups (offset 0 and offset 6 of total 12). `tools/run_json_shards.sh` accepts
+`FRIGOLITE_SHARD_OFFSET`/`FRIGOLITE_SHARD_TOTAL`, runs only the requested contiguous
+slice, and still passes the full shard total through `FRIGOLITE_SHARD_COUNT` so
+shard partitioning is unchanged. Each half keeps the strict
+`tools/check_harness_leaves.sh` gate and uploads distinct per-shard artifacts.
+A quick no-leaf smoke test of shards 6..11 produced six shard-6..shard-11 status
+and log files, all statuses zero; `bash -n` and YAML parse passed. No baseline,
+timeout marker, leaf pattern or shard count was relaxed.

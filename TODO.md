@@ -33,7 +33,9 @@
 > PENDING atomically before flushing; the test accepts SQLite's busy outcome.
 > The CI workflow is now split into lint, fast native pins, native race,
 > harness race, coverage, downstream build/compat and a final gate aggregator;
-> long shards no longer block fast jobs. See the CI handoff.
+> long shards no longer block fast jobs. Run 45962617221 lost the 12-shard
+> harness job to runner shutdown after ~52m; race harness now runs as two
+> 6-shard matrix groups with a slice-aware shard runner. See the CI handoff.
 
 ## Goal
 
