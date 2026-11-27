@@ -18,10 +18,9 @@ go test -c -covermode=set -cover -o "$work/frigolite.test" .
 echo "== run sharded JSON harness with coverage =="
 set +e
 FRIGOLITE_COVERDATA=1 FRIGOLITE_SHARD_TIMEOUT="${FRIGOLITE_SHARD_TIMEOUT:-30m}" \
-  bash tools/run_json_shards.sh "$work/frigolite.test" 12 >"$work/runner.log" 2>&1
-runner_status=$?
+  bash tools/run_json_shards.sh "$work/frigolite.test" 12 2>&1 | tee "$work/runner.log"
+runner_status=${PIPESTATUS[0]}
 set -e
-cat "$work/runner.log"
 echo "runner status=$runner_status (known baseline leaves are expected)"
 run_dir="$(sed -n 's/^run_dir=//p' "$work/runner.log" | tail -n 1)"
 tools/check_harness_leaves.sh "$run_dir"

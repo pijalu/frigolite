@@ -24,7 +24,9 @@
 > 120m shard timeouts and a 360m job budget. A later run then exposed an
 > oracle-invalid assertion in `TestNativeThreadConcurrentWritersSerialize`;
 > that test now pins uniqueness/key-space/integrity instead of a minimum row
-> count. See the CI handoff.
+> count. A rerun then lost the race harness step twice to SIGTERM with no
+> leaf output; the shard runner now caps concurrency (6) and streams
+> heartbeat/log output. See the CI handoff.
 
 ## Goal
 

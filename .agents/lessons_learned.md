@@ -3202,3 +3202,9 @@ Details: `portplan/HANDOFF_2026-11-25_DERIVED_COLLATION.md`.
     from the expected key spaces, and integrity_check=ok — instead of a
     minimum count. Validate with a throwaway sqlite3 driver before changing
     the test.
+  - A long CI step that launches many heavy race shards and redirects all
+    output to a file can die with exit 143 and no leaf evidence. Bound shard
+    concurrency (`FRIGOLITE_SHARD_PARALLEL`) and `tee` the runner output into
+    the job log with a periodic heartbeat; keep per-shard logs and the strict
+    leaf checker. Do not mistake this infrastructure SIGTERM for an engine
+    failure.

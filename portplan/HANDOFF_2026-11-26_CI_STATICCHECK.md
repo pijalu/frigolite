@@ -250,3 +250,19 @@ key spaces, and integrity_check=ok. `-count=200 -race` on the corrected test
 and the exact `^Test[N-O]` native race shard are green. Focused
 `FRIGOLITE_TEST=vacuummem go test -race` finished in 806s, confirming the
 120m shard budget is ample.
+
+## Thirteenth/attempt-2 run `45927501653` — SIGTERM with no leaf output
+
+The first attempt reached the race harness and lost the step to exit 143 after
+31m with no harness output; the failed-job rerun passed native race and then
+lost the same step to exit 143 after 37m, again with no leaf lines. Both job
+logs end at the `bash tools/run_json_shards.sh ...` command with no `panic:`,
+no leaf failure, and no leaf-checker output. This is a CI process/resource
+failure, not an engine verdict. `run_json_shards.sh` previously launched all
+12 `-race` binaries simultaneously and produced no stdout until every shard
+finished. It now runs shards in bounded batches (`FRIGOLITE_SHARD_PARALLEL`,
+CI sets 6), preserves per-shard status/run_dir behavior, and emits a periodic
+heartbeat. The race harness and coverage CI steps now `tee` the runner output
+into the job log instead of swallowing it, so leaves/heartbeats are visible
+and an idle-step kill cannot hide progress. Shell syntax, YAML parsing, and a
+2-shard/parallel-1 smoke run verified the runner change.

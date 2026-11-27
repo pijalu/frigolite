@@ -56,15 +56,15 @@ jobs:
     - name: Race JSON harness (12 shards)
       env:
         FRIGOLITE_SHARD_TIMEOUT: 120m
+        FRIGOLITE_SHARD_PARALLEL: 6
       run: |
         mkdir -p "$RUNNER_TEMP/frigolite-race"
         go test -c -race -o "$RUNNER_TEMP/frigolite-race/frigolite.test" .
         set +e
         bash tools/run_json_shards.sh "$RUNNER_TEMP/frigolite-race/frigolite.test" 12 \
-          >"$RUNNER_TEMP/frigolite-race/harness.log" 2>&1
-        runner_status=$?
+          2>&1 | tee "$RUNNER_TEMP/frigolite-race/harness.log"
+        runner_status=${PIPESTATUS[0]}
         set -e
-        cat "$RUNNER_TEMP/frigolite-race/harness.log"
         echo "runner status=$runner_status (known baseline leaves are expected)"
         run_dir=$(sed -n 's/^run_dir=//p' "$RUNNER_TEMP/frigolite-race/harness.log" | tail -n 1)
         tools/check_harness_leaves.sh "$run_dir"
@@ -72,6 +72,7 @@ jobs:
     - name: Test coverage (sharded)
       env:
         FRIGOLITE_SHARD_TIMEOUT: 120m
+        FRIGOLITE_SHARD_PARALLEL: 6
       run: tools/run_coverage_gate.sh
 
   profile-full-suite:
