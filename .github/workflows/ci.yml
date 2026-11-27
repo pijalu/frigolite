@@ -136,15 +136,18 @@ jobs:
         if-no-files-found: warn
         retention-days: 7
 
-  coverage:
-    name: Sharded Coverage Gate
+  # One coverage shard per runner; the merge job combines their coverdata.
+  # A single 12-shard job kept getting its runner reclaimed after ~1h.
+  coverage-shards:
+    name: Coverage Shard ${{ matrix.shard }}
     runs-on: ubuntu-24.04
     timeout-minutes: 240
-    # Shards must run one at a time: two concurrent heavy coverage shards
-    # (batch 8..9) repeatedly got the hosted runner SIGTERM'd at ~18-22m.
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]
     env:
       FRIGOLITE_SHARD_TIMEOUT: 120m
-      FRIGOLITE_SHARD_PARALLEL: 1
       FRIGOLITE_MEM_LIMIT: '1500'
     steps:
     - name: Checkout code
@@ -156,13 +159,47 @@ jobs:
         go-version: '1.24'
         cache: true
 
-    - name: Test coverage (sharded)
-      run: tools/run_coverage_gate.sh
+    - name: Run coverage shard
+      run: tools/run_coverage_shard.sh ${{ matrix.shard }} 12
+
+    - name: Upload coverdata
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: coverage-coverdata-${{ matrix.shard }}-${{ github.run_id }}
+        path: artifacts/coverage-shard-${{ matrix.shard }}/coverdata/*
+        if-no-files-found: warn
+        retention-days: 7
+
+  coverage-merge:
+    name: Sharded Coverage Gate
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    needs: [coverage-shards]
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Go
+      uses: actions/setup-go@v5
+      with:
+        go-version: '1.24'
+        cache: true
+
+    - name: Download coverdata
+      uses: actions/download-artifact@v4
+      with:
+        pattern: coverage-coverdata-*-${{ github.run_id }}
+        path: ${{ runner.temp }}/coverdata
+        merge-multiple: false
+
+    - name: Merge coverdata and check ratchet
+      run: tools/merge_coverage_gate.sh "$RUNNER_TEMP/coverdata"
 
   ci-gates:
     name: CI Gates Complete
     runs-on: ubuntu-24.04
-    needs: [lint, fast-tests, native-race, harness-race, coverage]
+    needs: [lint, fast-tests, native-race, harness-race, coverage-merge]
     steps:
     - name: Record gate completion
       run: echo "All CI gates passed"

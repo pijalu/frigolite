@@ -408,3 +408,13 @@ the global 12-way partition, `FRIGOLITE_MEM_LIMIT=1500` and the strict leaf
 checker. Each job runs a single shard, so no job keeps a runner busy for over
 an hour; artifacts are keyed by shard index. No leaf, shard or timeout check
 was removed.
+
+That confirms runner reclamation is not specific to heavy shards or long
+batches — shard 11 was SIGTERM'd after 8m44s as a single job, and the
+serialized coverage job was lost after 1h02m with `hosted runner lost
+communication`. Coverage is now the same one-shard-per-job matrix plus a
+`coverage-merge` job that downloads 12 coverdata artifacts, merges them with
+`go tool covdata merge` and applies the unchanged ratchet
+(`tools/run_coverage_shard.sh`, `tools/merge_coverage_gate.sh`). A random
+runner kill now costs one short job, which `gh run rerun --failed` can retry
+without re-running the whole gate.
