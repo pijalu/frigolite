@@ -320,3 +320,15 @@ while the long shards run; `release` waits for `ci-gates` plus both downstream
 jobs. Each long job has its own timeout and the harness job uploads per-shard
 logs. Gate coverage is unchanged: no threshold, lint rule, shard, leaf baseline
 or downstream check was removed. The superseded in-flight run was cancelled.
+
+The first split run exposed two fast-job defects the old serial job had
+hidden. `cmd/frigolite/go.mod` still declared Go 1.23.0 and carried checksums
+for the locally replaced readline module; cross-compiling from a clean runner
+said `go.mod needs updates`. It now matches the root module's Go 1.24.0 and
+drops those stale sums. The Windows CLI target also failed because
+`wallocks.go` called POSIX `FcntlFlock` unconditionally. The shm byte-range
+lock is now split into `wallocks_flock.go` (`!windows`) and
+`wallocks_win.go` (`windows`, kernel32 `LockFileEx`/`UnlockFileEx` via lazy
+DLL, no new dependency). Both map conflicts to `errWalBusy`. All five CLI
+matrix targets cross-build; pager `-race`, `staticcheck`, complexity ratchet,
+SOLID and WAL leaf comparison against the baseline are green.

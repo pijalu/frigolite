@@ -3223,3 +3223,8 @@ Details: `portplan/HANDOFF_2026-11-25_DERIVED_COLLATION.md`.
     build/compat can start early, long shards get separate timeouts, and the
     release still waits for all gates. Keep the strict leaf checker and shard
     baselines unchanged when restructuring.
+  - Moving cross-compilation into a fast parallel job exposes module and OS
+    drift the old serial job hid: align a submodule's `go` directive with the
+    root module and drop checksums for locally replaced modules, and split
+    POSIX-only `syscall` helpers behind build tags with a Win32 implementation
+    (kernel32 `LockFileEx` via lazy DLL keeps the no-dependency rule).

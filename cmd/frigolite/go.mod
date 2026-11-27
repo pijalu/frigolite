@@ -1,6 +1,6 @@
 module github.com/pijalu/frigolite/cmd/frigolite
 
-go 1.23.0
+go 1.24.0
 
 require github.com/pijalu/frigolite v0.0.0
 
