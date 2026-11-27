@@ -22,8 +22,8 @@ while IFS= read -r -d '' file; do
   done
   if ((seen == 0)); then cover_dirs+=("$dir"); fi
 done < <(find "$artifact_root" -type f -name '*.covmeta' -print0)
-if ((${#cover_dirs[@]} != 12)); then
-  echo "FAIL: expected 12 coverdata directories, got ${#cover_dirs[@]} under $artifact_root" >&2
+if ((${#cover_dirs[@]} != 24)); then
+  echo "FAIL: expected 24 coverdata directories, got ${#cover_dirs[@]} under $artifact_root" >&2
   exit 1
 fi
 

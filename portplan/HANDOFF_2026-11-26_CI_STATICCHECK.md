@@ -413,8 +413,14 @@ That confirms runner reclamation is not specific to heavy shards or long
 batches — shard 11 was SIGTERM'd after 8m44s as a single job, and the
 serialized coverage job was lost after 1h02m with `hosted runner lost
 communication`. Coverage is now the same one-shard-per-job matrix plus a
-`coverage-merge` job that downloads 12 coverdata artifacts, merges them with
+`coverage-merge` job that downloads 24 coverdata artifacts, merges them with
 `go tool covdata merge` and applies the unchanged ratchet
 (`tools/run_coverage_shard.sh`, `tools/merge_coverage_gate.sh`). A random
 runner kill now costs one short job, which `gh run rerun --failed` can retry
 without re-running the whole gate.
+
+Shard 11 of the 12-way partition failed in every run while all other shards
+passed, so both matrices now use 24 shards (`FRIGOLITE_SHARD_TOTAL=24`) and
+the merge gate expects 24 coverdata directories. This redistributes the
+heavy families that made the old shard 11 a repeated runner-kill target; the
+global partition, leaf baseline and coverage ratchet are unchanged.
