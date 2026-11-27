@@ -11,7 +11,7 @@ on:
 jobs:
   lint:
     name: Lint and Build
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 20
     steps:
     - name: Checkout code
@@ -43,7 +43,7 @@ jobs:
 
   fast-tests:
     name: Fast Native Pins
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 20
     steps:
     - name: Checkout code
@@ -65,7 +65,7 @@ jobs:
 
   native-race:
     name: Native Race Shards
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 90
     steps:
     - name: Checkout code
@@ -82,7 +82,7 @@ jobs:
 
   harness-race:
     name: Race JSON Harness (group ${{ matrix.group }})
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 150
     strategy:
       fail-fast: false
@@ -138,7 +138,7 @@ jobs:
 
   coverage:
     name: Sharded Coverage Gate
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 180
     env:
       FRIGOLITE_SHARD_TIMEOUT: 120m
@@ -158,7 +158,7 @@ jobs:
 
   ci-gates:
     name: CI Gates Complete
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     needs: [lint, fast-tests, native-race, harness-race, coverage]
     steps:
     - name: Record gate completion
@@ -167,7 +167,7 @@ jobs:
   profile-full-suite:
     name: Profile Full Go Test Suite
     if: github.event_name == 'workflow_dispatch'
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 75
     env:
       GO_TEST_TIMEOUT: 60m
@@ -195,7 +195,7 @@ jobs:
 
   build-cli:
     name: Build CLI Binaries
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     needs: [lint, fast-tests]
     strategy:
       matrix:
@@ -235,7 +235,7 @@ jobs:
 
   compat-test:
     name: SQLite Compatibility
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     needs: [lint, fast-tests]
 
     steps:
@@ -257,7 +257,7 @@ jobs:
   release:
     name: Create Release
     if: startsWith(github.ref, 'refs/tags/v')
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     needs: [ci-gates, build-cli, compat-test]
 
     steps:

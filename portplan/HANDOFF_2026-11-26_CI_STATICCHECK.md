@@ -356,3 +356,10 @@ remained `in_progress` with a completed log, so the run was cancelled. CI now
 sets `FRIGOLITE_SHARD_PARALLEL=3` for both harness halves and coverage, halving
 peak per-runner `-race` processes while preserving shard partitioning and all
 gates.
+
+Run `45976415270` still lost the coverage job to exit 143 at 18m with only
+three parallel shards. Its job log showed `Image: ubuntu-26.04` from the
+floating `ubuntu-latest` label; repeated shutdowns across unrelated jobs on
+that image are infrastructure, not engine verdicts. Every workflow job now
+pins `ubuntu-24.04`, keeping the two harness halves, three-way shard cap,
+120m shard timeout, strict leaf checker and coverage ratchet unchanged.

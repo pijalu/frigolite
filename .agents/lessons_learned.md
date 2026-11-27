@@ -3237,3 +3237,7 @@ Details: `portplan/HANDOFF_2026-11-25_DERIVED_COLLATION.md`.
     shard jobs in one run while other jobs continued; halve per-job shard
     concurrency before adding retries or weakening a gate. Preserve global
     shard count for partitioning and keep every leaf/time-out check.
+  - Check the actual hosted-runner image before blaming test load: repeated
+    exit-143 shutdowns on `ubuntu-latest` resolved to `Image: ubuntu-26.04`.
+    Pin CI jobs to a stable image (`ubuntu-24.04`) instead of a floating label
+    when runner service termination recurs across unrelated jobs.

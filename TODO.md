@@ -37,7 +37,8 @@
 > harness job to runner shutdown after ~52m; race harness now runs as two
 > 6-shard matrix groups with a slice-aware shard runner. Follow-up run
 > 45970225473 showed more 6-way runner shutdowns, so CI shard parallelism is
-> now 3. See the CI handoff.
+> now 3. Run 45976415270 traced repeated exit-143 shutdowns to Ubuntu 26.04
+> (`ubuntu-latest`); jobs now pin `ubuntu-24.04`. See the CI handoff.
 
 ## Goal
 
