@@ -3195,3 +3195,10 @@ Details: `portplan/HANDOFF_2026-11-25_DERIVED_COLLATION.md`.
     after 8m25s of earlier leaves. Raising the per-shard test timeout (60m→
     120m) and the job budget (180m→360m) is the right fix when the slow leaf
     is legitimate; keep the leaf checker's timeout/panic rejection intact.
+  - A concurrent-writer test assuming one connection commits all N rows is
+    oracle-invalid: SQLite serializes per statement, so with busy_timeout=0
+    both connections can lose individual INSERTs (sqlite3 3.54.1 scratch:
+    final count 18/400). Pin the real invariant — surviving rows are unique,
+    from the expected key spaces, and integrity_check=ok — instead of a
+    minimum count. Validate with a throwaway sqlite3 driver before changing
+    the test.

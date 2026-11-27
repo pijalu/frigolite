@@ -21,7 +21,10 @@
 > `portplan/HANDOFF_2026-11-26_CI_STATICCHECK.md`. Push run `45912946408`
 > then failed in the race harness after ~106m; the local `vacuummem/1.0`
 > race leaf had already run 51m35s when its 60m shard timed out. CI now uses
-> 120m shard timeouts and a 360m job budget.
+> 120m shard timeouts and a 360m job budget. A later run then exposed an
+> oracle-invalid assertion in `TestNativeThreadConcurrentWritersSerialize`;
+> that test now pins uniqueness/key-space/integrity instead of a minimum row
+> count. See the CI handoff.
 
 ## Goal
 

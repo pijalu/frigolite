@@ -234,3 +234,19 @@ per-shard budget was too small for one race leaf. CI now sets
 `FRIGOLITE_SHARD_TIMEOUT=120m` for the race harness and coverage steps and
 `timeout-minutes: 360` on the quality job. The strict leaf checker is
 unchanged: timeouts still fail the gate.
+
+## Twelfth run `45923893721` — invalid concurrent-writer premise fixed
+
+This run passed lint/ratchet/build and reached native race shards, where
+`TestNativeThreadConcurrentWritersSerialize` failed with
+`count=79 distinct=79, want count>=200`. Local `-count=50` reproduced it
+(`count=53`). A throwaway sqlite3 3.54.1 oracle with two connections and the
+same 200+200 autocommit INSERTs produced counts as low as 18: SQLite
+serializes per statement, so with no busy_timeout either writer can drop
+individual INSERTs while the peer holds the write lock. The test's
+`count>=200` premise was wrong. It now asserts the real contract: 1..400
+surviving rows, unique rowids and values, values only from the two writers'
+key spaces, and integrity_check=ok. `-count=200 -race` on the corrected test
+and the exact `^Test[N-O]` native race shard are green. Focused
+`FRIGOLITE_TEST=vacuummem go test -race` finished in 806s, confirming the
+120m shard budget is ample.

@@ -20,9 +20,11 @@ import (
 
 // TestNativeThreadConcurrentWritersSerialize pins the locking contract the
 // thread003 bombardment guards: two connections writing to the same database
-// interleave without corruption — one commits, the other either waits
-// (implicit serialization inside Exec) or fails cleanly with
-// "database is locked", and the final row count is exact.
+// interleave without corruption. SQLite serializes per STATEMENT, not per
+// loop: with no busy_timeout, either writer may drop individual INSERTs while
+// the peer holds the write lock (sqlite3 3.54 oracle reproduced a final count
+// of 18). The invariant is that surviving rows are unique, come only from the
+// two writers' key spaces, and leave an integrity-clean file.
 func TestNativeThreadConcurrentWritersSerialize(t *testing.T) {
 	path := filepath.Join(t.TempDir(), "thr.db")
 	db1, err := Open(path)
@@ -62,16 +64,29 @@ func TestNativeThreadConcurrentWritersSerialize(t *testing.T) {
 		t.Fatalf("unexpected insert error: %v", e)
 	}
 
-	r := db1.Query("SELECT count(*), count(DISTINCT v) FROM t")
+	r := db1.Query("SELECT a, v FROM t ORDER BY a")
 	if r.Error != nil {
 		t.Fatal(r.Error)
 	}
-	count, _ := r.Rows[0][0].(int64)
-	distinct, _ := r.Rows[0][1].(int64)
-	// Writers serialize: either all inserts landed, or locked writers
-	// dropped theirs — but no duplicate/corrupt rows ever exist.
-	if count < perConn || count != distinct {
-		t.Fatalf("count=%d distinct=%d, want count>=200 and count==distinct", count, distinct)
+	if len(r.Rows) == 0 || len(r.Rows) > 2*perConn {
+		t.Fatalf("row count=%d, want 1..%d", len(r.Rows), 2*perConn)
+	}
+	seenRowID := make(map[int64]bool, len(r.Rows))
+	seenValue := make(map[int64]bool, len(r.Rows))
+	for _, row := range r.Rows {
+		rowID, idOK := row[0].(int64)
+		v, valueOK := row[1].(int64)
+		if !idOK || !valueOK {
+			t.Fatalf("unexpected row shape: %#v", row)
+		}
+		if seenRowID[rowID] || seenValue[v] {
+			t.Fatalf("duplicate row after concurrent writes: rowid=%d v=%d", rowID, v)
+		}
+		if !((v >= 1000000 && v < 1000000+perConn) || (v >= 2000000 && v < 2000000+perConn)) {
+			t.Fatalf("value outside both writers' key spaces: v=%d", v)
+		}
+		seenRowID[rowID] = true
+		seenValue[v] = true
 	}
 	if r2 := db2.Query("PRAGMA integrity_check"); r2.Error != nil || fmt.Sprint(r2.Rows[0][0]) != "ok" {
 		t.Fatalf("integrity after concurrent writes: %v %v", r2.Rows, r2.Error)
