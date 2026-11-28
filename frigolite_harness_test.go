@@ -3262,7 +3262,6 @@ func harnessShardAssignments(families []harnessShardFamily, shardCount int) map[
 	if shardCount < 1 {
 		return assignments
 	}
-	loads := make([]int64, shardCount)
 	ordered := append([]harnessShardFamily(nil), families...)
 	sort.SliceStable(ordered, func(i, j int) bool {
 		ci, cj := harnessShardCost(ordered[i]), harnessShardCost(ordered[j])
@@ -3271,15 +3270,12 @@ func harnessShardAssignments(families []harnessShardFamily, shardCount int) map[
 		}
 		return ordered[i].name < ordered[j].name
 	})
-	for _, family := range ordered {
-		shard := 0
-		for i := 1; i < shardCount; i++ {
-			if loads[i] < loads[shard] {
-				shard = i
-			}
-		}
-		assignments[family.name] = shard
-		loads[shard] += harnessShardCost(family)
+	// Round-robin over the cost-sorted families gives every shard one of the
+	// largest families and spreads the medium ones evenly. The previous
+	// min-load greedy repeatedly made the last shard a dump for medium
+	// families, which made that one CI job much heavier than its peers.
+	for i, family := range ordered {
+		assignments[family.name] = i % shardCount
 	}
 	return assignments
 }

@@ -47,7 +47,8 @@
 > runner shutdown) while race group 0, native race, builds and compat passed;
 > coverage shards now run one shard per matrix job (24-way partition) with a
 > merge job for the unchanged coverage ratchet; both keep the 120m shard
-> timeout, memory cap and strict leaf checker.
+> timeout, memory cap and strict leaf checker. Harness families are now
+> round-robin distributed over 24 shards so no single shard is overloaded.
 > See the CI handoff.
 
 ## Goal

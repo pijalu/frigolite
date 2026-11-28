@@ -424,3 +424,12 @@ passed, so both matrices now use 24 shards (`FRIGOLITE_SHARD_TOTAL=24`) and
 the merge gate expects 24 coverdata directories. This redistributes the
 heavy families that made the old shard 11 a repeated runner-kill target; the
 global partition, leaf baseline and coverage ratchet are unchanged.
+
+Both matrices still burdened the last shard in every run even after
+repartitioning: shard 11 of 12 and shard 23 of 24 each died repeatedly while
+every other shard passed. `harnessShardAssignments` used a min-load greedy
+over cost-sorted families; because the top families dominate the cost, the
+last shard received the smallest top family plus the bulk of the medium ones.
+It now assigns cost-sorted families round-robin, so each shard gets one large
+family and the medium ones spread evenly. `TestHarnessShardAssignments`
+still passes (including its observed-slow and determinism pins).
