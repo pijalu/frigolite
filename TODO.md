@@ -49,7 +49,8 @@
 > merge job for the unchanged coverage ratchet; both keep the 120m shard
 > timeout, memory cap and strict leaf checker. Harness families are now
 > round-robin distributed over 24 shards so no single shard is overloaded.
-> See the CI handoff.
+> BLOCKER: GitHub hosted runners SIGTERM one shard job per run (no test
+> failure); all other jobs and local gates green. See the CI handoff.
 
 ## Goal
 

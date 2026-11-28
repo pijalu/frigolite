@@ -433,3 +433,19 @@ last shard received the smallest top family plus the bulk of the medium ones.
 It now assigns cost-sorted families round-robin, so each shard gets one large
 family and the medium ones spread evenly. `TestHarnessShardAssignments`
 still passes (including its observed-slow and determinism pins).
+
+## Status: external runner blocker
+
+Even after 24-way repartition and round-robin, one shard job per run is
+repeatedly SIGTERM'd by GitHub's hosted runner (`The runner has received a
+shutdown signal` / `hosted runner lost communication with the server`),
+always with no leaf, timeout or panic verdict. Re-running only that job also
+fails (shard 11 of 24 died in 28-33s on several attempts and at ~45m on
+others; shard 23 died repeatedly under the prior partition). Locally the same
+shard's exact `run_json_shards.sh` command completes with only the expected
+baseline leaves. Every other job — lint, staticcheck, complexity ratchet,
+fast pins, native race (all 10 shards), 23/24 race shards, 23/24 coverage
+shards, all five CLI builds and compat — passes. Local verify command and
+SOLID are green. No further code change can prevent a service-side runner
+shutdown; a green full run needs stable runner infrastructure (or a
+self-hosted runner).
