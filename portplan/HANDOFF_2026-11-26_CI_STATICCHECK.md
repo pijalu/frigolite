@@ -434,7 +434,37 @@ It now assigns cost-sorted families round-robin, so each shard gets one large
 family and the medium ones spread evenly. `TestHarnessShardAssignments`
 still passes (including its observed-slow and determinism pins).
 
-## Status: external runner blocker
+## Bounded auto-retry for hosted-runner shutdowns
+
+Shard repartitioning removed load imbalance but could not prevent the
+service-side SIGTERM: one shard job per run still died with exit 143 /
+`hosted runner lost communication` and no leaf verdict, while the same shard
+passed locally and on manual reruns.
+
+First attempt (commit `f81dbd73f`, run `46104780352`): a terminal `auto-retry`
+job inside `ci.yml` with `if: failure() && github.run_attempt < 5`, all gate
+jobs in `needs`, and one `gh api -X POST .../rerun-failed-jobs` step. It fired
+correctly on the runner kill but GitHub rejected the call with HTTP 403
+`This workflow is already running` — the retriggering job is itself part of
+that run, which cannot reach `completed` until the job finishes. A one-off
+manual POST after the run settled succeeded and produced attempt 2, proving
+the endpoint and `actions: write` token are sufficient.
+
+Final design: `.github/workflows/auto-retry.yml` watches `workflow_run`
+completion of `CI/CD` for failed `main` push/dispatch runs, reads the
+authoritative `run_attempt` from the Actions API, and POSTs
+`rerun-failed-jobs` only while `run_attempt < 5` (four retries max). Only
+failed jobs are re-executed; previously successful jobs are retained. A
+persistent real failure still fails the workflow after the cap. No
+`continue-on-error`, skipped shard, lowered threshold or suppressed leaf was
+introduced; `ci.yml` itself is back to its strict original gate set.
+
+Verification: local `ruby -ryaml` parse of both workflows, `go test -run
+TestSOLID_ ./...`, and the cross-engine/coercion pin set all pass (verify
+command printed `PASS`). Final green run ID to be recorded here once a fresh
+run with the watcher settles.
+
+## Status: external runner blocker (pre-mitigation history)
 
 Even after 24-way repartition and round-robin, one shard job per run is
 repeatedly SIGTERM'd by GitHub's hosted runner (`The runner has received a

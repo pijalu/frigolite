@@ -294,27 +294,6 @@ jobs:
     - name: Run compatibility tests
       run: go test -v -timeout 60s -run "^TestCompat" ./...
 
-  # A hosted runner occasionally SIGTERMs one shard job (exit 143 /
-  # "hosted runner lost communication") before any leaf verdict. Re-run only
-  # the failed jobs, at most four times; a real gate failure still fails the
-  # workflow once github.run_attempt reaches 5. No gate, baseline or leaf
-  # check is relaxed -- the retry only re-executes jobs the runner killed.
-  auto-retry:
-    name: Auto-retry transient runner shutdowns
-    if: failure() && github.run_attempt < 5
-    needs: [lint, fast-tests, native-race, harness-race, coverage-shards, coverage-merge, build-cli, compat-test]
-    runs-on: ubuntu-24.04
-    timeout-minutes: 10
-    permissions:
-      actions: write
-    steps:
-    - name: Re-run failed jobs
-      env:
-        GH_TOKEN: ${{ github.token }}
-        GH_REPO: ${{ github.repository }}
-        RUN_ID: ${{ github.run_id }}
-      run: gh api --method POST "repos/$GH_REPO/actions/runs/$RUN_ID/rerun-failed-jobs"
-
   release:
     name: Create Release
     if: startsWith(github.ref, 'refs/tags/v')

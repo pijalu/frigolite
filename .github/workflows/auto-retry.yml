@@ -1,0 +1,40 @@
+name: Auto-retry CI/CD
+
+# A hosted runner can SIGTERM one shard job (exit 143 / "hosted runner lost
+# communication") before any leaf verdict. A retry posted from inside that
+# same run is rejected by GitHub with "This workflow is already running", so
+# watch CI/CD completion from a separate workflow instead. Only failed jobs
+# are re-executed; no gate, baseline, threshold or leaf check is relaxed.
+# The attempt cap makes a persistent real failure fail the workflow.
+
+on:
+  workflow_run:
+    workflows: [CI/CD]
+    types: [completed]
+
+jobs:
+  retry-failed-jobs:
+    name: Retry failed CI/CD jobs
+    if: >-
+      github.event.workflow_run.conclusion == 'failure' &&
+      github.event.workflow_run.head_branch == 'main' &&
+      (github.event.workflow_run.event == 'push' ||
+       github.event.workflow_run.event == 'workflow_dispatch')
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    permissions:
+      actions: write
+    steps:
+    - name: Rerun failed jobs (bounded to four retries)
+      env:
+        GH_TOKEN: ${{ github.token }}
+        GH_REPO: ${{ github.repository }}
+        RUN_ID: ${{ github.event.workflow_run.id }}
+      run: |
+        attempt=$(gh api "repos/$GH_REPO/actions/runs/$RUN_ID" --jq .run_attempt)
+        if [ "$attempt" -ge 5 ]; then
+          echo "Attempt $attempt reached the retry cap; leaving the run failed."
+          exit 0
+        fi
+        echo "Attempt $attempt failed; re-running only failed jobs."
+        gh api --method POST "repos/$GH_REPO/actions/runs/$RUN_ID/rerun-failed-jobs"

@@ -3247,3 +3247,12 @@ Details: `portplan/HANDOFF_2026-11-25_DERIVED_COLLATION.md`.
     measured in MiB) below the runner budget. Verify the cap does not change
     the harness leaf set locally before relying on it; extend job timeouts for
     the extra batches rather than dropping shards or leaves.
+  - A retry job inside the failing run cannot call `rerun-failed-jobs`:
+    GitHub returns HTTP 403 `This workflow is already running` because the
+    run cannot reach `completed` until that job finishes. Use a separate
+    workflow triggered by `workflow_run: {workflows: [CI/CD], types:
+    [completed]}` instead; it fires after completion, so `gh api -X POST
+    repos/$GH_REPO/actions/runs/$RUN_ID/rerun-failed-jobs` with `github.token`
+    and `actions: write` succeeds. Read `run_attempt` from the Actions API in
+    the step (authoritative) and stop at 4 retries; re-run only failed jobs,
+    retaining all green gates.
