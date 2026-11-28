@@ -477,7 +477,24 @@ panic. Waiting for more retries cannot fix a service-side kill, so the CI
 shard matrices were doubled from 24 to 48 ways. Each runner now executes
 half as many fixture families per job; the union of shards, the strict leaf
 checker, the coverage ratchet and all timeouts are unchanged. The coverage
-merge gate now expects 48 coverdata directories instead of 24.
+merge gate now expects 48 coverdata directories instead of 24. On the first
+48-way run (`46118942970`) the runner killed shard 35 at 07:04:51Z with the
+same exit 143 / shutdown-signal pair (job `140898932072`), so the terminations
+are random across jobs rather than tied to one fixture family; the watcher
+will re-run just that job. By 07:58Z the 48-way run had 97 green jobs with
+the same single failure; only native race and coverage shard 35 were still
+running, and no leaf or baseline regression appeared. At 08:10:38Z watcher
+run `46124577694` succeeded and moved the CI run to attempt 2, re-executing
+only the killed shard. GitHub's jobs endpoint then returned HTTP 502 while
+the run-level status remained live; the jobs endpoint recovered when queried
+with `per_page=50` (the 502 was response-size related). Both race and coverage
+shard 35 are re-running on attempt 2 with unchanged strict checks. Attempts
+2-5 each re-ran only the killed shard; coverage shard 35 finally passed on
+attempt 5, but race shard 35 was SIGTERM'd again (job `140928968162`, exit
+143 at 09:07:12Z, ~2m37s into the harness step, no leaf). The four-retry cap
+was therefore exhausted and run `46118942970` ended `failure` at attempt 5.
+All 96 other shards/jobs passed on attempt 1; no leaf, timeout or baseline
+regression appeared in any attempt.
 
 ## Status: external runner blocker (pre-mitigation history)
 
