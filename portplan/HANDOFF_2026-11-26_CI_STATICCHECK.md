@@ -461,8 +461,23 @@ introduced; `ci.yml` itself is back to its strict original gate set.
 
 Verification: local `ruby -ryaml` parse of both workflows, `go test -run
 TestSOLID_ ./...`, and the cross-engine/coercion pin set all pass (verify
-command printed `PASS`). Final green run ID to be recorded here once a fresh
-run with the watcher settles.
+command printed `PASS`). Fresh run `46109779076` (commit `a54ba0893`) again
+lost Coverage Shard 11 within ~80s while other shards passed. The watcher
+was verified to fire on run completion (it skipped the cancelled old run);
+the watcher then retried automatically twice (watcher runs `46113395469` and
+`46113630194`, both `success`), moving CI run `46109779076` to attempt 3.
+Coverage shard 11 passed on attempt 3; race shard 11 was killed again, so the
+watcher moved the run to attempt 4 (and will allow one final attempt 5).
+Every gate script and timeout remains unchanged.
+
+The raw log for the attempt-4 failure (job `140893601571`) is decisive:
+`Process completed with exit code 143` and `The runner has received a
+shutdown signal` at 06:36:47Z, 2m18s into the harness step, with no leaf or
+panic. Waiting for more retries cannot fix a service-side kill, so the CI
+shard matrices were doubled from 24 to 48 ways. Each runner now executes
+half as many fixture families per job; the union of shards, the strict leaf
+checker, the coverage ratchet and all timeouts are unchanged. The coverage
+merge gate now expects 48 coverdata directories instead of 24.
 
 ## Status: external runner blocker (pre-mitigation history)
 

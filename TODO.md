@@ -49,11 +49,10 @@
 > merge job for the unchanged coverage ratchet; both keep the 120m shard
 > timeout, memory cap and strict leaf checker. Harness families are now
 > round-robin distributed over 24 shards so no single shard is overloaded.
-> BLOCKER: GitHub hosted runners SIGTERM one shard job per run (no test
-> failure); all other jobs and local gates green. See the CI handoff.
-> Mitigation landed: a separate `workflow_run` watcher re-runs only failed
-> jobs via the GitHub Actions API, bounded by four retries; no gate relaxed.
-> Verification runs in flight.
+> GitHub hosted runners SIGTERM'd one shard job per run (no test failure).
+> Mitigation: a `workflow_run` watcher re-runs only failed jobs (max four
+> retries) and both harness matrices are now 48-way splits so each job is
+> shorter; no gate, baseline or leaf check relaxed. See the CI handoff.
 
 ## Goal
 

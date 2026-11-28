@@ -11,8 +11,8 @@ if ! [[ $shards =~ ^[1-9][0-9]*$ ]]; then
   echo "shard count must be positive" >&2
   exit 2
 fi
-# Split runs execute a contiguous slice of a larger shard set: CI uses two
-# 6-shard jobs for the 12-shard race harness so neither job outlives a runner.
+# Split runs execute a contiguous slice of a larger shard set: CI gives each
+# hosted runner one shard so no job outlives the runner service.
 offset=${FRIGOLITE_SHARD_OFFSET:-0}
 total=${FRIGOLITE_SHARD_TOTAL:-$shards}
 if ! [[ $offset =~ ^[0-9]+$ ]] || ! [[ $total =~ ^[1-9][0-9]*$ ]]; then

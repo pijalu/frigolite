@@ -3255,4 +3255,8 @@ Details: `portplan/HANDOFF_2026-11-25_DERIVED_COLLATION.md`.
     repos/$GH_REPO/actions/runs/$RUN_ID/rerun-failed-jobs` with `github.token`
     and `actions: write` succeeds. Read `run_attempt` from the Actions API in
     the step (authoritative) and stop at 4 retries; re-run only failed jobs,
-    retaining all green gates.
+    retaining all green gates. Bounded retries do not fix a job the runner
+    kills on every attempt: confirm via the raw job log (exit 143 + shutdown
+    signal, no leaf) and halve each job's work by increasing the shard count
+    (24→48) while keeping the full fixture union, strict leaf checker and
+    coverage ratchet unchanged.

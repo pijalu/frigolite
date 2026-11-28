@@ -80,9 +80,9 @@ jobs:
     - name: Native race tests (10 shards)
       run: tools/run_native_race_shards.sh
 
-  # One shard per job: a two-shard group ran long enough (>1h) that hosted
-  # runners repeatedly SIGTERM'd it mid-batch. A single shard keeps every job
-  # short while preserving the global 12-way partition and leaf gate.
+  # One shard per job, 48-way partition: hosted runners SIGTERM long-running
+  # jobs, so each job gets a smaller family set while the global leaf gate
+  # and strict checker stay unchanged.
   harness-race:
     name: Race JSON Harness (shard ${{ matrix.shard }})
     runs-on: ubuntu-24.04
@@ -90,10 +90,10 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        shard: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23]
+        shard: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47]
     env:
       FRIGOLITE_SHARD_OFFSET: ${{ matrix.shard }}
-      FRIGOLITE_SHARD_TOTAL: '24'
+      FRIGOLITE_SHARD_TOTAL: '48'
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
@@ -104,7 +104,7 @@ jobs:
         go-version: '1.24'
         cache: true
 
-    - name: Race JSON harness (1 of 24 shards)
+    - name: Race JSON harness (1 of 48 shards)
       id: harness
       env:
         FRIGOLITE_SHARD_TIMEOUT: 120m
@@ -137,7 +137,7 @@ jobs:
         retention-days: 7
 
   # One coverage shard per runner; the merge job combines their coverdata.
-  # A single 12-shard job kept getting its runner reclaimed after ~1h.
+  # A 48-way split keeps each job short enough to outlive runner reclamation.
   coverage-shards:
     name: Coverage Shard ${{ matrix.shard }}
     runs-on: ubuntu-24.04
@@ -145,7 +145,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        shard: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23]
+        shard: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47]
     env:
       FRIGOLITE_SHARD_TIMEOUT: 120m
       FRIGOLITE_MEM_LIMIT: '1500'
@@ -160,7 +160,7 @@ jobs:
         cache: true
 
     - name: Run coverage shard
-      run: tools/run_coverage_shard.sh ${{ matrix.shard }} 24
+      run: tools/run_coverage_shard.sh ${{ matrix.shard }} 48
 
     - name: Upload coverdata
       if: always()
